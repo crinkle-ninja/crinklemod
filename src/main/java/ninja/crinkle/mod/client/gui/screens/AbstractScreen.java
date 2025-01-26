@@ -35,6 +35,7 @@ import java.util.function.Predicate;
 public abstract class AbstractScreen extends Screen implements TabIndexListener, KeySource, MouseSource, GuiManager {
     private static final int SCAN_OFFSET = 10;
     private static final int DOUBLE_CLICK_TIME = 300;
+    private static final int DOUBLE_CLICK_OFFSET = 2;
     private final EventManager eventManager = EventManager.createScreen();
     private final FocusManager focusManager = new FocusManager();
     private final DragManager dragManager = new DragManager(eventManager);
@@ -134,7 +135,8 @@ public abstract class AbstractScreen extends Screen implements TabIndexListener,
             return super.mouseClicked(pMouseX, pMouseY, pButton);
         }
         ClickState state = clickState.get();
-        if (state.button() == pButton && System.currentTimeMillis() - state.clickTime() < DOUBLE_CLICK_TIME) {
+        if (state.button() == pButton && System.currentTimeMillis() - state.clickTime() < DOUBLE_CLICK_TIME
+                && state.position().distance(pMouseX, pMouseY) < DOUBLE_CLICK_OFFSET) {
             List<EventListener> listeners = eventManager()
                     .map(m -> m.listeners(onlyHovered(pMouseX, pMouseY, 0)).stream().toList())
                     .orElse(List.of());
@@ -165,12 +167,15 @@ public abstract class AbstractScreen extends Screen implements TabIndexListener,
                 .filter(AbstractWidget::focusable)
                 .min(Comparator.comparingInt(AbstractWidget::priority))
                 .orElse(null);
+        if ((topFocusable == null || topFocusable != focusManager().currentFocus()) && focusManager().currentFocus() != null) {
+            Event event = new FocusLeftEvent(Scope.Screen, this, false, focusManager().currentFocus());
+            eventManager().ifPresent(m -> m.dispatchEvent(event));
+            focusManager().currentFocus(null);
+        }
         if (topFocusable != null && topFocusable.focusable()) {
             Event event = new FocusEnteredEvent(Scope.Screen, this, true, topFocusable);
             eventManager().ifPresent(m -> m.dispatchEvent(event));
-        } else {
-            Event event = new FocusLeftEvent(Scope.Screen, this, false, null);
-            eventManager().ifPresent(m -> m.dispatchEvent(event));
+            focusManager().currentFocus(topFocusable);
         }
         Event mousePressedEvent = new MousePressedEvent(Scope.Screen, this, pMouseX, pMouseY, pButton, listeners);
         eventManager().ifPresent(m -> m.dispatchEvent(mousePressedEvent));

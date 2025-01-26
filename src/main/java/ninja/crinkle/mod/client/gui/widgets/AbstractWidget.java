@@ -394,14 +394,6 @@ public abstract class AbstractWidget implements BoxModel, Renderable, Layout.Wid
         if (event.widget() == this) {
             dragged(false);
             pressed(false);
-            AbstractWidget topMost =
-                    event.listeners().stream().filter(listener -> listener instanceof AbstractWidget && listener != this).map(listener -> (AbstractWidget) listener).max(Comparator.comparingInt(AbstractWidget::zIndex)).orElse(null);
-//            if (topMost != null && topMost != this) {
-//                int newZ = topMost.zIndex() + DragManager.Z_STEP;
-//                int newPriority = topMost.priority() + DragManager.PRIORITY_STEP;
-//                zIndex(newZ);
-//                priority(newPriority);
-//            }
             event.consumer(this);
         }
     }
@@ -473,19 +465,6 @@ public abstract class AbstractWidget implements BoxModel, Renderable, Layout.Wid
 
     public void pressed(boolean pressed) {
         behavior(behavior().withPressed(pressed));
-    }
-
-    @Override
-    public void onFocus(FocusEvent event) {
-        LOGGER.debug("Focus event: {}", event);
-        if (event.cancelled()) return;
-        if (event.focused() && !focused()) {
-            focused(true);
-            event.consumer(this);
-        } else if (!event.focused() && focused()) {
-            focused(false);
-            event.consumer(this);
-        }
     }
 
     public boolean focused() {

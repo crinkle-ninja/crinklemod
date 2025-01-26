@@ -25,6 +25,10 @@ public interface Point {
 
     Point copy();
 
+    default int distance(double pMouseX, double pMouseY) {
+        return (int) Math.sqrt(Math.pow(pMouseX - x(), 2) + Math.pow(pMouseY - y(), 2));
+    }
+
     Point subtract(double x, double y);
 
     Point subtract(int x, int y);

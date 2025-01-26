@@ -26,25 +26,4 @@ public class FocusManager implements FocusListener {
     public String name() {
         return FocusManager.class.getSimpleName();
     }
-
-    @Override
-    public void onFocusEntered(FocusEnteredEvent event) {
-        if (currentFocus != null) {
-            currentFocus.focused(false);
-        }
-        currentFocus = event.focusSource();
-        if (currentFocus != null) {
-            currentFocus.focused(true);
-        }
-        event.consumer(this);
-    }
-    
-    @Override
-    public void onFocusLeft(FocusLeftEvent event) {
-        if ((currentFocus == event.focusSource() || event.focusSource() == null) && currentFocus != null) {
-            currentFocus.focused(false);
-            currentFocus = null;
-            event.consumer(this);
-        }
-    }
 }

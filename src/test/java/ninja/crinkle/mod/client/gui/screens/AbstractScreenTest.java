@@ -3,13 +3,9 @@ package ninja.crinkle.mod.client.gui.screens;
 import net.minecraft.network.chat.Component;
 import ninja.crinkle.mod.client.gui.events.*;
 import ninja.crinkle.mod.client.gui.events.listeners.EventListener;
-import ninja.crinkle.mod.client.gui.events.listeners.InputListener;
 import ninja.crinkle.mod.client.gui.events.listeners.KeyListener;
 import ninja.crinkle.mod.client.gui.events.listeners.MouseListener;
 import ninja.crinkle.mod.client.gui.layouts.Layout;
-import ninja.crinkle.mod.client.gui.managers.DragManager;
-import ninja.crinkle.mod.client.gui.managers.EventManager;
-import ninja.crinkle.mod.client.gui.managers.FocusManager;
 import ninja.crinkle.mod.client.gui.managers.StateManager;
 import ninja.crinkle.mod.client.gui.properties.Point;
 import ninja.crinkle.mod.client.gui.themes.Style;
@@ -23,11 +19,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.Spy;
 import org.mockito.stubbing.Answer;
 
 import java.util.Map;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -128,7 +122,7 @@ class AbstractScreenTest {
     }
 
     @Test
-    void mouseClicked_withFocus() {
+    void mouseClicked_withFocus() throws InterruptedException {
         var widgets = setupWidgets();
         doCallRealMethod().when(screen).mouseClicked(anyInt(), anyInt(), anyInt());
         Point button = widgets.get("button").layout().boxes().rendered().box().start().add(2, 2);
@@ -146,6 +140,8 @@ class AbstractScreenTest {
         // Click away to unfocus
         Point parent = widgets.get("parent").layout().boxes().rendered().box().bottomRight().add(2, 2);
         screen.mouseClicked(parent.x(), parent.y(), 0);
+        verify(widgets.get("button"), never()).onClick(any(ClickEvent.class));
+        verify(widgets.get("button"), atLeastOnce()).focused(false);
         assertFalse(widgets.get("button").focused(), "Expected button to not be focused");
     }
 
@@ -304,9 +300,8 @@ class AbstractScreenTest {
         doAnswer(consumeEvent()).when(listener).onCharTyped(any());
         screen.addListener(listener);
         screen.charTyped('a', 0);
-        verify(listener, times(1)).onCharTyped(assertArg(event -> {
-            assertEquals('a', event.codePoint(), "Expected character to be 'a'");
-        }));
+        verify(listener, times(1)).onCharTyped(assertArg(event ->
+                assertEquals('a', event.codePoint(), "Expected character to be 'a'")));
     }
 
     @Test

@@ -10,9 +10,9 @@ import ninja.crinkle.mod.client.gui.states.references.ValueRef;
 import java.util.function.BiConsumer;
 
 public class Button extends AbstractContainer {
-    private BiConsumer<ClickEvent, AbstractWidget> onClick;
+    private final BiConsumer<ClickEvent, AbstractWidget> onClick;
     private Label text;
-    private ValueRef<Boolean> down = manager().stateStorage().createValue(Boolean.class, false);
+    private final ValueRef<Boolean> down = manager().stateStorage().createValue(Boolean.class, false);
 
     protected Button(Builder builder) {
         super(builder);

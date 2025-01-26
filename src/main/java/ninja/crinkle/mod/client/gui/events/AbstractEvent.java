@@ -48,7 +48,7 @@ public abstract class AbstractEvent implements Event {
 
     @Override
     public boolean propagate() {
-        return !cancelled && !consumed;
+        return !cancelled;
     }
 
     @Override
