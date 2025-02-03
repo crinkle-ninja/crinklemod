@@ -5,8 +5,7 @@ import ninja.crinkle.mod.metabolism.Metabolism;
 public class CharacterSpriteGroup extends SpriteGroup {
     public static final CharacterSpriteGroup NORMAL = new CharacterSpriteGroup(2, "normal");
     public static final CharacterSpriteGroup DESPERATE = new CharacterSpriteGroup(2, "desperate");
-    public static final CharacterSpriteGroup VERY_DESPERATE =
-            new CharacterSpriteGroup(2, "very_desperate");
+    public static final CharacterSpriteGroup VERY_DESPERATE = new CharacterSpriteGroup(2, "very_desperate");
     public static final CharacterSpriteGroup EXTREMELY_DESPERATE =
             new CharacterSpriteGroup("desperate1", "desperate2", "very_desperate1", "very_desperate2");
     public static final CharacterSpriteGroup ACCIDENT = new CharacterSpriteGroup("accident1", "accident2",
@@ -25,19 +24,12 @@ public class CharacterSpriteGroup extends SpriteGroup {
         super(OFFSET_X, OFFSET_Y, SPRITE_SIZE, GROUP_NAME, spriteNames);
     }
 
-    public static CharacterSpriteGroup of(Metabolism metabolism) {
-        if (!metabolism.isNumberOneDesperate() && !metabolism.isNumberTwoDesperate()) {
-            return NORMAL;
-        }
-
-        Metabolism.DesperationLevel numberOne = metabolism.getNumberOneDesperationLevel();
-        Metabolism.DesperationLevel numberTwo = metabolism.getNumberTwoDesperationLevel();
-        Metabolism.DesperationLevel desperation = numberOne.compareTo(numberTwo) > 0 ? numberOne : numberTwo;
-
-        return switch (desperation) {
-            case MEDIUM_LOW, MEDIUM -> DESPERATE;
-            case MEDIUM_HIGH, HIGH -> VERY_DESPERATE;
-            default -> NORMAL;
+    public static CharacterSpriteGroup forLevel(Metabolism.DesperationLevel level) {
+        return switch (level) {
+            case MEDIUM_LOW -> DESPERATE;
+            case MEDIUM, MEDIUM_HIGH -> VERY_DESPERATE;
+            case HIGH -> EXTREMELY_DESPERATE;
+            case NONE, LOW -> NORMAL;
         };
     }
 }

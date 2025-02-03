@@ -1,6 +1,6 @@
 package ninja.crinkle.mod.client.animations;
 
-import ninja.crinkle.mod.metabolism.Metabolism;
+import ninja.crinkle.mod.events.CrinkleEvent;
 
 public class BubbleSpriteGroup extends SpriteGroup {
     public static final BubbleSpriteGroup NORMAL = new BubbleSpriteGroup(2, "normal");
@@ -20,15 +20,12 @@ public class BubbleSpriteGroup extends SpriteGroup {
         super(OFFSET_X, OFFSET_Y, SPRITE_SIZE, GROUP_NAME, spriteNames);
     }
 
-    public static BubbleSpriteGroup of(Metabolism metabolism) {
-        if (metabolism.isNumberOneDesperate() && metabolism.isNumberTwoDesperate()) {
-            return BOTH;
-        } else if (metabolism.isNumberOneDesperate()) {
-            return WET;
-        } else if (metabolism.isNumberTwoDesperate()) {
-            return MESSY;
-        } else {
-            return NORMAL;
-        }
+    public static BubbleSpriteGroup forType(CrinkleEvent.Type type) {
+        return switch (type) {
+            case BLADDER -> WET;
+            case BOWEL -> MESSY;
+            case BOTH -> BOTH;
+            default -> NORMAL;
+        };
     }
 }

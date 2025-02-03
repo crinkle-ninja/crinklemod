@@ -3,10 +3,15 @@ package ninja.crinkle.mod.client.gui.screens;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
+import ninja.crinkle.mod.client.color.Color;
 import ninja.crinkle.mod.client.gui.layouts.Layout;
 import ninja.crinkle.mod.client.gui.properties.ImmutablePoint;
+import ninja.crinkle.mod.client.gui.properties.Position;
 import ninja.crinkle.mod.client.gui.widgets.AbstractContainer;
+import ninja.crinkle.mod.client.gui.widgets.MetabolismWidget;
+import ninja.crinkle.mod.config.ClientConfig;
 import ninja.crinkle.mod.util.ClientUtil;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
 public class TestScreen extends AbstractScreen {
@@ -25,7 +30,7 @@ public class TestScreen extends AbstractScreen {
     protected void init() {
         AbstractContainer vPanel = root().addContainer()
                 .name("window0")
-          .relative(20, 20)
+                .relative(20, 20)
                 .size(300, 200)
                 .widgetTheme("panel")
                 .layoutManager(Layout.vertical().alignment(Layout.Alignment.CENTER).spacing(5))
@@ -61,9 +66,9 @@ public class TestScreen extends AbstractScreen {
             String[] themes = {"button_primary", "button_secondary", "button"};
             for (int i = 0; i < 3; i++) {
                 hPanel.addButton()
-                        .name("button" + i+p)
+                        .name("button" + i + p)
                         .widgetTheme(themes[i])
-                        .text("Button " + i+p)
+                        .text("Button " + i + p)
                         .onClick((event, widget) -> LOGGER.info("Button {} clicked", widget.name()))
                         .relative(ImmutablePoint.ZERO)
                         .margin(2)
@@ -76,7 +81,7 @@ public class TestScreen extends AbstractScreen {
     }
 
     @Override
-    public void render(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
+    public void render(@NotNull GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         renderBackground(pGuiGraphics);
         super.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
     }

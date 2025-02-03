@@ -64,6 +64,10 @@ public abstract class AbstractContainer extends AbstractWidget implements InputS
         return this;
     }
 
+    public AnimatedWidget.Builder addAnimation() {
+        return new AnimatedWidget.Builder(this);
+    }
+
     public Button.Builder addButton() {
         return new Button.Builder(this);
     }

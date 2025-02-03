@@ -12,6 +12,7 @@ import ninja.crinkle.mod.capabilities.IMetabolism;
 import ninja.crinkle.mod.capabilities.MetabolismCapabilities;
 import ninja.crinkle.mod.events.AccidentEvent;
 import ninja.crinkle.mod.events.CrinkleEvent;
+import ninja.crinkle.mod.events.DesperationEvent;
 import ninja.crinkle.mod.network.CrinkleChannel;
 import ninja.crinkle.mod.network.messages.MetabolismUpdateMessage;
 import ninja.crinkle.mod.undergarment.Undergarment;
@@ -50,6 +51,7 @@ public class Metabolism implements ServerUpdater {
         int safeRolls;
         double chance;
         CrinkleEvent.Type accidentType = CrinkleEvent.Type.NONE;
+        DesperationLevel desperationLevel = DesperationLevel.NONE;
 
         protected DesperationLevel getDesperationLevel() {
             int dangerRolls = rolls - safeRolls;
@@ -69,16 +71,26 @@ public class Metabolism implements ServerUpdater {
             updateMetabolism();
         }
 
+        protected CrinkleEvent.Type getDesperationType() {
+            return type == MetabolismDataType.NUMBER_ONE ? CrinkleEvent.Type.BLADDER : CrinkleEvent.Type.BOWEL;
+        }
+
         protected void tick() {
             if (!enabled) return;
             rolls++;
             updateMetabolism();
             if (rolls < safeRolls) return;
             double roll = Math.random();
-            int desperationLevel = getDesperationLevel() == DesperationLevel.NONE ? 0 : getDesperationLevel().getLevel();
-            if (rolls >= safeRolls && (roll - (double) (desperationLevel * 2) / 100) < chance) {
+            DesperationLevel newDesperationLevel = getDesperationLevel();
+
+            if (newDesperationLevel != DesperationLevel.NONE
+                    && rolls >= safeRolls && (roll - (double) (newDesperationLevel.getLevel() * 2) / 100) < chance) {
                 triggerAccident(true);
             }
+            if (desperationLevel != getDesperationLevel()) {
+                CrinkleMod.EVENT_BUS.post(new DesperationEvent(player, getDesperationLevel(), CrinkleEvent.Side.SERVER, getDesperationType()));
+            }
+            desperationLevel = getDesperationLevel();
         }
 
         private void rollAdditionalAccident() {
@@ -346,6 +358,8 @@ public class Metabolism implements ServerUpdater {
         }
 
         public static DesperationLevel max(DesperationLevel a, DesperationLevel b) {
+            if (a == null) return b;
+            if (b == null) return a;
             return a.level > b.level ? a : b;
         }
     }

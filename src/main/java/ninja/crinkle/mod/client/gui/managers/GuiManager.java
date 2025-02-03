@@ -1,6 +1,5 @@
 package ninja.crinkle.mod.client.gui.managers;
 
-import com.mojang.blaze3d.platform.InputConstants;
 import ninja.crinkle.mod.client.gui.states.references.StateStorageRef;
 import ninja.crinkle.mod.client.gui.states.storages.StateStorage;
 import ninja.crinkle.mod.client.gui.widgets.AbstractContainer;

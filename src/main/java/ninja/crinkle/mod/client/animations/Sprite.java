@@ -13,21 +13,23 @@ public class Sprite {
     private final int width;
     private final int height;
     private final ResourceLocation sprite;
+    private final float frameTicks;
 
-    public Sprite(int x, int y, int width, int height, ResourceLocation sprite) {
+    public Sprite(int x, int y, int width, int height, ResourceLocation sprite, float frameTicks) {
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
         this.sprite = sprite;
-    }
-
-    public Sprite(int width, int height, ResourceLocation sprite) {
-        this(0, 0, width, height, sprite);
+        this.frameTicks = frameTicks;
     }
 
     public static Builder builder() {
         return new Builder();
+    }
+
+    public float frameTicks() {
+        return frameTicks;
     }
 
     public int getX() {
@@ -50,9 +52,9 @@ public class Sprite {
         return sprite;
     }
 
-    public void render(GuiGraphics guiGraphics, int xOffset, int yOffset) {
+    public void render(GuiGraphics guiGraphics, int xOffset, int yOffset, int blitOffset) {
         TextureAtlasSprite sprite = Textures.getInstance().getSpriteLoader(SpriteLoaderType.SPRITE).getSprite(getSprite());
-        guiGraphics.blit(getX() + xOffset, getY() + yOffset, 0, getWidth(), getHeight(), sprite);
+        guiGraphics.blit(getX() + xOffset, getY() + yOffset, blitOffset, getWidth(), getHeight(), sprite);
     }
 
     public static class Builder {
@@ -60,7 +62,17 @@ public class Sprite {
         private int y = 0;
         private int width = 0;
         private int height = 0;
+        private int frameTicks = 20;
         private ResourceLocation sprite = null;
+
+        public int frameTicks() {
+            return frameTicks;
+        }
+
+        public Builder frameTicks(int frameTicks) {
+            this.frameTicks = frameTicks;
+            return this;
+        }
 
         public Builder x(int x) {
             this.x = x;
@@ -123,7 +135,7 @@ public class Sprite {
         }
 
         public Sprite build() {
-            return new Sprite(x, y, width, height, sprite);
+            return new Sprite(x, y, width, height, sprite, frameTicks);
         }
     }
 }

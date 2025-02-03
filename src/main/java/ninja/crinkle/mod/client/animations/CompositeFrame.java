@@ -20,10 +20,18 @@ public class CompositeFrame {
         return sprites;
     }
 
-    public void render(GuiGraphics guiGraphics, int xOffset, int yOffset) {
+    public void render(GuiGraphics guiGraphics, int xOffset, int yOffset, int blitOffset) {
         for (Sprite sprite : sprites) {
-            sprite.render(guiGraphics, xOffset, yOffset);
+            sprite.render(guiGraphics, xOffset, yOffset, blitOffset);
         }
+    }
+
+    public int width() {
+        return sprites.stream().mapToInt(s -> s.getWidth() + s.getX()).max().orElse(0);
+    }
+
+    public int height() {
+        return sprites.stream().mapToInt(s -> s.getHeight() + s.getY()).max().orElse(0);
     }
 
     public static class Builder {

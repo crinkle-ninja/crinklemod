@@ -25,9 +25,9 @@ import ninja.crinkle.mod.client.gui.states.WidgetLayout;
 import ninja.crinkle.mod.client.gui.states.references.ValueRef;
 import ninja.crinkle.mod.client.gui.textures.Texture;
 import ninja.crinkle.mod.client.gui.textures.ThemeAtlas;
-import ninja.crinkle.mod.client.gui.themes.ThemeRegistry;
-import ninja.crinkle.mod.client.gui.themes.StyleVariant;
 import ninja.crinkle.mod.client.gui.themes.Style;
+import ninja.crinkle.mod.client.gui.themes.StyleVariant;
+import ninja.crinkle.mod.client.gui.themes.ThemeRegistry;
 import ninja.crinkle.mod.config.ClientConfig;
 import ninja.crinkle.mod.util.ClientUtil;
 import org.jetbrains.annotations.NotNull;
@@ -48,8 +48,8 @@ public abstract class AbstractWidget implements BoxModel, Renderable, Layout.Wid
     private String name;
     private AbstractContainer parent;
     private int priority;
-    private int tabIndex;
     private Style style;
+    private int tabIndex;
 
     protected AbstractWidget(@NotNull AbstractBuilder<?> builder) {
         this.activePredicate = builder.activePredicate();
@@ -72,258 +72,6 @@ public abstract class AbstractWidget implements BoxModel, Renderable, Layout.Wid
         if (builder.priority() == 0) {
             parent().filter(p -> !p.equals(this)).ifPresent(p -> priority(nextPriority()));
         }
-    }
-
-    public AbstractWidget() {
-        this.activePredicate = null;
-        this.name = "Unnamed_" + hashCode();
-        this.scopes.addAll(List.of(Scope.Local, Scope.Screen));
-        this.style = Style.getDefault();
-        this.tabIndex = 0;
-        this.manager = GuiManager.create();
-        this.priority = 1;
-        this.parent = null;
-        this.display = null;
-        this.behavior = null;
-        this.layout = null;
-    }
-
-    public static int zIndexOf(AbstractWidget widget) {
-        return widget.zIndex();
-    }
-
-    public boolean focusable() {
-        return behavior().focusable();
-    }
-
-    public void focusable(boolean focusable) {
-        behavior(behavior().withFocusable(focusable));
-    }
-
-    public int zIndex() {
-        return display().zIndex();
-    }
-
-    public WidgetDisplay display() {
-        return display.get();
-    }
-
-    public void active(boolean active) {
-        behavior(behavior().withActive(active));
-    }
-
-    public void behavior(WidgetBehavior behavior) {
-        this.behavior.set(behavior);
-    }
-
-    public WidgetBehavior behavior() {
-        return behavior.get();
-    }
-
-    public void active(Predicate<AbstractWidget> activePredicate) {
-        this.activePredicate = activePredicate;
-    }
-
-    public boolean active() {
-        if (activePredicate != null) {
-            return activePredicate.test(this);
-        }
-        return behavior().active();
-    }
-
-    public void alpha(float alpha) {
-        display(display().withAlpha(alpha));
-    }
-
-    public void display(WidgetDisplay display) {
-        this.display.set(display);
-    }
-
-    public float alpha() {
-        return display().alpha();
-    }
-
-    public ValueRef<WidgetBehavior> behaviorRef() {
-        return behavior;
-    }
-
-    @SafeVarargs
-    public final Optional<AbstractContainer> bottomMostParent(Predicate<AbstractContainer>... predicates) {
-        AbstractContainer parent = parentOrThrow();
-        while (parent.parent().isPresent()) {
-            final AbstractContainer finalParent = parent;
-            if (Arrays.stream(predicates).allMatch(predicate -> predicate.test(finalParent))) {
-                return Optional.of(parent);
-            }
-            parent = parent.parentOrThrow();
-        }
-        return Optional.of(parent);
-    }
-
-    public ValueRef<WidgetDisplay> displayRef() {
-        return display;
-    }
-
-    public void draggable(boolean draggable) {
-        behavior(behavior().withDraggable(draggable));
-    }
-
-    public boolean draggable() {
-        return behavior().draggable();
-    }
-
-    public void dragged(boolean dragged) {
-        if (dragged == dragged()) return;
-        behavior(behavior().withDragged(dragged));
-    }
-
-    @Override
-    public Optional<EventManager> eventManager(Scope scope) {
-        return switch (scope) {
-            case Screen -> manager().eventManager();
-            case Local -> eventManager();
-            case Global -> Optional.ofNullable(EventManager.global());
-        };
-    }
-
-    public GuiManager manager() {
-        return manager;
-    }
-
-    public void hovered(boolean hovered) {
-        if (!behavior().hoverable())
-            return;
-        if (hovered != hovered()) {
-            Point mouse = ClientUtil.getMousePosition();
-            dispatchEvent(new HoverEvent(Scope.Local, this, mouse.x(), mouse.y(), hovered));
-        }
-        behavior(behavior().withHovered(hovered));
-    }
-
-    public boolean hovered() {
-        return behavior().hovered();
-    }
-
-    public boolean pressed() {
-        return behavior().pressed();
-    }
-
-    @Override
-    public boolean mouseOver(Point position) {
-        return layout().boxes().rendered().borderBox().contains(position);
-    }
-
-    @Override
-    public boolean dragged() {
-        return behavior().dragged();
-    }
-
-    protected void init() {
-    }
-
-    public ValueRef<WidgetLayout> layoutRef() {
-        return layout;
-    }
-
-    @Override
-    public Margin margin() {
-        return layout().margin();
-    }
-
-    @Override
-    public void margin(Margin margin) {
-        layout(layout().withMargin(margin));
-    }
-
-    @Override
-    public Padding padding() {
-        return layout().padding();
-    }
-
-    @Override
-    public void padding(Padding padding) {
-        layout(layout().withPadding(padding));
-    }
-
-    @Override
-    public Border border() {
-        return layout().border();
-    }
-
-    @Override
-    public void border(Border border) {
-        layout(layout().withBorder(border));
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) return true;
-        if (obj == null || obj.getClass() != this.getClass()) return false;
-        var that = (AbstractWidget) obj;
-        return Objects.equals(this.activePredicate, that.activePredicate) &&
-                Objects.equals(this.name, that.name) &&
-                Objects.equals(this.scopes, that.scopes) &&
-                Objects.equals(this.style, that.style) &&
-                this.tabIndex == that.tabIndex &&
-                this.priority == that.priority &&
-                Objects.equals(this.parent, that.parent) &&
-                Objects.equals(this.display, that.display) &&
-                Objects.equals(this.behavior, that.behavior) &&
-                Objects.equals(this.layout, that.layout);
-    }
-
-    @Override
-    public Position renderedPosition() {
-        Position position = layout().position();
-        if (position.absolute()) return position;
-        return position.withBase(parent().map(p -> p.layout().boxes().rendered().contentBox().position().point()).orElse(ImmutablePoint.ZERO)).withType(Position.Type.Absolute);
-    }
-
-    @Override
-    public Position parentPosition() {
-        return Optional.ofNullable(parentOrThrow()).map(AbstractWidget::renderedPosition).orElse(Position.absolute(0,
-                0));
-    }
-
-    @Override
-    public int totalHeight() {
-        return this.layout().size().height();
-    }
-
-    @Override
-    public int totalWidth() {
-        return this.layout().size().width();
-    }
-
-    @Override
-    public abstract void renderContent(ThemeGraphics graphics, Point pMouse, Box renderedBox, float pPartialTick);
-
-    @Override
-    public void renderDebug(ThemeGraphics pGuiGraphics) {
-        if (parentOrThrow() == null) return;
-        Box pOuter = layout().boxes().rendered().box();
-        Box pBorder = layout().boxes().rendered().borderBox();
-        Box pBackground = layout().boxes().rendered().backgroundBox();
-        Box pPadding = layout().boxes().rendered().paddingBox();
-        Box pInner = layout().boxes().rendered().contentBox();
-        // Render an outline around the widget
-        pGuiGraphics.drawBox(pOuter.subtract(1, 1, -2, -2), Color.WHITE, zIndex());
-        pGuiGraphics.drawBox(pOuter, Color.RED, zIndex());
-        pGuiGraphics.drawBox(pBorder, Color.GREEN, zIndex());
-        pGuiGraphics.drawBox(pBackground, Color.CYAN, zIndex());
-        pGuiGraphics.drawBox(pPadding, Color.YELLOW, zIndex());
-        pGuiGraphics.drawBox(pInner, Color.BLUE, zIndex());
-    }
-
-    public AbstractContainer parentOrThrow() {
-        if (parent == null) {
-            throw new IllegalStateException("Parent cannot be null");
-        }
-        return parent;
-    }
-
-    public void layout(WidgetLayout layout) {
-        this.layout.set(layout);
     }
 
     public WidgetLayout layout() {
@@ -357,16 +105,342 @@ public abstract class AbstractWidget implements BoxModel, Renderable, Layout.Wid
         return name;
     }
 
-    public void name(String name) {
-        this.name = name;
+    public void layout(WidgetLayout layout) {
+        this.layout.set(layout);
+    }
+
+    public Optional<AbstractContainer> parent() {
+        return Optional.ofNullable(parent);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (obj == null || obj.getClass() != this.getClass()) return false;
+        var that = (AbstractWidget) obj;
+        return Objects.equals(this.activePredicate, that.activePredicate) &&
+                Objects.equals(this.name, that.name) &&
+                Objects.equals(this.scopes, that.scopes) &&
+                Objects.equals(this.style, that.style) &&
+                this.tabIndex == that.tabIndex &&
+                this.priority == that.priority &&
+                Objects.equals(this.parent, that.parent) &&
+                Objects.equals(this.display, that.display) &&
+                Objects.equals(this.behavior, that.behavior) &&
+                Objects.equals(this.layout, that.layout);
+    }
+
+    @Override
+    public String toString() {
+        return "AbstractWidget{" + "active=" + active() + ", activePredicate=" + activePredicate + ", alpha=" + alpha() + ", border=" + border() + ", size=" + size() + ", clicked=" + pressed() + ", draggable=" + draggable() + ", dragged=" + dragged() + ", focused=" + focused() + ", hovered=" + hovered() + ", margin=" + margin() + ", name='" + name() + "'" + ", padding=" + padding() + ", position=" + position() + ", status=" + status() + ", tabIndex=" + tabIndex() + ", visible=" + visible() + ", widgetTheme=" + style + ", zIndex=" + zIndex() + '}';
+    }
+
+    public boolean active() {
+        if (activePredicate != null) {
+            return activePredicate.test(this);
+        }
+        return behavior().active();
+    }
+
+    public float alpha() {
+        return display().alpha();
+    }
+
+    public boolean draggable() {
+        return behavior().draggable();
+    }
+
+    public boolean focused() {
+        return behavior().focused();
+    }
+
+    public boolean hovered() {
+        return behavior().hovered();
+    }
+
+    public boolean pressed() {
+        return behavior().pressed();
+    }
+
+    @Override
+    public boolean mouseOver(Point position) {
+        return layout().boxes().rendered().borderBox().contains(position);
+    }
+
+    @Override
+    public boolean dragged() {
+        return behavior().dragged();
+    }
+
+    @Override
+    public Margin margin() {
+        return layout().margin();
+    }
+
+    @Override
+    public void margin(Margin margin) {
+        layout(layout().withMargin(margin));
+    }
+
+    @Override
+    public Padding padding() {
+        return layout().padding();
+    }
+
+    @Override
+    public void padding(Padding padding) {
+        layout(layout().withPadding(padding));
+    }
+
+    @Override
+    public Border border() {
+        return layout().border();
+    }
+
+    @Override
+    public void border(Border border) {
+        layout(layout().withBorder(border));
+    }
+
+    @Override
+    public Position renderedPosition() {
+        Position position = layout().position();
+        if (position.absolute()) return position;
+        return position.withBase(parent().map(p -> p.layout().boxes().rendered().contentBox().position().point()).orElse(ImmutablePoint.ZERO)).withType(Position.Type.Absolute);
+    }
+
+    @Override
+    public Position parentPosition() {
+        return Optional.ofNullable(parentOrThrow()).map(AbstractWidget::renderedPosition).orElse(Position.absolute(0,
+                0));
+    }
+
+    @Override
+    public int totalHeight() {
+        return this.layout().size().height();
+    }
+
+    @Override
+    public int totalWidth() {
+        return this.layout().size().width();
+    }
+
+    @Override
+    public abstract void renderContent(ThemeGraphics graphics, Point pMouse, Box renderedBox, float pPartialTick);
+
+    @Override
+    public void renderDebug(ThemeGraphics pGuiGraphics) {
+        if (parent().isEmpty()) return;
+        Box pOuter = layout().boxes().rendered().box();
+        Box pBorder = layout().boxes().rendered().borderBox();
+        Box pBackground = layout().boxes().rendered().backgroundBox();
+        Box pPadding = layout().boxes().rendered().paddingBox();
+        Box pInner = layout().boxes().rendered().contentBox();
+        // Render an outline around the widget
+        pGuiGraphics.drawBox(pOuter.subtract(1, 1, -2, -2), Color.WHITE, zIndex());
+        pGuiGraphics.drawBox(pOuter, Color.RED, zIndex());
+        pGuiGraphics.drawBox(pBorder, Color.GREEN, zIndex());
+        pGuiGraphics.drawBox(pBackground, Color.CYAN, zIndex());
+        pGuiGraphics.drawBox(pPadding, Color.YELLOW, zIndex());
+        pGuiGraphics.drawBox(pInner, Color.BLUE, zIndex());
+    }
+
+    public AbstractContainer parentOrThrow() {
+        if (parent == null) {
+            throw new IllegalStateException("Parent cannot be null");
+        }
+        return parent;
+    }
+
+    public Style.Variant status() {
+        return Style.Variant.from(this).stream().max(Comparator.comparingInt(Style.Variant::rank)).orElse(Style.Variant.base);
+    }
+
+    @Override
+    public int tabIndex() {
+        return tabIndex;
+    }
+
+    @Override
+    public void tabIndex(int tabIndex) {
+        if (tabIndex != tabIndex())
+            dispatchEvent(new TabIndexEvent(Scope.Screen, this, focused(), tabIndex(), tabIndex, this));
+        this.tabIndex = tabIndex;
+    }
+
+    public void dispatchEvent(AbstractEvent event) {
+        switch (event.scope()) {
+            case Screen -> manager.eventManager().ifPresent(manager -> manager.dispatchEvent(event));
+            case Local -> eventManager().ifPresent(manager -> manager.dispatchEvent(event));
+            case Global -> EventManager.global().dispatchEvent(event);
+        }
+    }
+
+    public boolean visible() {
+        return this.display.get().visible();
+    }
+
+    public WidgetBehavior behavior() {
+        return behavior.get();
+    }
+
+    public void focused(boolean focused) {
+        if (focused != focused()) {
+            if (focused) {
+                dispatchEvent(new FocusEnteredEvent(Scope.Local, this, true, this));
+            } else {
+                dispatchEvent(new FocusLeftEvent(Scope.Local, this, false, this));
+            }
+        }
+        behavior(behavior().withFocused(focused));
+    }
+
+    public void behavior(WidgetBehavior behavior) {
+        this.behavior.set(behavior);
+    }
+
+    public void zIndex(int zIndex) {
+        if (zIndex >= DragManager.Z_MAX) {
+            throw new IllegalArgumentException("Z-index cannot be set to maximum value");
+        }
+        display(display().withZIndex(zIndex));
+    }
+
+    private int nextZIndex() {
+        return parent().map(abstractContainer -> abstractContainer.children().stream().mapToInt(AbstractWidget::zIndex).max().orElse(abstractContainer.zIndex()) + DragManager.Z_STEP).orElse(DragManager.Z_STEP);
+    }
+
+    public void priority(int priority) {
+        this.priority = priority;
     }
 
     private int nextPriority() {
         return parent().map(abstractContainer -> abstractContainer.children().stream().mapToInt(AbstractWidget::priority).max().orElse(abstractContainer.priority()) - EventManager.PRIORITY_STEP).orElseGet(() -> EventManager.PRIORITY_STEP);
     }
 
-    private int nextZIndex() {
-        return parent().map(abstractContainer -> abstractContainer.children().stream().mapToInt(AbstractWidget::zIndex).max().orElse(abstractContainer.zIndex()) + DragManager.Z_STEP).orElse(DragManager.Z_STEP);
+    public void display(WidgetDisplay display) {
+        this.display.set(display);
+    }
+
+    public WidgetDisplay display() {
+        return display.get();
+    }
+
+    public int zIndex() {
+        return display().zIndex();
+    }
+
+    public int priority() {
+        return priority;
+    }
+
+    public AbstractWidget() {
+        this.activePredicate = null;
+        this.name = "Unnamed_" + hashCode();
+        this.scopes.addAll(List.of(Scope.Local, Scope.Screen));
+        this.style = Style.getDefault();
+        this.tabIndex = 0;
+        this.manager = GuiManager.create();
+        this.priority = 1;
+        this.parent = null;
+        this.display = null;
+        this.behavior = null;
+        this.layout = null;
+    }
+
+    public static int zIndexOf(AbstractWidget widget) {
+        return widget.zIndex();
+    }
+
+    public void active(boolean active) {
+        behavior(behavior().withActive(active));
+    }
+
+    public void active(Predicate<AbstractWidget> activePredicate) {
+        this.activePredicate = activePredicate;
+    }
+
+    public void addListener(EventListener listener) {
+        eventManager().ifPresent(manager -> manager.addListener(listener));
+    }
+
+    public void alpha(float alpha) {
+        display(display().withAlpha(alpha));
+    }
+
+    public ValueRef<WidgetBehavior> behaviorRef() {
+        return behavior;
+    }
+
+    @SafeVarargs
+    public final Optional<AbstractContainer> bottomMostParent(Predicate<AbstractContainer>... predicates) {
+        AbstractContainer parent = parentOrThrow();
+        while (parent.parent().isPresent()) {
+            final AbstractContainer finalParent = parent;
+            if (Arrays.stream(predicates).allMatch(predicate -> predicate.test(finalParent))) {
+                return Optional.of(parent);
+            }
+            parent = parent.parentOrThrow();
+        }
+        return Optional.of(parent);
+    }
+
+    public ValueRef<WidgetDisplay> displayRef() {
+        return display;
+    }
+
+    public void draggable(boolean draggable) {
+        behavior(behavior().withDraggable(draggable));
+    }
+
+    @Override
+    public Optional<EventManager> eventManager(Scope scope) {
+        return switch (scope) {
+            case Screen -> manager().eventManager();
+            case Local -> eventManager();
+            case Global -> Optional.ofNullable(EventManager.global());
+        };
+    }
+
+    public GuiManager manager() {
+        return manager;
+    }
+
+    public boolean focusable() {
+        return behavior().focusable();
+    }
+
+    public void focusable(boolean focusable) {
+        behavior(behavior().withFocusable(focusable));
+    }
+
+    private boolean hoverable() {
+        return behavior().hoverable();
+    }
+
+    public void hoverable(boolean hoverable) {
+        behavior(behavior().withHoverable(hoverable));
+    }
+
+    public void hovered(boolean hovered) {
+        if (!behavior().hoverable())
+            return;
+        if (hovered != hovered()) {
+            Point mouse = ClientUtil.getMousePosition();
+            dispatchEvent(new HoverEvent(Scope.Local, this, mouse.x(), mouse.y(), hovered));
+        }
+        behavior(behavior().withHovered(hovered));
+    }
+
+    protected void init() {
+    }
+
+    public ValueRef<WidgetLayout> layoutRef() {
+        return layout;
+    }
+
+    public void name(String name) {
+        this.name = name;
     }
 
     @Override
@@ -388,6 +462,11 @@ public abstract class AbstractWidget implements BoxModel, Renderable, Layout.Wid
         }
     }
 
+    public void dragged(boolean dragged) {
+        if (dragged == dragged()) return;
+        behavior(behavior().withDragged(dragged));
+    }
+
     @Override
     public void onDropped(DroppedEvent event) {
         if (event.cancelled()) return;
@@ -395,6 +474,14 @@ public abstract class AbstractWidget implements BoxModel, Renderable, Layout.Wid
             dragged(false);
             pressed(false);
             event.consumer(this);
+            DroppedEvent localEvent = new DroppedEvent(Scope.Local, this,
+                    event.position().x(),
+                    event.position().y(),
+                    event.button().button(),
+                    this,
+                    List.of()
+            );
+            dispatchEvent(localEvent);
         }
     }
 
@@ -418,10 +505,6 @@ public abstract class AbstractWidget implements BoxModel, Renderable, Layout.Wid
 
     public boolean pressable() {
         return behavior().pressable();
-    }
-
-    public void pressable(boolean pressable) {
-        behavior(behavior().withPressable(pressable));
     }
 
     @Override
@@ -455,55 +538,16 @@ public abstract class AbstractWidget implements BoxModel, Renderable, Layout.Wid
         }
     }
 
-    private boolean hoverable() {
-        return behavior().hoverable();
-    }
-
-    public void hoverable(boolean hoverable) {
-        behavior(behavior().withHoverable(hoverable));
-    }
-
     public void pressed(boolean pressed) {
         behavior(behavior().withPressed(pressed));
-    }
-
-    public boolean focused() {
-        return behavior().focused();
-    }
-
-    public void dispatchEvent(AbstractEvent event) {
-        switch (event.scope()) {
-            case Screen -> manager.eventManager().ifPresent(manager -> manager.dispatchEvent(event));
-            case Local -> eventManager().ifPresent(manager -> manager.dispatchEvent(event));
-            case Global -> EventManager.global().dispatchEvent(event);
-        }
-    }
-
-    public void focused(boolean focused) {
-        if (focused != focused()) {
-            if (focused) {
-                dispatchEvent(new FocusEnteredEvent(Scope.Local, this, true, this));
-            } else {
-                dispatchEvent(new FocusLeftEvent(Scope.Local, this, false, this));
-            }
-        }
-        behavior(behavior().withFocused(focused));
-    }
-
-    public Optional<AbstractContainer> parent() {
-        return Optional.ofNullable(parent);
     }
 
     public void parent(AbstractContainer parent) {
         this.parent = parent;
     }
 
-    public int priority() {
-        return priority;
-    }
-
-    public void priority(int priority) {
-        this.priority = priority;
+    public void pressable(boolean pressable) {
+        behavior(behavior().withPressable(pressable));
     }
 
     /**
@@ -530,6 +574,10 @@ public abstract class AbstractWidget implements BoxModel, Renderable, Layout.Wid
         }
     }
 
+    public Style widgetTheme() {
+        return style;
+    }
+
     public void resetSize() {
         layout(layout().withSize(layout.defaultValue().size()));
     }
@@ -548,10 +596,14 @@ public abstract class AbstractWidget implements BoxModel, Renderable, Layout.Wid
     }
 
     public Border textureBorder() {
-        Size top = Optional.ofNullable(appearance().getBackgroundTexture()).orElse(Texture.EMPTY).boundsOf(Texture.Slice.Location.top);
-        Size right = Optional.ofNullable(appearance().getBackgroundTexture()).orElse(Texture.EMPTY).boundsOf(Texture.Slice.Location.right);
-        Size bottom = Optional.ofNullable(appearance().getBackgroundTexture()).orElse(Texture.EMPTY).boundsOf(Texture.Slice.Location.bottom);
-        Size left = Optional.ofNullable(appearance().getBackgroundTexture()).orElse(Texture.EMPTY).boundsOf(Texture.Slice.Location.left);
+        Size top =
+                Optional.ofNullable(appearance().getBackgroundTexture()).orElse(Texture.EMPTY).boundsOf(Texture.Slice.Location.top);
+        Size right =
+                Optional.ofNullable(appearance().getBackgroundTexture()).orElse(Texture.EMPTY).boundsOf(Texture.Slice.Location.right);
+        Size bottom =
+                Optional.ofNullable(appearance().getBackgroundTexture()).orElse(Texture.EMPTY).boundsOf(Texture.Slice.Location.bottom);
+        Size left =
+                Optional.ofNullable(appearance().getBackgroundTexture()).orElse(Texture.EMPTY).boundsOf(Texture.Slice.Location.left);
         return new Border(top.height(), right.width(), bottom.height(), left.width(), Color.BLACK);
     }
 
@@ -564,39 +616,15 @@ public abstract class AbstractWidget implements BoxModel, Renderable, Layout.Wid
                 .orElse(StyleVariant.EMPTY);
     }
 
-    public Style.Variant status() {
-        return Style.Variant.from(this).stream().max(Comparator.comparingInt(Style.Variant::rank)).orElse(Style.Variant.base);
-    }
-
     protected void tick() {
-    }
-
-    @Override
-    public String toString() {
-        return "AbstractWidget{" + "active=" + active() + ", activePredicate=" + activePredicate + ", alpha=" + alpha() + ", border=" + border() + ", size=" + size() + ", clicked=" + pressed() + ", draggable=" + draggable() + ", dragged=" + dragged() + ", focused=" + focused() + ", hovered=" + hovered() + ", margin=" + margin() + ", name='" + name() + "'" + ", padding=" + padding() + ", position=" + position() + ", status=" + status() + ", tabIndex=" + tabIndex() + ", visible=" + visible() + ", widgetTheme=" + style + ", zIndex=" + zIndex() + '}';
-    }
-
-    public boolean visible() {
-        return this.display.get().visible();
     }
 
     public void visible(boolean visible) {
         this.display.set(display.get().withVisible(visible));
     }
 
-    public Style widgetTheme() {
-        return style;
-    }
-
     public void widgetTheme(Style style) {
         this.style = style;
-    }
-
-    public void zIndex(int zIndex) {
-        if (zIndex >= DragManager.Z_MAX) {
-            throw new IllegalArgumentException("Z-index cannot be set to maximum value");
-        }
-        display(display().withZIndex(zIndex));
     }
 
     @SuppressWarnings("unused")
@@ -611,9 +639,9 @@ public abstract class AbstractWidget implements BoxModel, Renderable, Layout.Wid
         private String name = "Unnamed_" + hashCode();
         private int priority = 0;
         private List<Scope> scopes = List.of(Scope.Local, Scope.Screen);
+        private Style style = Style.getDefault();
         private int tabIndex = 0;
         private boolean visible = true;
-        private Style style = Style.getDefault();
 
         protected AbstractBuilder(GuiManager manager) {
             this.manager = manager;
@@ -673,15 +701,6 @@ public abstract class AbstractWidget implements BoxModel, Renderable, Layout.Wid
             return manager().stateStorage().createValue(WidgetBehavior.class, behavior);
         }
 
-        public boolean hoverable() {
-            return behavior.hoverable();
-        }
-
-        public T hoverable(boolean hoverable) {
-            behavior = behavior.withHoverable(hoverable);
-            return self();
-        }
-
         public GuiManager manager() {
             return manager;
         }
@@ -733,6 +752,15 @@ public abstract class AbstractWidget implements BoxModel, Renderable, Layout.Wid
 
         public boolean focusable() {
             return behavior.focusable();
+        }
+
+        public boolean hoverable() {
+            return behavior.hoverable();
+        }
+
+        public T hoverable(boolean hoverable) {
+            behavior = behavior.withHoverable(hoverable);
+            return self();
         }
 
         public ValueRef<WidgetLayout> layoutRef() {
@@ -905,20 +933,6 @@ public abstract class AbstractWidget implements BoxModel, Renderable, Layout.Wid
         public int zIndex() {
             return display.zIndex();
         }
-    }
-
-
-    @Override
-    public int tabIndex() {
-        return tabIndex;
-    }
-
-
-    @Override
-    public void tabIndex(int tabIndex) {
-        if (tabIndex != tabIndex())
-            dispatchEvent(new TabIndexEvent(Scope.Screen, this, focused(), tabIndex(), tabIndex, this));
-        this.tabIndex = tabIndex;
     }
 
 

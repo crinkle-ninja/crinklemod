@@ -9,8 +9,9 @@ import java.util.Optional;
 
 public interface EventSource {
     Logger LOGGER = LogUtils.getLogger();
+    EventManager localManager = EventManager.createLocal();
     default Optional<EventManager> eventManager() {
-        return Optional.empty();
+        return Optional.of(localManager);
     }
     default Optional<EventManager> eventManager(Scope scope) {
         return switch (scope) {

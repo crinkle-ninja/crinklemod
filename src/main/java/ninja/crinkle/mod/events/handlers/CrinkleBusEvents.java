@@ -9,10 +9,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.network.PacketDistributor;
 import ninja.crinkle.mod.CrinkleMod;
-import ninja.crinkle.mod.client.animations.Animation;
-import ninja.crinkle.mod.client.animations.AnimationController;
-import ninja.crinkle.mod.client.animations.BubbleSpriteGroup;
-import ninja.crinkle.mod.client.animations.CharacterSpriteGroup;
 import ninja.crinkle.mod.events.AccidentEvent;
 import ninja.crinkle.mod.events.CrinkleEvent;
 import ninja.crinkle.mod.events.DesperationEvent;
@@ -108,34 +104,13 @@ public class CrinkleBusEvents {
     @SubscribeEvent
     public void onClientAccident(AccidentEvent event) {
         if (event.getPlayer() instanceof ServerPlayer) return;
-        Metabolism metabolism = Metabolism.of(event.getPlayer());
-        BubbleSpriteGroup bubbleSpriteGroup = switch(event.getType()) {
-            case BLADDER -> BubbleSpriteGroup.WET;
-            case BOWEL -> BubbleSpriteGroup.MESSY;
-            case BOTH -> BubbleSpriteGroup.BOTH;
-            default -> throw new IllegalStateException("Unexpected value: " + event.getType());
-        };
         SoundEvent soundEvent = switch(event.getType()) {
             case BLADDER -> SoundEvents.BOTTLE_EMPTY;
-            case BOWEL -> SoundEvents.SLIME_BLOCK_STEP;
+            case BOWEL -> SoundEvents.CHICKEN_EGG;
             case BOTH -> SoundEvents.BUCKET_EMPTY;
             default -> throw new IllegalStateException("Unexpected value: " + event.getType());
         };
         event.getPlayer().playSound(soundEvent, 0.5F, (float)(0.5 + Math.random()));
-        AnimationController.INSTANCE.queuePriorityAnimation(Animation.builder()
-                .addSpriteGroups(
-                        CharacterSpriteGroup.ACCIDENT,
-                        bubbleSpriteGroup)
-                .position(metabolism.getIndicatorPositionX(), metabolism.getIndicatorPositionY())
-                .speed(6.0)
-                .build());
-        AnimationController.INSTANCE.queuePriorityAnimation(Animation.builder()
-                .addSpriteGroups(
-                        CharacterSpriteGroup.RELIEF,
-                        BubbleSpriteGroup.NORMAL)
-                .speed(0.75)
-                .position(metabolism.getIndicatorPositionX(), metabolism.getIndicatorPositionY())
-                .build());
     }
 
     @SubscribeEvent
