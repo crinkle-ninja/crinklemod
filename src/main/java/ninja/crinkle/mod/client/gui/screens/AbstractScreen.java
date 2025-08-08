@@ -18,9 +18,7 @@ import ninja.crinkle.mod.client.gui.properties.ClickState;
 import ninja.crinkle.mod.client.gui.properties.ImmutablePoint;
 import ninja.crinkle.mod.client.gui.properties.Point;
 import ninja.crinkle.mod.client.gui.properties.Scope;
-import ninja.crinkle.mod.client.gui.states.references.StateStorageRef;
-import ninja.crinkle.mod.client.gui.states.references.ValueRef;
-import ninja.crinkle.mod.client.gui.states.storages.StateStorage;
+import ninja.crinkle.mod.client.gui.states.references.Ref;
 import ninja.crinkle.mod.client.gui.widgets.AbstractWidget;
 import ninja.crinkle.mod.client.gui.widgets.AbstractContainer;
 import ninja.crinkle.mod.client.gui.widgets.Container;
@@ -39,8 +37,7 @@ public abstract class AbstractScreen extends Screen implements TabIndexListener,
     private final EventManager eventManager = EventManager.createScreen();
     private final FocusManager focusManager = new FocusManager();
     private final DragManager dragManager = new DragManager(eventManager);
-    private final StateStorageRef stateStorageRef = StateManager.screen();
-    private final ValueRef<ClickState> clickState;
+    private final Ref<ClickState> clickState;
     private final List<GuiEventListener> focusedElements = new ArrayList<>();
     private final AbstractContainer root;
     private boolean ready = false;
@@ -58,7 +55,7 @@ public abstract class AbstractScreen extends Screen implements TabIndexListener,
         addListener(root());
         addListener(focusManager());
         addListener(dragManager());
-        clickState = stateStorage().createValue(ClickState.class, new ClickState());
+        clickState = new Ref<>(new ClickState());
     }
 
     protected void addListener(InputListener inputListener) {
@@ -134,7 +131,7 @@ public abstract class AbstractScreen extends Screen implements TabIndexListener,
         if (!ready()) {
             return super.mouseClicked(pMouseX, pMouseY, pButton);
         }
-        ClickState state = clickState.get();
+        ClickState state = clickState.value();
         if (state.button() == pButton && System.currentTimeMillis() - state.clickTime() < DOUBLE_CLICK_TIME
                 && state.position().distance(pMouseX, pMouseY) < DOUBLE_CLICK_OFFSET) {
             List<EventListener> listeners = eventManager()
@@ -142,7 +139,7 @@ public abstract class AbstractScreen extends Screen implements TabIndexListener,
                     .orElse(List.of());
             Event event = new DoubleClickEvent(Scope.Screen, this, pMouseX, pMouseY, pButton, listeners);
             eventManager().ifPresent(m -> m.dispatchEvent(event, l -> state.listeners().contains(l)));
-            clickState.set(new ClickState(ImmutablePoint.ZERO, -1, 0, List.of()));
+            clickState.value(new ClickState(ImmutablePoint.ZERO, -1, 0, List.of()));
             return event.success() || super.mouseClicked(pMouseX, pMouseY, pButton);
         }
         List<EventListener> listeners = eventManager()
@@ -155,7 +152,7 @@ public abstract class AbstractScreen extends Screen implements TabIndexListener,
                 .filter(c -> !c.equals(root()))
                 .reduce((a, b) -> a.zIndex() > b.zIndex() ? a : b)
                 .orElse(null);
-        clickState.set(new ClickState(new ImmutablePoint(pMouseX, pMouseY), pButton, System.currentTimeMillis(), listeners));
+        clickState.value(new ClickState(new ImmutablePoint(pMouseX, pMouseY), pButton, System.currentTimeMillis(), listeners));
         if (topMost != null && topMost.draggable()) {
             dragManager().current(topMost);
             dragManager().dragging(false); // Reset dragging state
@@ -203,7 +200,7 @@ public abstract class AbstractScreen extends Screen implements TabIndexListener,
         List<EventListener> listeners = eventManager().map(m -> m.listeners(onlyHovered(pMouseX, pMouseY, 0)).stream().toList()).orElse(List.of());
         Event event = new MouseReleasedEvent(Scope.Screen, this, pMouseX, pMouseY, pButton, listeners);
         eventManager().ifPresent(m -> m.dispatchEvent(event));
-        ClickState state = clickState.get();
+        ClickState state = clickState.value();
         if (state.button() == pButton) {
             List<EventListener> filteredListeners = listeners.stream()
                     .filter(l -> state.listeners().contains(l))
@@ -312,16 +309,6 @@ public abstract class AbstractScreen extends Screen implements TabIndexListener,
     @Override
     public void onTabIndexChanged(TabIndexEvent event) {
         this.focusedElements.sort(Comparator.comparingInt(GuiEventListener::getTabOrderGroup));
-    }
-
-    @Override
-    public StateStorageRef stateStorageRef() {
-        return stateStorageRef;
-    }
-
-    @Override
-    public StateStorage stateStorage() {
-        return StateManager.get(stateStorageRef);
     }
 
     @Override

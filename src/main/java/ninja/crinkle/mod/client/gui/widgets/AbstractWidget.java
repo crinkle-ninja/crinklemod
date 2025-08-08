@@ -22,7 +22,7 @@ import ninja.crinkle.mod.client.gui.renderers.ThemeGraphics;
 import ninja.crinkle.mod.client.gui.states.WidgetBehavior;
 import ninja.crinkle.mod.client.gui.states.WidgetDisplay;
 import ninja.crinkle.mod.client.gui.states.WidgetLayout;
-import ninja.crinkle.mod.client.gui.states.references.ValueRef;
+import ninja.crinkle.mod.client.gui.states.references.Ref;
 import ninja.crinkle.mod.client.gui.textures.Texture;
 import ninja.crinkle.mod.client.gui.textures.ThemeAtlas;
 import ninja.crinkle.mod.client.gui.themes.Style;
@@ -39,9 +39,9 @@ import java.util.function.Predicate;
 public abstract class AbstractWidget implements BoxModel, Renderable, Layout.Widget, MouseSource, MouseListener,
         FocusSource, FocusListener, TabIndexSource {
     private static final Logger LOGGER = LogUtils.getLogger();
-    private final ValueRef<WidgetBehavior> behavior;
-    private final ValueRef<WidgetDisplay> display;
-    private final ValueRef<WidgetLayout> layout;
+    private final Ref<WidgetBehavior> behavior;
+    private final Ref<WidgetDisplay> display;
+    private final Ref<WidgetLayout> layout;
     private final GuiManager manager;
     private final Set<Scope> scopes = new HashSet<>();
     private Predicate<AbstractWidget> activePredicate;
@@ -60,9 +60,9 @@ public abstract class AbstractWidget implements BoxModel, Renderable, Layout.Wid
         this.manager = builder.manager();
         this.priority = builder.priority();
         this.parent = builder.parent();
-        this.display = builder.displayRef();
+        this.display = builder.display();
         this.behavior = builder.behaviorRef();
-        this.layout = builder.layoutRef();
+        this.layout = builder.layout();
         layout().widget(this);
 
         if (builder.zIndex() == DragManager.Z_MIN) {
@@ -75,7 +75,7 @@ public abstract class AbstractWidget implements BoxModel, Renderable, Layout.Wid
     }
 
     public WidgetLayout layout() {
-        WidgetLayout l = layout.get();
+        WidgetLayout l = layout.value();
         l.widget(this);
         return l;
     }
@@ -90,7 +90,7 @@ public abstract class AbstractWidget implements BoxModel, Renderable, Layout.Wid
 
     @Override
     public void resetPosition() {
-        layout(layout().withPosition(layout.defaultValue().position()));
+        layout(layout().withPosition(layout.original().position()));
     }
 
     public Size size() {
@@ -106,7 +106,7 @@ public abstract class AbstractWidget implements BoxModel, Renderable, Layout.Wid
     }
 
     public void layout(WidgetLayout layout) {
-        this.layout.set(layout);
+        this.layout.value(layout);
     }
 
     public Optional<AbstractContainer> parent() {
@@ -277,11 +277,11 @@ public abstract class AbstractWidget implements BoxModel, Renderable, Layout.Wid
     }
 
     public boolean visible() {
-        return this.display.get().visible();
+        return this.display.value().visible();
     }
 
     public WidgetBehavior behavior() {
-        return behavior.get();
+        return behavior.value();
     }
 
     public void focused(boolean focused) {
@@ -296,7 +296,7 @@ public abstract class AbstractWidget implements BoxModel, Renderable, Layout.Wid
     }
 
     public void behavior(WidgetBehavior behavior) {
-        this.behavior.set(behavior);
+        this.behavior.value(behavior);
     }
 
     public void zIndex(int zIndex) {
@@ -319,11 +319,11 @@ public abstract class AbstractWidget implements BoxModel, Renderable, Layout.Wid
     }
 
     public void display(WidgetDisplay display) {
-        this.display.set(display);
+        this.display.value(display);
     }
 
     public WidgetDisplay display() {
-        return display.get();
+        return display.value();
     }
 
     public int zIndex() {
@@ -368,7 +368,7 @@ public abstract class AbstractWidget implements BoxModel, Renderable, Layout.Wid
         display(display().withAlpha(alpha));
     }
 
-    public ValueRef<WidgetBehavior> behaviorRef() {
+    public Ref<WidgetBehavior> behaviorRef() {
         return behavior;
     }
 
@@ -385,7 +385,7 @@ public abstract class AbstractWidget implements BoxModel, Renderable, Layout.Wid
         return Optional.of(parent);
     }
 
-    public ValueRef<WidgetDisplay> displayRef() {
+    public Ref<WidgetDisplay> displayRef() {
         return display;
     }
 
@@ -435,7 +435,7 @@ public abstract class AbstractWidget implements BoxModel, Renderable, Layout.Wid
     protected void init() {
     }
 
-    public ValueRef<WidgetLayout> layoutRef() {
+    public Ref<WidgetLayout> layoutRef() {
         return layout;
     }
 
@@ -555,9 +555,9 @@ public abstract class AbstractWidget implements BoxModel, Renderable, Layout.Wid
      * @param pMouseX      the x-coordinate of the mouse cursor.
      * @param pMouseY      the y-coordinate of the mouse cursor.
      * @param pPartialTick the partial tick time.
-     * @deprecated Use {@link #render(ThemeGraphics, Point, float)} instead.
+     *
+     * @implNote For legacy use only, use AbstractWidget#render(ThemeGraphics, Point, float) instead
      */
-    @Deprecated
     @Override
     public void render(@NotNull GuiGraphics graphics, int pMouseX, int pMouseY, float pPartialTick) {
         render(new ThemeGraphics(graphics, ThemeAtlas.getAtlas()), new MutablePoint(pMouseX, pMouseY), pPartialTick);
@@ -579,7 +579,7 @@ public abstract class AbstractWidget implements BoxModel, Renderable, Layout.Wid
     }
 
     public void resetSize() {
-        layout(layout().withSize(layout.defaultValue().size()));
+        layout(layout().withSize(layout.original().size()));
     }
 
     protected void resize(Size size) {
@@ -620,7 +620,7 @@ public abstract class AbstractWidget implements BoxModel, Renderable, Layout.Wid
     }
 
     public void visible(boolean visible) {
-        this.display.set(display.get().withVisible(visible));
+        this.display.value(display.value().withVisible(visible));
     }
 
     public void widgetTheme(Style style) {
@@ -697,8 +697,16 @@ public abstract class AbstractWidget implements BoxModel, Renderable, Layout.Wid
             return display.alpha();
         }
 
-        public ValueRef<WidgetBehavior> behaviorRef() {
-            return manager().stateStorage().createValue(WidgetBehavior.class, behavior);
+        public Ref<WidgetBehavior> behaviorRef() {
+            return new Ref<>(behavior);
+        }
+
+        public Ref<WidgetDisplay> display() {
+            return new Ref<>(display);
+        }
+
+        public Ref<WidgetLayout> layout() {
+            return new Ref<>(layout);
         }
 
         public GuiManager manager() {
@@ -732,10 +740,6 @@ public abstract class AbstractWidget implements BoxModel, Renderable, Layout.Wid
 
         public abstract AbstractWidget build();
 
-        public ValueRef<WidgetDisplay> displayRef() {
-            return manager().stateStorage().createValue(WidgetDisplay.class, display);
-        }
-
         public boolean draggable() {
             return behavior.draggable();
         }
@@ -761,10 +765,6 @@ public abstract class AbstractWidget implements BoxModel, Renderable, Layout.Wid
         public T hoverable(boolean hoverable) {
             behavior = behavior.withHoverable(hoverable);
             return self();
-        }
-
-        public ValueRef<WidgetLayout> layoutRef() {
-            return manager().stateStorage().createValue(WidgetLayout.class, layout);
         }
 
         public Margin margin() {

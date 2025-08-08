@@ -9,11 +9,9 @@ import ninja.crinkle.mod.client.gui.layouts.AbstractLayout;
 import ninja.crinkle.mod.client.gui.layouts.Layout;
 import ninja.crinkle.mod.client.gui.managers.EventManager;
 import ninja.crinkle.mod.client.gui.managers.GuiManager;
-import ninja.crinkle.mod.client.gui.managers.StateManager;
 import ninja.crinkle.mod.client.gui.properties.*;
 import ninja.crinkle.mod.client.gui.renderers.ThemeGraphics;
-import ninja.crinkle.mod.client.gui.states.references.StateStorageRef;
-import ninja.crinkle.mod.client.gui.states.references.ValueRef;
+import ninja.crinkle.mod.client.gui.states.references.Ref;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -28,14 +26,13 @@ import java.util.stream.Collectors;
 public abstract class AbstractContainer extends AbstractWidget implements InputSource {
     private static final Logger LOGGER = LogUtils.getLogger();
     private final List<AbstractWidget> children = new ArrayList<>();
-    private final StateStorageRef stateStorage = StateManager.local();
     private final EventManager eventManager = EventManager.createLocal();
-    private ValueRef<Layout> layoutManager;
+    private Ref<Layout> layoutManager;
     private boolean flex;
 
     protected AbstractContainer(@NotNull AbstractContainerBuilder<?> builder) {
         super(builder);
-        this.layoutManager = manager().stateStorage().createValue(Layout.class, builder.layoutManager());
+        this.layoutManager = new Ref<>(builder.layoutManager());
     }
 
     public AbstractContainer() {
@@ -109,15 +106,11 @@ public abstract class AbstractContainer extends AbstractWidget implements InputS
     }
 
     public Optional<Layout> layoutManager() {
-        return Optional.ofNullable(layoutManager.get());
+        return Optional.ofNullable(layoutManager.value());
     }
 
     public void layoutManager(@Nullable Layout layout) {
-        this.layoutManager.set(layout);
-    }
-
-    public ValueRef<Layout> layoutManagerRef() {
-        return layoutManager;
+        this.layoutManager.value(layout);
     }
 
     @Override
@@ -195,10 +188,6 @@ public abstract class AbstractContainer extends AbstractWidget implements InputS
                 '}';
     }
 
-    public StateStorageRef stateStorage() {
-        return stateStorage;
-    }
-
     @Override
     public void tick() {
         children().forEach(AbstractWidget::tick);
@@ -212,8 +201,8 @@ public abstract class AbstractContainer extends AbstractWidget implements InputS
     }
 
     public void updateLayout() {
-        if (layoutManager.get() != null) {
-            layoutManager.get().arrange(this);
+        if (layoutManager.value() != null) {
+            layoutManager.value().arrange(this);
         }
         children().stream()
                 .filter(c -> c instanceof AbstractContainer)
