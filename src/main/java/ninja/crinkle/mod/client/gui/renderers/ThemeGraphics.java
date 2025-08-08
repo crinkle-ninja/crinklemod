@@ -4,10 +4,13 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import ninja.crinkle.mod.client.color.Color;
 import ninja.crinkle.mod.client.gui.properties.Box;
 import ninja.crinkle.mod.client.gui.properties.Point;
+import ninja.crinkle.mod.client.gui.properties.Size;
 import ninja.crinkle.mod.client.gui.textures.Atlas;
 import ninja.crinkle.mod.util.ClientUtil;
 import org.jetbrains.annotations.NotNull;
@@ -26,6 +29,11 @@ public class ThemeGraphics extends GuiGraphics {
 
     public Atlas atlas() {
         return atlas;
+    }
+
+    public void blit(ResourceLocation texture, Point position, Size size, int zOffset) {
+        TextureAtlasSprite sprite = atlas.getSprite(texture);
+        blit(position.xInt(), position.yInt(), zOffset, size.width(), size.height(), sprite);
     }
 
     public void drawBox(Box pBox, Color pColor, int zIndex) {

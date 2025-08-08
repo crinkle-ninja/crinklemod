@@ -1,7 +1,5 @@
 package ninja.crinkle.mod.client.gui.managers;
 
-import ninja.crinkle.mod.client.gui.states.references.StateStorageRef;
-import ninja.crinkle.mod.client.gui.states.storages.StateStorage;
 import ninja.crinkle.mod.client.gui.widgets.AbstractContainer;
 import ninja.crinkle.mod.client.gui.widgets.Container;
 
@@ -16,8 +14,6 @@ public interface GuiManager {
             final EventManager eventManager = EventManager.createScreen();
             final DragManager dragManager = new DragManager(eventManager);
             final FocusManager focusManager = new FocusManager();
-            final StateStorageRef stateManagerRef = StateManager.screen();
-            final StateStorage stateStorage = StateManager.get(stateManagerRef);
             final Container root = Container.builder(this).absolute(0,0).name("root").size(width, height).build();
 
             @Override
@@ -39,16 +35,6 @@ public interface GuiManager {
             public Container root() {
                 return root;
             }
-
-            @Override
-            public StateStorageRef stateStorageRef() {
-                return stateManagerRef;
-            }
-
-            @Override
-            public StateStorage stateStorage() {
-                return stateStorage;
-            }
         };
     }
 
@@ -59,8 +45,4 @@ public interface GuiManager {
     FocusManager focusManager();
 
     AbstractContainer root();
-
-    StateStorageRef stateStorageRef();
-
-    StateStorage stateStorage();
 }

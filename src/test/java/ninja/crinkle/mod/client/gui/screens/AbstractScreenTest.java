@@ -6,7 +6,6 @@ import ninja.crinkle.mod.client.gui.events.listeners.EventListener;
 import ninja.crinkle.mod.client.gui.events.listeners.KeyListener;
 import ninja.crinkle.mod.client.gui.events.listeners.MouseListener;
 import ninja.crinkle.mod.client.gui.layouts.Layout;
-import ninja.crinkle.mod.client.gui.managers.StateManager;
 import ninja.crinkle.mod.client.gui.properties.Point;
 import ninja.crinkle.mod.client.gui.themes.Style;
 import ninja.crinkle.mod.client.gui.widgets.AbstractWidget;
@@ -37,8 +36,6 @@ class AbstractScreenTest {
                 return "testScreen";
             }
         });
-        doReturn(StateManager.screen()).when(screen).stateStorageRef();
-        doReturn(spy(StateManager.get(screen.stateStorageRef()))).when(screen).stateStorage();
         Container root = spy(Container.builder(screen)
                 .name("root")
                 .size(600)

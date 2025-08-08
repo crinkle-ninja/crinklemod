@@ -353,10 +353,10 @@ public class TextBox extends AbstractWidget implements KeyListener, MouseListene
         int cursorPixelPos = font.width(text().substring(newStart, cursorPos));
 
         if (cursorPixelPos < 0) {
-            // Cursor is to the left of the visible area
+            // The Cursor is to the left of the visible area
             newStart = cursorPos;
         } else if (cursorPixelPos > visibleWidth) {
-            // Cursor is to the right of the visible area
+            // The Cursor is to the right of the visible area
             while (font.width(text().substring(newStart, cursorPos)) > visibleWidth) {
                 newStart++;
             }

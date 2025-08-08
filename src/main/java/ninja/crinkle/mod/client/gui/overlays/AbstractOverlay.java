@@ -22,7 +22,6 @@ public class AbstractOverlay implements IGuiOverlay {
 
     @Override
     public void render(ForgeGui gui, GuiGraphics guiGraphics, float partialTick, int screenWidth, int screenHeight) {
-        //noinspection deprecation
         manager().root().render(guiGraphics, screenWidth / 2, screenHeight / 2, partialTick);
     }
 }

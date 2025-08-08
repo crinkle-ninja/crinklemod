@@ -5,14 +5,12 @@ import ninja.crinkle.mod.client.gui.managers.EventManager;
 import ninja.crinkle.mod.client.gui.properties.Box;
 import ninja.crinkle.mod.client.gui.properties.Point;
 import ninja.crinkle.mod.client.gui.renderers.ThemeGraphics;
-import ninja.crinkle.mod.client.gui.states.references.ValueRef;
 
 import java.util.function.BiConsumer;
 
 public class Button extends AbstractContainer {
     private final BiConsumer<ClickEvent, AbstractWidget> onClick;
     private Label text;
-    private final ValueRef<Boolean> down = manager().stateStorage().createValue(Boolean.class, false);
 
     protected Button(Builder builder) {
         super(builder);
