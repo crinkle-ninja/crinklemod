@@ -22,11 +22,7 @@ public class ClientUtil {
     public static Size screenSize() {
         int width = getMinecraft().getWindow().getGuiScaledWidth();
         int height = getMinecraft().getWindow().getGuiScaledHeight();
-        return new Size(width, height);
-    }
-
-    public static Box screenBox() {
-        return new Box(ImmutablePoint.ZERO, screenSize());
+        return Size.ofPixels(width, height);
     }
 
     public static Point getMousePosition() {

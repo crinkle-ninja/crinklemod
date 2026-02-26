@@ -8,6 +8,10 @@ public interface EventListener {
             return;
         }
         switch (event.type()) {
+            case LayoutChanged -> {
+                if (this instanceof LayoutListener listener)
+                    listener.onLayoutChanged((LayoutChangedEvent) event);
+            }
             case DoubleClick -> {
                 if (this instanceof MouseListener listener) {
                     listener.onDoubleClick((DoubleClickEvent) event);

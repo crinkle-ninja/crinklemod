@@ -329,7 +329,7 @@ public class TextBox extends AbstractWidget implements KeyListener, MouseListene
         cursorPos = Math.max(0, Math.min(cursorPos, text().length()));
 
         // Calculate the width of the visible area
-        int visibleWidth = layout().boxes().contentBox().size().width();
+        int visibleWidth = cachedBoxes().contentBox().size().widthInt();
         Font font = appearance().font();
 
         // Special case: If the cursor is at the end of the text
@@ -392,7 +392,7 @@ public class TextBox extends AbstractWidget implements KeyListener, MouseListene
 
     private int cursorPosFromPoint(Point point) {
         int cursorPos = 0;
-        double charX = layout().boxes().rendered().contentBox().start().x();
+        double charX = cachedBoxes().contentBox().topLeft().x();
         for (int i = 0; i < text().length(); i++) {
             double halfWidth = appearance().font().width(text().substring(i, i + 1)) / 2.0;
             charX += halfWidth;
@@ -428,7 +428,7 @@ public class TextBox extends AbstractWidget implements KeyListener, MouseListene
     }
 
     protected String visibleText() {
-        int width = layout().boxes().contentBox().size().width();
+        int width = cachedBoxes().contentBox().size().widthInt();
         Font font = appearance().font();
         String visibleText = text().substring(visibleStart());
 
@@ -446,7 +446,7 @@ public class TextBox extends AbstractWidget implements KeyListener, MouseListene
 
     @Override
     public void renderContent(ThemeGraphics graphics, Point pMouse, Box renderedBox, float pPartialTick) {
-        Point renderPos = renderedBox.start();
+        Point renderPos = renderedBox.topLeft();
         if (text().isEmpty() && !focused()) {
             graphics.text(placeholder().getString(), renderPos, zIndex(), appearance().getForegroundColor().halftone(),
                     appearance().hasShadow());

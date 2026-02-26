@@ -85,6 +85,6 @@ public class DragManager implements MouseListener, MouseSource {
 
     private Predicate<EventListener> onlyOverlapping(EventListener other) {
         return (l) -> l instanceof AbstractWidget widget && other instanceof AbstractWidget otherWidget &&
-                widget.layout().boxes().rendered().box().overlaps(otherWidget.layout().boxes().rendered().box());
+                widget.cachedBoxes().borderBox().overlaps(otherWidget.cachedBoxes().borderBox());
     }
 }

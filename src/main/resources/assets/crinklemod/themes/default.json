@@ -9,7 +9,7 @@
     "colors": {
       "background": "#B3D8E3",
       "primary": "#89AEBF",
-      "secondary": "#E3D8B3",
+      "secondary": "rainbow",
       "inactive": "#A0BDC7",
       "highlight": "#FFCC88",
       "accent": "#6A9EB0",
@@ -19,62 +19,6 @@
       "white": "#FFFFFF"
     },
     "textures": [
-      {
-        "id": "icons/wrench",
-        "location": "icons/wrench"
-      },
-      {
-        "id": "icons/gear",
-        "location": "icons/gear"
-      },
-      {
-        "id": "icons/back",
-        "location": "icons/back"
-      },
-      {
-        "id": "icons/save",
-        "location": "icons/save"
-      },
-      {
-        "id": "icons/reset",
-        "location": "icons/reset"
-      },
-      {
-        "id": "icons/checkmark",
-        "location": "icons/checkmark"
-      },
-      {
-        "id": "icons/down",
-        "location": "icons/down"
-      },
-      {
-        "id": "icons/warning1",
-        "location": "icons/warning1"
-      },
-      {
-        "id": "icons/warning2",
-        "location": "icons/warning2"
-      },
-      {
-        "id": "icons/warning3",
-        "location": "icons/warning3"
-      },
-      {
-        "id": "icons/messiness_outlined",
-        "location": "icons/messiness_outlined"
-      },
-      {
-        "id": "icons/messiness_danger",
-        "location": "icons/messiness_danger"
-      },
-      {
-        "id": "icons/wetness_outlined",
-        "location": "icons/wetness_outlined"
-      },
-      {
-        "id": "icons/wetness_danger",
-        "location": "icons/wetness_danger"
-      },
       {
         "id": "button_background",
         "location": "widgets/button_background",
@@ -556,6 +500,60 @@
         }
       }
     ],
+    "animations": [
+      {
+        "id": "bubble",
+        "sizes": [
+          32,
+          64
+        ],
+        "offset": {
+          "x": 1,
+          "y": 0
+        },
+        "sprites": {
+          "normal": ["normal1", "normal2"],
+          "wet": ["wet1", "wet2"],
+          "messy": ["messy1", "messy2"],
+          "both": ["wet1", "wet2", "messy1", "messy2"]
+        }
+      },
+      {
+        "id": "character",
+        "sizes": [
+          32,
+          64
+        ],
+        "offset": {
+          "x": 0,
+          "y": 40
+        },
+        "sprites": {
+          "normal": ["normal1", "normal2"],
+          "desperate": ["desperate1", "desperate2"],
+          "very_desperate": ["very_desperate1", "very_desperate2"],
+          "accident": ["accident1", "accident2", "accident1", "accident2", "accident1", "accident2", "accident1", "accident2"],
+          "relief": ["relief1", "relief2"]
+        }
+      },
+      {
+        "id": "diaper",
+        "sizes": [
+          32,
+          64
+        ],
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "sprites": {
+          "clean": ["clean1", "clean2"],
+          "wet": ["wet1", "wet2"],
+          "messy": ["stinky1", "stinky2"],
+          "both": ["wet1", "wet2", "stinky1", "stinky2"]
+        }
+      }
+    ],
     "styles": [
       {
         "id": "button",
@@ -662,6 +660,10 @@
             }
           }
         }
+      },
+      {
+        "id": "default",
+        "variants": {}
       },
       {
         "id": "panel",

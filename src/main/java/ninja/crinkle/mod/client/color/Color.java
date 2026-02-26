@@ -6,8 +6,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Random;
 
 public class Color {
+    public static final Color TRANSPARENT = new Color(0);
     public static final Color RED = new Color(0xFFFF0000);
     public static final Color GREEN = new Color(0xFF00FF00);
     public static final Color BLUE = new Color(0xFF0000FF);
@@ -22,16 +24,32 @@ public class Color {
     public static final Color BLACK = new Color(0xFF000000);
     // public static final Color TRANSPARENT = new Color(0);
     public static final Color DEFAULT_TEXT = new Color(0xFF404040);
-    public static final Color RAINBOW = new Color(-1);
+    public static final Color RAINBOW = new Color(-1, Type.RAINBOW);
     private final int color;
+    private final Type type;
+
+    public Color(int color, Type type) {
+        this.color = color;
+        this.type = type;
+    }
+
+    public Type type() {
+        return type;
+    }
+
+    public enum Type {
+        NORMAL,
+        RAINBOW,
+    }
 
     public Color(int color) {
-        this.color = color;
+        this(color, Type.NORMAL);
     }
 
     public static Color rainbow(long speed, long offset) {
         double hue = (System.currentTimeMillis() + offset) % speed / (double) speed;
-        return Color.of(java.awt.Color.HSBtoRGB((float) hue, 1, 1));
+        int rgb = java.awt.Color.HSBtoRGB((float) hue, 1, 1);
+        return Color.of(rgb | 0xFF000000);
     }
 
     @Contract("_ -> new")
@@ -71,6 +89,7 @@ public class Color {
 
     @Contract("_ -> new")
     public static @NotNull Color of(@NotNull String hex) {
+        if (hex.equalsIgnoreCase("rainbow")) return Color.RAINBOW;
         if (hex.startsWith("0x")) hex = hex.substring(2);
         if (hex.startsWith("#")) hex = hex.substring(1);
         int color = Integer.parseInt(hex, 16);
@@ -111,7 +130,7 @@ public class Color {
     @Contract("_ -> new")
     public @NotNull Color withAlpha(double alpha) {
         int a = (int) (alpha * 255);
-        return new Color((color & 0x00FFFFFF) | (a << 24));
+        return new Color((get().color() & 0x00FFFFFF) | (a << 24));
     }
 
     public int ABGR() {
@@ -138,11 +157,19 @@ public class Color {
     @Override
     public String toString() {
         return "Color[" +
-                "color=" + color + ']';
+                "color=" + color +
+                ", red=" + getRed() +
+                ", green=" + getGreen() +
+                ", blue=" + getBlue() +
+                ", alpha=" + getAlpha() +
+                ", hex='" + String.format("%06X", color & 0xFFFFFF) + '\'' +
+                ']';
     }
 
     public Color get() {
-        if (this == RAINBOW) return Color.rainbow(1000, 0);
-        return this;
+        return switch (type()) {
+            case NORMAL -> this;
+            case RAINBOW -> Color.rainbow(1000, 0);
+        };
     }
 }

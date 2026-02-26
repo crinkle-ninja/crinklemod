@@ -1,5 +1,6 @@
 package ninja.crinkle.mod.client.gui.properties;
 
+import ninja.crinkle.mod.client.gui.textures.TextureSize;
 import org.jetbrains.annotations.NotNull;
 
 public class ImmutablePoint implements Point, Comparable<Point> {
@@ -14,10 +15,6 @@ public class ImmutablePoint implements Point, Comparable<Point> {
     public ImmutablePoint(double x, double y) {
         this.x = x;
         this.y = y;
-
-//        if (checkForRendering()) {
-//            throw new IllegalStateException("ImmutablePoint created during rendering context");
-//        }
     }
 
     public static ImmutablePoint from(Point other) {
@@ -25,7 +22,7 @@ public class ImmutablePoint implements Point, Comparable<Point> {
     }
 
     @Override
-    public ImmutablePoint add(Point point) {
+    public ImmutablePoint add(@NotNull Point point) {
         return add(point.x(), point.y());
     }
 
@@ -36,7 +33,9 @@ public class ImmutablePoint implements Point, Comparable<Point> {
 
     @Override
     public int compareTo(@NotNull Point o) {
-        return Double.compare(x(), o.x()) == 0 ? Double.compare(y(), o.y()) : Double.compare(x(), o.x());
+        int x = Double.compare(x(), o.x());
+        int y = Double.compare(y(), o.y());
+        return x == 0 ? y : x;
     }
 
     @Override
@@ -57,17 +56,12 @@ public class ImmutablePoint implements Point, Comparable<Point> {
     }
 
     @Override
-    public void x(double x) {
-        throw new UnsupportedOperationException("Cannot modify immutable point");
-    }
-
-    @Override
-    public void y(double y) {
-        throw new UnsupportedOperationException("Cannot modify immutable point");
-    }
-
-    @Override
     public ImmutablePoint add(Size size) {
+        return add(size.width(), size.height());
+    }
+
+    @Override
+    public ImmutablePoint add(TextureSize size) {
         return add(size.width(), size.height());
     }
 
@@ -84,11 +78,6 @@ public class ImmutablePoint implements Point, Comparable<Point> {
     @Override
     public ImmutablePoint subtract(int x, int y) {
         return new ImmutablePoint(x() - x, y() - y);
-    }
-
-    @Override
-    public ImmutablePoint copy() {
-        return new ImmutablePoint(x, y);
     }
 
     @Override

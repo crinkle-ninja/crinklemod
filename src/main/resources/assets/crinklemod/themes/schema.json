@@ -3,25 +3,35 @@
   "type": "object",
   "properties": {
     "version": {
-      "type": "integer"
+      "type": "integer",
+      "title": "JSON Version",
+      "description": "Used for backwards compatibility"
     },
     "theme": {
       "type": "object",
       "properties": {
         "id": {
-          "type": "string"
+          "type": "string",
+          "title": "ID of the theme",
+          "description": "The ID used to register the theme. Themes with the same ID will override each other."
         },
         "name": {
-          "type": "string"
+          "type": "string",
+          "title": "Name of the theme",
+          "description": "User-friendly name"
         },
         "description": {
-          "type": "string"
+          "type": "string",
+          "title": "Description"
         },
         "version": {
-          "type": "string"
+          "type": "string",
+          "title": "Verison of Theme",
+          "description": "Version string for this theme, informational only"
         },
         "author": {
-          "type": "string"
+          "type": "string",
+          "title": "Author(s) of theme"
         },
         "colors": {
           "type": "object",
@@ -30,7 +40,10 @@
               "type": "string"
             }
           },
-          "additionalProperties": false
+          "additionalProperties": false,
+          "properties": {},
+          "title": "Color definitions",
+          "description": "Key/value pairs of color names to codes. Supports hex, and rgba(r,g,b,a)"
         },
         "textures": {
           "type": "array",
@@ -38,10 +51,13 @@
             "type": "object",
             "properties": {
               "id": {
-                "type": "string"
+                "type": "string",
+                "title": "ID used in the Styles section",
+                "description": "Unique identifier for the texture, for reference in other sections"
               },
-              "location": {
-                "type": "string"
+              "texture": {
+                "type": "string",
+                "title": "Location of the texture in the atlas"
               },
               "slices": {
                 "type": "object",
@@ -58,11 +74,7 @@
                           "y": {
                             "type": "integer"
                           }
-                        },
-                        "required": [
-                          "x",
-                          "y"
-                        ]
+                        }
                       },
                       "size": {
                         "type": "object",
@@ -73,17 +85,9 @@
                           "height": {
                             "type": "integer"
                           }
-                        },
-                        "required": [
-                          "width",
-                          "height"
-                        ]
+                        }
                       }
-                    },
-                    "required": [
-                      "start",
-                      "size"
-                    ]
+                    }
                   },
                   "topRight": {
                     "type": "object",
@@ -97,11 +101,7 @@
                           "y": {
                             "type": "integer"
                           }
-                        },
-                        "required": [
-                          "x",
-                          "y"
-                        ]
+                        }
                       },
                       "size": {
                         "type": "object",
@@ -112,17 +112,9 @@
                           "height": {
                             "type": "integer"
                           }
-                        },
-                        "required": [
-                          "width",
-                          "height"
-                        ]
+                        }
                       }
-                    },
-                    "required": [
-                      "start",
-                      "size"
-                    ]
+                    }
                   },
                   "bottomLeft": {
                     "type": "object",
@@ -136,11 +128,7 @@
                           "y": {
                             "type": "integer"
                           }
-                        },
-                        "required": [
-                          "x",
-                          "y"
-                        ]
+                        }
                       },
                       "size": {
                         "type": "object",
@@ -151,17 +139,9 @@
                           "height": {
                             "type": "integer"
                           }
-                        },
-                        "required": [
-                          "width",
-                          "height"
-                        ]
+                        }
                       }
-                    },
-                    "required": [
-                      "start",
-                      "size"
-                    ]
+                    }
                   },
                   "bottomRight": {
                     "type": "object",
@@ -175,11 +155,7 @@
                           "y": {
                             "type": "integer"
                           }
-                        },
-                        "required": [
-                          "x",
-                          "y"
-                        ]
+                        }
                       },
                       "size": {
                         "type": "object",
@@ -190,17 +166,9 @@
                           "height": {
                             "type": "integer"
                           }
-                        },
-                        "required": [
-                          "width",
-                          "height"
-                        ]
+                        }
                       }
-                    },
-                    "required": [
-                      "start",
-                      "size"
-                    ]
+                    }
                   },
                   "top": {
                     "type": "object",
@@ -214,11 +182,7 @@
                           "y": {
                             "type": "integer"
                           }
-                        },
-                        "required": [
-                          "x",
-                          "y"
-                        ]
+                        }
                       },
                       "size": {
                         "type": "object",
@@ -229,17 +193,9 @@
                           "height": {
                             "type": "integer"
                           }
-                        },
-                        "required": [
-                          "width",
-                          "height"
-                        ]
+                        }
                       }
-                    },
-                    "required": [
-                      "start",
-                      "size"
-                    ]
+                    }
                   },
                   "right": {
                     "type": "object",
@@ -253,11 +209,7 @@
                           "y": {
                             "type": "integer"
                           }
-                        },
-                        "required": [
-                          "x",
-                          "y"
-                        ]
+                        }
                       },
                       "size": {
                         "type": "object",
@@ -268,17 +220,9 @@
                           "height": {
                             "type": "integer"
                           }
-                        },
-                        "required": [
-                          "width",
-                          "height"
-                        ]
+                        }
                       }
-                    },
-                    "required": [
-                      "start",
-                      "size"
-                    ]
+                    }
                   },
                   "bottom": {
                     "type": "object",
@@ -292,11 +236,7 @@
                           "y": {
                             "type": "integer"
                           }
-                        },
-                        "required": [
-                          "x",
-                          "y"
-                        ]
+                        }
                       },
                       "size": {
                         "type": "object",
@@ -307,17 +247,9 @@
                           "height": {
                             "type": "integer"
                           }
-                        },
-                        "required": [
-                          "width",
-                          "height"
-                        ]
+                        }
                       }
-                    },
-                    "required": [
-                      "start",
-                      "size"
-                    ]
+                    }
                   },
                   "left": {
                     "type": "object",
@@ -331,11 +263,7 @@
                           "y": {
                             "type": "integer"
                           }
-                        },
-                        "required": [
-                          "x",
-                          "y"
-                        ]
+                        }
                       },
                       "size": {
                         "type": "object",
@@ -346,17 +274,9 @@
                           "height": {
                             "type": "integer"
                           }
-                        },
-                        "required": [
-                          "width",
-                          "height"
-                        ]
+                        }
                       }
-                    },
-                    "required": [
-                      "start",
-                      "size"
-                    ]
+                    }
                   },
                   "center": {
                     "type": "object",
@@ -370,11 +290,7 @@
                           "y": {
                             "type": "integer"
                           }
-                        },
-                        "required": [
-                          "x",
-                          "y"
-                        ]
+                        }
                       },
                       "size": {
                         "type": "object",
@@ -385,19 +301,13 @@
                           "height": {
                             "type": "integer"
                           }
-                        },
-                        "required": [
-                          "width",
-                          "height"
-                        ]
+                        }
                       }
-                    },
-                    "required": [
-                      "start",
-                      "size"
-                    ]
+                    }
                   }
                 },
+                "additionalProperties": false,
+                "title": "9-slice configuration",
                 "required": [
                   "topLeft",
                   "topRight",
@@ -408,14 +318,16 @@
                   "bottom",
                   "left",
                   "center"
-                ],
-                "additionalProperties": false
+                ]
               }
             },
             "required": [
-              "id", "location"
+              "id",
+              "location"
             ]
-          }
+          },
+          "title": "Textures used by GUI",
+          "description": "Textures and slicing data"
         },
         "styles": {
           "type": "array",
@@ -423,7 +335,8 @@
             "type": "object",
             "properties": {
               "id": {
-                "type": "string"
+                "type": "string",
+                "title": "ID of the style"
               },
               "variants": {
                 "type": "object",
@@ -470,11 +383,11 @@
                             "type": "array",
                             "items": {
                               "type": "string",
-                                "enum": [
-                                    "grayscale",
-                                    "invert",
-                                    "sepia"
-                                ]
+                              "enum": [
+                                "grayscale",
+                                "invert",
+                                "sepia"
+                              ]
                             }
                           }
                         },
@@ -492,10 +405,7 @@
                         ],
                         "additionalProperties": false
                       }
-                    },
-                    "required": [
-                      "background"
-                    ]
+                    }
                   }
                 },
                 "additionalProperties": true
@@ -505,7 +415,57 @@
               "id",
               "variants"
             ]
-          }
+          },
+          "title": "Styles used by the GUI",
+          "description": "Styles are used by the GUI to represent different UI components"
+        },
+        "animations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "title": "Unique ID for the animation",
+                "description": "Must be unique, also determines the sub path in the atlas for all contained sprites"
+              },
+              "offset": {
+                "type": "object",
+                "properties": {},
+                "title": "Position offset",
+                "description": "Relative to the top left of the animation widget"
+              },
+              "sizes": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                },
+                "title": "Supported sprite sizes",
+                "description": "Example: [32, 64]"
+              },
+              "sprites": {
+                "type": "object",
+                "patternProperties": {
+                  "^.*$": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "title": "Sprites that contain frames of the animation",
+                "description": "Key/value pairs, where the value is an array of specific frame names. \n\nNames reference the frame name in the resource pack location: assets/crinklemod/textures/atlas/animations/<animation name>/<size>/<frame name>.png"
+              }
+            },
+            "required": [
+              "id",
+              "sizes",
+              "offset",
+              "sprites"
+            ]
+          },
+          "title": "Sprites",
+          "description": "Used in animations"
         },
         "icons": {
           "type": "array",
@@ -518,31 +478,21 @@
               "texture": {
                 "type": "string"
               }
-            },
-            "required": [
-              "id",
-              "texture"
-            ]
+            }
           }
         }
       },
+      "additionalProperties": false,
       "required": [
         "id",
-        "name",
-        "description",
-        "version",
-        "author",
-        "colors",
-        "textures",
-        "styles",
-        "icons"
+        "name"
       ],
-      "additionalProperties": false
+      "title": "Theme Definition"
     }
   },
+  "additionalProperties": false,
   "required": [
-    "version",
-    "theme"
-  ],
-  "additionalProperties": false
+    "theme",
+    "version"
+  ]
 }

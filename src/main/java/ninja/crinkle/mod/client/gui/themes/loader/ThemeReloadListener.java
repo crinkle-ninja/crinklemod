@@ -5,12 +5,13 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraftforge.common.MinecraftForge;
+import ninja.crinkle.mod.client.gui.addons.PauseScreenAddOn;
 import ninja.crinkle.mod.client.gui.themes.Theme;
 import ninja.crinkle.mod.client.gui.themes.ThemeRegistry;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
-import java.util.HashMap;
 import java.util.Map;
 
 public class ThemeReloadListener extends SimplePreparableReloadListener<Map<ResourceLocation, ThemeLoader.Config>> {
@@ -39,6 +40,7 @@ public class ThemeReloadListener extends SimplePreparableReloadListener<Map<Reso
                 errors.forEach(error -> LOGGER.error("{}: {}", location, error.message()));
             }
         });
+        MinecraftForge.EVENT_BUS.register(new PauseScreenAddOn());
         pProfiler.pop();
     }
 }

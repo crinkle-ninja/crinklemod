@@ -3,9 +3,10 @@ package ninja.crinkle.mod.client.textures;
 import net.minecraft.resources.ResourceLocation;
 import ninja.crinkle.mod.CrinkleMod;
 
+import java.util.Objects;
+
 public enum SpriteLoaderType {
     ARMOR("textures/atlas/armor.png", "armor"),
-    SPRITE("textures/atlas/sprites.png", "sprites"),
     ;
 
     private final ResourceLocation atlasLocation;
@@ -17,11 +18,7 @@ public enum SpriteLoaderType {
     }
 
     public static SpriteLoaderType fromString(String string) {
-        return switch (string) {
-            case "armor" -> ARMOR;
-            case "sprites" -> SPRITE;
-            default -> null;
-        };
+        return Objects.equals(string, "armor") ? ARMOR : null;
     }
 
     public static SpriteLoaderType fromResourceLocation(ResourceLocation resourceLocation) {

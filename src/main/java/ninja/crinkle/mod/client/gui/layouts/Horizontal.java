@@ -1,17 +1,14 @@
 package ninja.crinkle.mod.client.gui.layouts;
 
-import com.mojang.logging.LogUtils;
-import ninja.crinkle.mod.client.gui.properties.Point;
-import ninja.crinkle.mod.client.gui.properties.Position;
+import ninja.crinkle.mod.client.gui.properties.*;
+import ninja.crinkle.mod.client.gui.states.CalculatedBoxes;
 import ninja.crinkle.mod.client.gui.widgets.AbstractContainer;
 import ninja.crinkle.mod.client.gui.widgets.AbstractWidget;
-import org.slf4j.Logger;
 
-import java.util.Comparator;
 import java.util.List;
+import java.util.function.Predicate;
 
 public class Horizontal extends AbstractLayout {
-    private static final Logger LOGGER = LogUtils.getLogger();
     protected Horizontal(AbstractBuilder<?> builder) {
         super(builder);
     }
@@ -22,42 +19,50 @@ public class Horizontal extends AbstractLayout {
 
     @Override
     public void arrange(AbstractContainer container) {
-        int width = container.layout().boxes().contentBox().size().width();
-        int totalWidth = totalInnerWidth(container);
-
-        assert totalWidth <= width : "Total width exceeds container width";
-        assert List.of(Layout.Alignment.LEFT, Layout.Alignment.CENTER, Layout.Alignment.RIGHT)
-                .contains(alignment()) : "Invalid alignment";
-
-        double xOffset = calculateOffset(width, totalWidth);
-        List<AbstractWidget> widgets = container.children().stream()
-                .sorted(Comparator.comparingInt(AbstractWidget::zIndexOf).reversed()).toList();
-
-        for (AbstractWidget child : widgets) {
-            child.resetPosition();
-            Position childPosition = child.position();
-            if (childPosition.absolute()) {
-                // LOGGER.debug("Skipping absolute positioned child: {}, position: {}", child.name(), childPosition);
-                continue;
-            }
-            Position newPosition = childPosition.offsetBy(xOffset, 0);
-            child.position(newPosition);
-            // LOGGER.debug("[{}] Arranging child: {} from {} to {} (screen position: {})", alignment(), child.name(), childPosition, newPosition, child.renderedPosition());
-            xOffset += child.layout().size().width() + spacing();
+        Box parentContentBox = container.cachedBoxes().contentBox();
+        List<AbstractWidget> childrenToArrange = container.children(Predicate.not(w -> w.layout().position().absolute()));
+        if (childrenToArrange.isEmpty()) {
+            return;
         }
-    }
 
-    @Override
-    public int totalInnerHeight(AbstractContainer abstractContainer) {
-        return abstractContainer.children().stream().mapToInt(AbstractWidget::totalHeight)
-                .max().orElse(0);
-    }
+        // 1. Measurement Pass (Size.resolve is NOT obsolete, it's essential here)
+        double totalDemandedWidth = childrenToArrange.stream()
+                .mapToDouble(child -> {
+                    Size resolvedSize = child.layout().size().resolve(parentContentBox);
+                    return resolvedSize.width();
+                })
+                .sum();
 
-    @Override
-    public int totalInnerWidth(AbstractContainer abstractContainer) {
-        return abstractContainer.children().stream().mapToInt(AbstractWidget::totalWidth).sum() +
-                (abstractContainer.children().size() - 1) * spacing();
+        // 2. Determine Scale Factor
+        double scaleFactor = 1.0;
+        if (totalDemandedWidth > parentContentBox.size().width()) {
+            scaleFactor = parentContentBox.size().width() / totalDemandedWidth;
+        }
 
+        // 3. Arrange Pass
+        double currentX = parentContentBox.topLeft().x();
+        for (AbstractWidget child : childrenToArrange) {
+            Size originalResolvedSize = child.layout().size().resolve(parentContentBox);
+            Margin margin = child.layout().margin();
+
+            // Scale the entire footprint of the child
+            double scaledWidth = child.layout().size().unit() == Size.Unit.Pixels
+                    ? originalResolvedSize.width()
+                    : originalResolvedSize.width() * scaleFactor;
+
+            // Create the absolute base box for the widget
+            Position finalPosition = Position.absolute((int) Math.round(currentX) + margin.left(),
+                    parentContentBox.topLeft().yInt() + margin.top() + child.layout().position().point().yInt());
+            Size finalSize = new Size((int) Math.round(scaledWidth), originalResolvedSize.height(), Size.Unit.Pixels);
+            Box baseBox = new Box(finalPosition, finalSize);
+
+            // Use the simplified resolver to get the final boxes
+            CalculatedBoxes boxes = CalculatedBoxes.calculate(child, baseBox);
+            child.cachedBoxes(boxes);
+
+            // Advance pointer by the widget's width and right margin
+            currentX += scaledWidth;
+        }
     }
 
     public static class Builder extends AbstractBuilder<Builder> {

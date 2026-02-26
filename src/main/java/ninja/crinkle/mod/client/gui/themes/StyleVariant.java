@@ -2,7 +2,6 @@ package ninja.crinkle.mod.client.gui.themes;
 
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.gui.Font;
-import ninja.crinkle.mod.client.animations.Sprite;
 import ninja.crinkle.mod.client.color.Color;
 import ninja.crinkle.mod.client.gui.builders.GenericBuilder;
 import ninja.crinkle.mod.client.gui.properties.Box;

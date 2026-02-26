@@ -27,6 +27,7 @@ public class CrinkleEvent extends Event {
                 case SOLIDS -> "solids";
                 case LIQUIDS -> "liquids";
                 case BOTH -> "both";
+                case NONE -> "none";
                 default -> throw new IllegalStateException("Unexpected value: " + this);
             };
         }

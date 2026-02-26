@@ -1,6 +1,6 @@
 package ninja.crinkle.mod.client.gui.states;
 
-import ninja.crinkle.mod.client.gui.widgets.AbstractWidget;
+import org.jetbrains.annotations.NotNull;
 
 public record WidgetBehavior(boolean draggable, boolean dragged, boolean pressed, boolean focused, boolean hovered,
                              boolean active, boolean focusable, boolean hoverable, boolean pressable) {
@@ -8,11 +8,6 @@ public record WidgetBehavior(boolean draggable, boolean dragged, boolean pressed
         if (dragged && !draggable) {
             throw new IllegalArgumentException("Cannot be dragged if not draggable");
         }
-    }
-
-    public WidgetBehavior(AbstractWidget.AbstractBuilder<?> builder) {
-        this(builder.draggable(), false, false, false, false, builder.active(),
-                builder.focusable(), builder.hoverable(), builder.pressable());
     }
 
     public WidgetBehavior() {
@@ -57,7 +52,7 @@ public record WidgetBehavior(boolean draggable, boolean dragged, boolean pressed
     }
 
     @Override
-    public String toString() {
+    public @NotNull String toString() {
         return "WidgetBehavior{" +
                 "draggable=" + draggable +
                 ", dragged=" + dragged +

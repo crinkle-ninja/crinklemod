@@ -9,7 +9,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LayeredCauldronBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.client.event.RenderTooltipEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
@@ -19,7 +18,6 @@ import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.server.command.ConfigCommand;
 import ninja.crinkle.mod.CrinkleMod;
-import ninja.crinkle.mod.client.ui.tooltips.ItemTooltipProvider;
 import ninja.crinkle.mod.commands.MetabolismCommand;
 import ninja.crinkle.mod.metabolism.Metabolism;
 import ninja.crinkle.mod.undergarment.Undergarment;
@@ -65,13 +63,6 @@ public class CrinkleForgeBusEvents {
                 event.setCanceled(true);
                 event.setCancellationResult(InteractionResult.SUCCESS);
             }
-        }
-    }
-
-    @SubscribeEvent
-    public static void registerTooltips(RenderTooltipEvent.GatherComponents event) {
-        if (event.getItemStack().getItem() instanceof ItemTooltipProvider provider) {
-            event.getTooltipElements().addAll(provider.getTooltip(event.getItemStack()));
         }
     }
 

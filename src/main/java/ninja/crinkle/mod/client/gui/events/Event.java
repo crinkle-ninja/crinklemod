@@ -37,7 +37,12 @@ public interface Event {
         FocusLeft,
         MousePressed,
         MouseReleased,
-        DragStarted, DragStopped, Dropped, DoubleClick, Scroll
+        DragStarted,
+        DragStopped,
+        Dropped,
+        DoubleClick,
+        Scroll,
+        LayoutChanged,
     }
 
 }

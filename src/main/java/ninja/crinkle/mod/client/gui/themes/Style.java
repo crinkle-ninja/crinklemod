@@ -72,7 +72,7 @@ public record Style(String id, Map<Variant, StyleVariant> appearances, Theme the
             StyleVariant styleVariant = new StyleVariant(background, foreground, backgroundColor,
                     foregroundColor, appearance.foreground() != null && appearance.foreground().shadow(),
                     foregroundColorFilters, backgroundColorFilters, parentAppearance);
-            LOGGER.info("Adding appearance '{}' to style '{}'", variant, styleVariant);
+            LOGGER.debug("Adding appearance '{}' to style '{}'", variant, styleVariant);
             appearances.put(variant, styleVariant);
         }
         return new Style(styleData.id(), appearances, theme, parent);

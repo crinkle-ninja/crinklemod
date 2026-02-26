@@ -14,7 +14,7 @@ public class TestScreen extends AbstractScreen {
     private static final Logger LOGGER = LogUtils.getLogger();
 
     public TestScreen() {
-        super(Component.literal("Test Screen"));
+        super(Component.literal("Test Screen"), ClientUtil.screenSize());
     }
 
     @Override
@@ -23,7 +23,7 @@ public class TestScreen extends AbstractScreen {
     }
 
     @Override
-    protected void init() {
+    public void init() {
         AbstractContainer vPanel = root().addContainer()
                 .name("window0")
                 .relative(20, 20)
@@ -40,7 +40,7 @@ public class TestScreen extends AbstractScreen {
         vPanel.addContainer()
                 .name("textboxContainer0")
                 .layoutManager(Layout.horizontal().alignment(Layout.Alignment.CENTER).spacing(5))
-                .size(vPanel.layout().boxes().contentBox().size().width(), textboxHeight)
+                .size(vPanel.cachedBoxes().contentBox().size().widthInt(), textboxHeight)
                 .pushAndReturn()
                 .addTextBox()
                 .name("textbox0")
@@ -48,14 +48,14 @@ public class TestScreen extends AbstractScreen {
                 .text("Diapers R COOL")
                 .padding(1)
                 .widgetTheme("textbox")
-                .size(vPanel.layout().boxes().contentBox().size().width(), textboxHeight)
+                .size(vPanel.cachedBoxes().contentBox().size().widthInt(), textboxHeight)
                 .push();
 
         for (int p = 0; p < 4; p++) {
             AbstractContainer hPanel = vPanel.addContainer()
                     .name("container" + p)
                     .layoutManager(Layout.horizontal().alignment(Layout.Alignment.CENTER).spacing(5))
-                    .size(vPanel.layout().boxes().contentBox().size().width(), height)
+                    .size(vPanel.cachedBoxes().contentBox().size().widthInt(), height)
                     .pushAndReturn();
 
             int width = ClientUtil.getMinecraft().font.width("Button 00") + 12;

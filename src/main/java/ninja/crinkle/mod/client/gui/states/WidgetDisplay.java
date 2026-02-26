@@ -1,6 +1,7 @@
 package ninja.crinkle.mod.client.gui.states;
 
 import ninja.crinkle.mod.client.gui.managers.DragManager;
+import org.jetbrains.annotations.NotNull;
 
 public record WidgetDisplay(boolean visible, float alpha, int zIndex) {
     public WidgetDisplay {
@@ -28,7 +29,7 @@ public record WidgetDisplay(boolean visible, float alpha, int zIndex) {
     }
 
     @Override
-    public String toString() {
+    public @NotNull String toString() {
         return "WidgetDisplay{" +
                 "visible=" + visible +
                 ", alpha=" + alpha +

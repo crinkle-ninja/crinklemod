@@ -1,7 +1,6 @@
 package ninja.crinkle.mod.client.gui.textures;
 
 import com.mojang.blaze3d.platform.NativeImage;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -25,15 +24,11 @@ public record Texture(String id, String location, Map<Slice.Location, Slice> sli
     public static final Texture EMPTY = new Texture("empty", "missingno", Slice.Location.emptySliceMap(), ninja.crinkle.mod.client.gui.themes.Theme.EMPTY);
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    public Size boundsOf(Slice.Location location) {
+    public TextureSize boundsOf(Slice.Location location) {
         if (slices().containsKey(location)) {
             return slices().get(location).size();
         }
-        return Size.ZERO;
-    }
-
-    public boolean isSliced() {
-        return slices().size() > 1;
+        return TextureSize.ZERO;
     }
 
     public ResourceLocation resourceLocation() {
@@ -41,7 +36,7 @@ public record Texture(String id, String location, Map<Slice.Location, Slice> sli
                 .orElse(new ResourceLocation("minecraft", "missingno"));
     }
 
-    private boolean isOutOfBounds(Box a, Slice b, String key) {
+    private boolean isOutOfBounds(TextureBox a, Slice b, String key) {
         if (!a.contains(b.box().bottomRight())) {
             LOGGER.warn("Texture '{}' could not be created since the slice '{}' is out of bounds. a bounds: {}, b bounds: {}", key, b, a, b.box());
             return true;
@@ -50,14 +45,14 @@ public record Texture(String id, String location, Map<Slice.Location, Slice> sli
     }
 
     @SuppressWarnings("resource")
-    public @NotNull ResourceLocation generate(String key, @NotNull Size size, @NotNull Theme theme, List<ColorFilters> colorFilters) {
+    public @NotNull ResourceLocation generate(String key, @NotNull TextureSize size, @NotNull Theme theme, List<ColorFilters> colorFilters) {
         if (!isLoadedFor(theme)) {
             LOGGER.warn("Texture '{}' could not be created since '{}' is not loaded.", key, ThemeAtlas.getTextureLocation(theme.getId(), id()));
             return new ResourceLocation("minecraft", "missingno");
         }
         TextureAtlasSprite sprite = ThemeAtlas.getSprite(resourceLocation());
         final NativeImage original = new NativeImage(sprite.contents().width(), sprite.contents().height(), true);
-        Box originalBox = new Box(0, 0, original.getWidth(), original.getHeight());
+        TextureBox originalBox = new TextureBox(TextureSize.of(original.getWidth(), original.getHeight()));
         original.copyFrom(sprite.contents().getOriginalImage());
         NativeImage image = new NativeImage(size.width(), size.height(), true);
         colorFilters.forEach(colorFilter -> original.applyToAllPixels(colorFilter.filter()));
@@ -65,17 +60,18 @@ public record Texture(String id, String location, Map<Slice.Location, Slice> sli
         for (var entry : slices.entrySet()) {
             Slice.Location location = entry.getKey();
             Slice slice = entry.getValue();
+            final int remainingWidth = size.width() - slice.size().width();
+            final int remainingHeight = size.height() - slice.size().height();
             switch (location) {
                 case topLeft, topRight, bottomLeft, bottomRight -> {
                     // The x,y coords of the original image
                     final Point from = slice.start();
                     // The x,y coords of the destination image
                     final Point to = switch (location) {
-                        case topLeft -> new ImmutablePoint(0, 0);
-                        case topRight -> new ImmutablePoint(size.width() - slice.size().width(), 0);
-                        case bottomLeft -> new ImmutablePoint(0, size.height() - slice.size().height());
-                        case bottomRight -> new ImmutablePoint(size.width() - slice.size().width(),
-                                size.height() - slice.size().height());
+                        case topLeft -> Point.ZERO;
+                        case topRight -> new ImmutablePoint(remainingWidth, 0);
+                        case bottomLeft -> new ImmutablePoint(0, remainingHeight);
+                        case bottomRight -> new ImmutablePoint(remainingWidth, remainingHeight);
                         default -> throw new IllegalStateException("Unexpected value: " + location);
                     };
                     if (isOutOfBounds(originalBox, slice, key)) {
@@ -97,7 +93,7 @@ public record Texture(String id, String location, Map<Slice.Location, Slice> sli
                         // The x,y coords of the destination image
                         final Point to = switch (location) {
                             case top -> new ImmutablePoint(x, 0);
-                            case bottom -> new ImmutablePoint(x, size.height() - slice.size().height());
+                            case bottom -> new ImmutablePoint(x, remainingHeight);
                             default -> throw new IllegalStateException("Unexpected value: " + location);
                         };
                         if (isOutOfBounds(originalBox, slice, key)) {
@@ -120,7 +116,7 @@ public record Texture(String id, String location, Map<Slice.Location, Slice> sli
                         // The x,y coords of the destination image
                         final Point to = switch (location) {
                             case left -> new ImmutablePoint(0, y);
-                            case right -> new ImmutablePoint(size.width() - slice.size().width(), y);
+                            case right -> new ImmutablePoint(remainingWidth, y);
                             default -> throw new IllegalStateException("Unexpected value: " + location);
                         };
                         if (isOutOfBounds(originalBox, slice, key)) {
@@ -153,7 +149,7 @@ public record Texture(String id, String location, Map<Slice.Location, Slice> sli
                 }
             }
         }
-        // We can't close the new image or the sprite contents or Minecraft will lose reference to them
+        // We can't close the new image, or the sprite contents or Minecraft will lose reference to them
         original.close();
         for (var filter : colorFilters) {
             image.applyToAllPixels(filter.filter());
@@ -166,7 +162,7 @@ public record Texture(String id, String location, Map<Slice.Location, Slice> sli
     }
 
     public void render(@NotNull ThemeGraphics graphics, @NotNull AbstractWidget widget, List<ColorFilters> colorFilters) {
-        if (this == EMPTY) {
+        if (this == EMPTY || !widget.visible() || widget.alpha() == 0.0f) {
             return;
         }
         StyleVariant styleVariant = widget.appearance();
@@ -177,19 +173,12 @@ public record Texture(String id, String location, Map<Slice.Location, Slice> sli
         for (var filter : styleVariant.backgroundColorFilters()) {
             color = Color.of(filter.filter().applyAsInt(color.color()));
         }
-        graphics.setColor((float) color.getRed(), (float) color.getGreen(), (float) color.getBlue(),
-                widget.alpha());
-        RenderSystem.enableBlend();
-        RenderSystem.enableDepthTest();
-        Box background = widget.layout().boxes().rendered().backgroundBox();
+        TextureBox background = TextureBox.from(widget.cachedBoxes().backgroundBox());
+        if (background.size().equals(TextureSize.ZERO)) {
+            return;
+        }
         ResourceLocation texture = theme.generateTexture(this, background.size(), colorFilters);
-        graphics.blit(texture, (int) background.topLeft().x(), (int) background.topLeft().y(),
-                widget.zIndex(), 0, 0,
-                background.size().width(), background.size().height(), background.size().width(),
-                background.size().height());
-        graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.disableDepthTest();
-        RenderSystem.disableBlend();
+        graphics.blit(texture, background.topLeft(), background.size(), widget.zIndex(), color.withAlpha(widget.alpha()));
     }
 
     public static class Builder extends GenericBuilder<Builder, Texture> {
@@ -208,8 +197,9 @@ public record Texture(String id, String location, Map<Slice.Location, Slice> sli
             return self();
         }
 
-        public Builder addSlice(Slice.Location location, Point start, Size size) {
-            return addSlice(location, new Slice(ImmutablePoint.from(start), size));
+        @SuppressWarnings("UnusedReturnValue")
+        public Builder addSlice(Slice.Location location, Point start, TextureSize size) {
+            return addSlice(location, new Slice(Point.of(start.x(), start.y()), size));
         }
 
         public Builder location(String location) {
@@ -228,14 +218,15 @@ public record Texture(String id, String location, Map<Slice.Location, Slice> sli
         }
     }
 
-    public record Slice(ImmutablePoint start, Size size) {
+    public record Slice(ImmutablePoint start, TextureSize size) {
         public Slice(int x, int y, int width, int height) {
-            this(new ImmutablePoint(x, y), new Size(width, height));
+            this(new ImmutablePoint(x, y), TextureSize.of(width, height));
         }
 
-        public Box box() {
-            return new Box(start, size);
+        public TextureBox box() {
+            return new TextureBox(size);
         }
+
         public enum Location {
             topLeft,
             top,
@@ -249,15 +240,15 @@ public record Texture(String id, String location, Map<Slice.Location, Slice> sli
 
             public static Map<Location, Slice> emptySliceMap() {
                 return Map.of(
-                        topLeft, new Slice(new ImmutablePoint(0, 0), new Size(0, 0)),
-                        top, new Slice(new ImmutablePoint(0, 0), new Size(0, 0)),
-                        topRight, new Slice(new ImmutablePoint(0, 0), new Size(0, 0)),
-                        left, new Slice(new ImmutablePoint(0, 0), new Size(0, 0)),
-                        center, new Slice(new ImmutablePoint(0, 0), new Size(0, 0)),
-                        right, new Slice(new ImmutablePoint(0, 0), new Size(0, 0)),
-                        bottomLeft, new Slice(new ImmutablePoint(0, 0), new Size(0, 0)),
-                        bottom, new Slice(new ImmutablePoint(0, 0), new Size(0, 0)),
-                        bottomRight, new Slice(new ImmutablePoint(0, 0), new Size(0, 0))
+                        topLeft, new Slice(ImmutablePoint.ZERO, TextureSize.ZERO),
+                        top, new Slice(ImmutablePoint.ZERO, TextureSize.ZERO),
+                        topRight, new Slice(ImmutablePoint.ZERO, TextureSize.ZERO),
+                        left, new Slice(ImmutablePoint.ZERO, TextureSize.ZERO),
+                        center, new Slice(ImmutablePoint.ZERO, TextureSize.ZERO),
+                        right, new Slice(ImmutablePoint.ZERO, TextureSize.ZERO),
+                        bottomLeft, new Slice(ImmutablePoint.ZERO, TextureSize.ZERO),
+                        bottom, new Slice(ImmutablePoint.ZERO, TextureSize.ZERO),
+                        bottomRight, new Slice(ImmutablePoint.ZERO, TextureSize.ZERO)
                 );
             }
         }

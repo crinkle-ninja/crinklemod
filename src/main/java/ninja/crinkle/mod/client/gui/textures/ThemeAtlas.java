@@ -21,7 +21,7 @@ public enum ThemeAtlas {
 
     private static final Logger LOGGER = LogUtils.getLogger();
     private static final String textureLocationRegex
-            = "^theme/(?<themeId>[a-zA-Z0-9-_]+)(?:/(?<textureType>[a-zA-Z0-9-_]+))?/(?<textureId>[a-zA-Z0-9-_]+)$";
+            = "^theme/(?<themeId>[a-zA-Z0-9-_]+)/(?<textureType>[a-zA-Z0-9-_]+)/(?<textureId>.+)$";
     private static final Pattern textureLocationPattern = Pattern.compile(textureLocationRegex);
     private Atlas atlas;
     private final Map<ResourceLocation, TextureInfo> textures = new HashMap<>();
@@ -39,10 +39,6 @@ public enum ThemeAtlas {
         return INSTANCE.atlas;
     }
 
-    public List<ResourceLocation> getSprites() {
-        return INSTANCE.atlas.getSprites();
-    }
-
     public static void register(ResourceLocation resourceLocation) {
         if (!resourceLocation.getPath().startsWith("theme/") || hasTexture(resourceLocation)) {
             return;
@@ -53,7 +49,7 @@ public enum ThemeAtlas {
             return;
         }
         String themeId = matcher.group("themeId");
-        String textureType = Optional.ofNullable(matcher.group("textureType")).orElse("");
+        String textureType = matcher.group("textureType");
         String textureId = matcher.group("textureId");
         TextureInfo info = new TextureInfo(themeId, textureType, textureId, resourceLocation);
         INSTANCE.textures.put(resourceLocation, info);
@@ -73,6 +69,15 @@ public enum ThemeAtlas {
     public static Optional<ResourceLocation> getTextureLocation(String themeId, String textureId) {
         return INSTANCE.textures.values().stream()
                 .filter(info -> info.themeId.equals(themeId))
+                .filter(info -> info.qualifiedId().equals(textureId) || info.textureId.equals(textureId))
+                .map(TextureInfo::location)
+                .findFirst();
+    }
+
+    public static Optional<ResourceLocation> getTextureLocation(String themeId, String textureType, String textureId) {
+        return INSTANCE.textures.values().stream()
+                .filter(info -> info.themeId.equals(themeId))
+                .filter(info -> info.textureType.equals(textureType))
                 .filter(info -> info.qualifiedId().equals(textureId) || info.textureId.equals(textureId))
                 .map(TextureInfo::location)
                 .findFirst();
@@ -110,7 +115,7 @@ public enum ThemeAtlas {
         }
 
         @Override
-        public String toString() {
+        public @NotNull String toString() {
             return String.format("TextureInfo{themeId='%s', textureType='%s', textureId='%s', location=%s}",
                     themeId, textureType, textureId, location);
         }

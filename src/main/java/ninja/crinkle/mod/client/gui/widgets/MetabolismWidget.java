@@ -1,25 +1,27 @@
 package ninja.crinkle.mod.client.gui.widgets;
 
+import com.mojang.logging.LogUtils;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import ninja.crinkle.mod.CrinkleMod;
-import ninja.crinkle.mod.client.animations.Animation;
-import ninja.crinkle.mod.client.animations.BubbleSpriteGroup;
-import ninja.crinkle.mod.client.animations.CharacterSpriteGroup;
-import ninja.crinkle.mod.client.gui.states.references.ValueRef;
+import ninja.crinkle.mod.client.gui.animations.Animation;
+import ninja.crinkle.mod.client.gui.properties.Box;
+import ninja.crinkle.mod.client.gui.properties.Point;
+import ninja.crinkle.mod.client.gui.renderers.ThemeGraphics;
+import ninja.crinkle.mod.client.gui.themes.Theme;
+import ninja.crinkle.mod.client.gui.themes.ThemeRegistry;
 import ninja.crinkle.mod.events.AccidentEvent;
 import ninja.crinkle.mod.events.CrinkleEvent;
 import ninja.crinkle.mod.events.DesperationEvent;
 import ninja.crinkle.mod.metabolism.Metabolism;
 import ninja.crinkle.mod.util.ClientUtil;
+import org.slf4j.Logger;
 
 public class MetabolismWidget extends AnimatedWidget {
-    private final ValueRef<Metabolism.DesperationLevel> numberOne = manager().stateStorage()
-            .createValue(Metabolism.DesperationLevel.class, Metabolism.DesperationLevel.NONE);
-    private final ValueRef<Metabolism.DesperationLevel> numberTwo = manager().stateStorage()
-            .createValue(Metabolism.DesperationLevel.class, Metabolism.DesperationLevel.NONE);
-    private final ValueRef<CrinkleEvent.Type> accidentType = manager().stateStorage()
-            .createValue(CrinkleEvent.Type.class, CrinkleEvent.Type.NONE);
+    private static final Logger LOGGER = LogUtils.getLogger();
+    private Metabolism.DesperationLevel numberOne = Metabolism.DesperationLevel.NONE;
+    private Metabolism.DesperationLevel numberTwo = Metabolism.DesperationLevel.NONE;
+    private CrinkleEvent.Type accidentType = CrinkleEvent.Type.NONE;
 
     public MetabolismWidget(AbstractContainer parent) {
         this(AnimatedWidget.builder(parent));
@@ -29,77 +31,105 @@ public class MetabolismWidget extends AnimatedWidget {
         super(builder);
         CrinkleMod.EVENT_BUS.register(this);
         if (ClientUtil.getPlayer() instanceof LocalPlayer player) {
-            numberOne.set(Metabolism.of(player).getNumberOneDesperationLevel());
-            numberTwo.set(Metabolism.of(player).getNumberTwoDesperationLevel());
+            numberOne = Metabolism.of(player).getNumberOneDesperationLevel();
+            numberTwo = ninja.crinkle.mod.metabolism.Metabolism.of(player).getNumberTwoDesperationLevel();
         }
-        setDesperationAnimation();
+    }
+
+    @Override
+    public void renderContent(ThemeGraphics graphics, Point pMouse, Box renderedBox, float pPartialTick) {
+        if (isFinished()) {
+            setDesperationAnimation();
+        }
+        super.renderContent(graphics, pMouse, renderedBox, pPartialTick);
     }
 
     @SubscribeEvent
     public void onAccident(AccidentEvent event) {
         AccidentEvent.Type type = event.getType();
-        CrinkleEvent.Type accidentType = this.accidentType.get();
+        CrinkleEvent.Type accidentType = this.accidentType;
         if (accidentType != type && accidentType != CrinkleEvent.Type.BOTH && accidentType != CrinkleEvent.Type.NONE) {
             type = CrinkleEvent.Type.BOTH;
         }
-        this.accidentType.set(type);
-        Animation animation = Animation.builder()
-                .addSpriteGroups(CharacterSpriteGroup.ACCIDENT, BubbleSpriteGroup.forType(type))
-                .speed(4.0f)
-                .onFinished(() -> animation(Animation.builder()
-                        .onFinished(() -> {
-                            this.accidentType.set(CrinkleEvent.Type.NONE);
-                            numberOne.set(Metabolism.of(event.getPlayer()).getNumberOneDesperationLevel());
-                            numberTwo.set(Metabolism.of(event.getPlayer()).getNumberTwoDesperationLevel());
-                            setDesperationAnimation();
-                        })
-                        .addSpriteGroups(CharacterSpriteGroup.RELIEF, BubbleSpriteGroup.NORMAL)
-                        .speed(0.75f)
-                        .build()))
-                .build();
-        animation(animation);
+        this.accidentType = type;
+        
+        if (!trySetAnimations(4.0f, "accident", typeSpriteId(type))) return;
+        
+        onFinished(() -> {
+            this.accidentType = CrinkleEvent.Type.NONE;
+            trySetAnimations(0.75f, "relief", "normal");
+            onFinished(() -> {
+                numberOne = Metabolism.of(event.getPlayer()).getNumberOneDesperationLevel();
+                numberTwo = Metabolism.of(event.getPlayer()).getNumberTwoDesperationLevel();
+                setDesperationAnimation();
+            });
+        });
+    }
+
+    private boolean trySetAnimations(double speed, String characterSprite, String bubbleSprite) {
+        Theme theme = ThemeRegistry.current();
+        if (theme == null) return false;
+        
+        Animation character = theme.getAnimation("character").orElse(null);
+        Animation bubble = theme.getAnimation("bubble").orElse(null);
+        if (character == null) {
+            LOGGER.error("character is null for theme {}", theme.getId());
+            return false;
+        }
+        if (bubble == null) {
+            LOGGER.error("bubble is null for theme {}", theme.getId());
+            return false;
+        }
+        clearPlayer();
+        fps(speed);
+        animation(character, characterSprite);
+        animation(bubble, bubbleSprite);
+        return true;
     }
 
     private Metabolism.DesperationLevel maxLevel() {
-        return Metabolism.DesperationLevel.max(numberOne.get(), numberTwo.get());
+        return Metabolism.DesperationLevel.max(numberOne, numberTwo);
     }
 
     private CrinkleEvent.Type maxType() {
-        if (maxLevel() == Metabolism.DesperationLevel.NONE) {
-            return CrinkleEvent.Type.NONE;
-        }
-        if (numberOne.get() != Metabolism.DesperationLevel.NONE
-                && numberTwo.get() != Metabolism.DesperationLevel.NONE) {
+        if (maxLevel() == Metabolism.DesperationLevel.NONE) return CrinkleEvent.Type.NONE;
+        if (numberOne != Metabolism.DesperationLevel.NONE
+                && numberTwo != Metabolism.DesperationLevel.NONE) {
             return CrinkleEvent.Type.BOTH;
         }
-        return maxLevel() == numberOne.get() ? CrinkleEvent.Type.BLADDER : CrinkleEvent.Type.BOWEL;
+        return maxLevel() == numberOne ? CrinkleEvent.Type.BLADDER : CrinkleEvent.Type.BOWEL;
+    }
+
+    private String desperationSpriteId(Metabolism.DesperationLevel level) {
+        return switch (level) {
+            case NONE, LOW -> "normal";
+            case MEDIUM_LOW, MEDIUM -> "desperate";
+            case MEDIUM_HIGH, HIGH -> "very_desperate";
+        };
+    }
+
+    private String typeSpriteId(CrinkleEvent.Type type) {
+        return switch (type) {
+            case NONE -> "normal";
+            case BLADDER, LIQUIDS -> "wet";
+            case BOWEL, SOLIDS -> "messy";
+            case BOTH -> "both";
+        };
     }
 
     public void setDesperationAnimation() {
-        CharacterSpriteGroup character = CharacterSpriteGroup.forLevel(maxLevel());
-        BubbleSpriteGroup bubble = BubbleSpriteGroup.forType(maxType());
-        float speed = 1.0f;
-        if (maxLevel().getLevel() > 1) {
-            speed = maxLevel().getLevel() * 2f;
-        }
-        if (character != null && bubble != null) {
-            Animation animation = Animation.builder()
-                    .onFinished(this::setDesperationAnimation)
-                    .addSpriteGroups(character, bubble)
-                    .speed(speed)
-                    .build();
-            animation(animation);
-        }
+        double speed = maxLevel().getLevel() > 1 ? maxLevel().getLevel() * 2.0 : 1.0;
+        if (!trySetAnimations(speed, desperationSpriteId(maxLevel()), typeSpriteId(maxType()))) return;
+        onFinished(this::setDesperationAnimation);
     }
 
     @SubscribeEvent
     public void onDesperation(DesperationEvent event) {
         switch(event.getType()) {
-            case BLADDER -> numberOne.set(event.getLevel());
-            case BOWEL -> numberTwo.set(event.getLevel());
+            case BLADDER -> numberOne = event.getLevel();
+            case BOWEL -> numberTwo = event.getLevel();
         }
-        // Don't interrupt an accident!
-        if (accidentType.get() != CrinkleEvent.Type.NONE) return;
+        if (accidentType != CrinkleEvent.Type.NONE) return;
         setDesperationAnimation();
     }
 }

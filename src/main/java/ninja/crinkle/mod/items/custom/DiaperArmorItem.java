@@ -17,7 +17,6 @@ import ninja.crinkle.mod.client.models.DiaperArmorModel;
 import ninja.crinkle.mod.client.renderers.DiaperArmorRenderer;
 import ninja.crinkle.mod.client.textures.Textures;
 import ninja.crinkle.mod.client.textures.generators.DiaperTextureGenerator;
-import ninja.crinkle.mod.client.ui.tooltips.ItemTooltipProvider;
 import ninja.crinkle.mod.undergarment.Undergarment;
 import ninja.crinkle.mod.util.MathUtil;
 import org.jetbrains.annotations.NotNull;
@@ -36,7 +35,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-public class DiaperArmorItem extends ArmorItem implements GeoItem, ItemTooltipProvider {
+public class DiaperArmorItem extends ArmorItem implements GeoItem {
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
     private final ResourceLocation defaultTexture;
     private ResourceLocation texture;
@@ -94,17 +93,5 @@ public class DiaperArmorItem extends ArmorItem implements GeoItem, ItemTooltipPr
 
     public ResourceLocation getTexture() {
         return Optional.ofNullable(texture).orElse(defaultTexture);
-    }
-
-    @Override
-    public List<Either<FormattedText, TooltipComponent>> getTooltip(ItemStack stack) {
-        List<Either<FormattedText, TooltipComponent>> tooltip = new ArrayList<>();
-        Undergarment undergarment = Undergarment.of(stack);
-        tooltip.add(Either.left(Component.translatable("tooltip.crinklemod.undergarment.cauldron")));
-        if (undergarment.getLiquids() > 0 || undergarment.getSolids() > 0) {
-            tooltip.add(Either.right(undergarment.getLiquidsTooltip()));
-            tooltip.add(Either.right(undergarment.getSolidsTooltip()));
-        }
-        return tooltip;
     }
 }

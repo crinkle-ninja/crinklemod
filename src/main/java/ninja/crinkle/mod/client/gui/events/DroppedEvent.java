@@ -22,7 +22,7 @@ public class DroppedEvent extends DragEvent {
     public String toString() {
         return "DroppedEvent{" +
                 "widget=" + widget.name() +
-                ", widgetPosition=" + widget.position() +
+                ", widgetPosition=" + widget.layout().position() +
                 ", x=" + x() +
                 ", y=" + y() +
                 ", button=" + button() +

@@ -1,5 +1,6 @@
 package ninja.crinkle.mod.client.gui.screens;
 
+import com.mojang.logging.LogUtils;
 import net.minecraft.client.gui.ComponentPath;
 import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.events.GuiEventListener;
@@ -14,15 +15,12 @@ import ninja.crinkle.mod.client.gui.events.listeners.TabIndexListener;
 import ninja.crinkle.mod.client.gui.managers.*;
 import ninja.crinkle.mod.client.gui.events.sources.KeySource;
 import ninja.crinkle.mod.client.gui.events.sources.MouseSource;
-import ninja.crinkle.mod.client.gui.properties.ClickState;
-import ninja.crinkle.mod.client.gui.properties.ImmutablePoint;
-import ninja.crinkle.mod.client.gui.properties.Point;
-import ninja.crinkle.mod.client.gui.properties.Scope;
-import ninja.crinkle.mod.client.gui.states.references.Ref;
+import ninja.crinkle.mod.client.gui.properties.*;
 import ninja.crinkle.mod.client.gui.widgets.AbstractWidget;
 import ninja.crinkle.mod.client.gui.widgets.AbstractContainer;
 import ninja.crinkle.mod.client.gui.widgets.Container;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -31,31 +29,34 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 public abstract class AbstractScreen extends Screen implements TabIndexListener, KeySource, MouseSource, GuiManager {
+    private static final Logger LOGGER = LogUtils.getLogger();
     private static final int SCAN_OFFSET = 10;
     private static final int DOUBLE_CLICK_TIME = 300;
     private static final int DOUBLE_CLICK_OFFSET = 2;
     private final EventManager eventManager = EventManager.createScreen();
     private final FocusManager focusManager = new FocusManager();
     private final DragManager dragManager = new DragManager(eventManager);
-    private final Ref<ClickState> clickState;
+    private ClickState clickState;
     private final List<GuiEventListener> focusedElements = new ArrayList<>();
     private final AbstractContainer root;
     private boolean ready = false;
     private int currentTabIndex = 0;
-
+    private Size lastScreenSize;
     private Point mouse = ImmutablePoint.ZERO;
 
-    protected AbstractScreen(Component pTitle) {
+    protected AbstractScreen(Component pTitle, Size screenSize) {
         super(pTitle);
+        this.width = screenSize.widthInt();
+        this.height = screenSize.heightInt();
         this.root = new Container.Builder(this)
                 .name("root")
-                .size(this.width, this.height)
+                .size(screenSize)
                 .absolute(ImmutablePoint.ZERO)
                 .build();
         addListener(root());
         addListener(focusManager());
         addListener(dragManager());
-        clickState = new Ref<>(new ClickState());
+        clickState = new ClickState();
     }
 
     protected void addListener(InputListener inputListener) {
@@ -99,12 +100,18 @@ public abstract class AbstractScreen extends Screen implements TabIndexListener,
 
     @Override
     public void tick() {
+        Size size = Size.ofPixels(width, height);
+        if (lastScreenSize != null && !lastScreenSize.equals(size)) {
+            LOGGER.debug("Screen size changed: {} -> {}", lastScreenSize, size);
+            // root().resize(lastScreenSize, screenSize);
+        }
+        lastScreenSize = size;
         super.tick();
         root().tick();
     }
 
     @Override
-    protected void init() {
+    public void init() {
         super.init();
         root().init();
         ready = true;
@@ -131,7 +138,7 @@ public abstract class AbstractScreen extends Screen implements TabIndexListener,
         if (!ready()) {
             return super.mouseClicked(pMouseX, pMouseY, pButton);
         }
-        ClickState state = clickState.value();
+        ClickState state = clickState;
         if (state.button() == pButton && System.currentTimeMillis() - state.clickTime() < DOUBLE_CLICK_TIME
                 && state.position().distance(pMouseX, pMouseY) < DOUBLE_CLICK_OFFSET) {
             List<EventListener> listeners = eventManager()
@@ -139,7 +146,7 @@ public abstract class AbstractScreen extends Screen implements TabIndexListener,
                     .orElse(List.of());
             Event event = new DoubleClickEvent(Scope.Screen, this, pMouseX, pMouseY, pButton, listeners);
             eventManager().ifPresent(m -> m.dispatchEvent(event, l -> state.listeners().contains(l)));
-            clickState.value(new ClickState(ImmutablePoint.ZERO, -1, 0, List.of()));
+            clickState = new ClickState(ImmutablePoint.ZERO, -1, 0, List.of());
             return event.success() || super.mouseClicked(pMouseX, pMouseY, pButton);
         }
         List<EventListener> listeners = eventManager()
@@ -152,7 +159,7 @@ public abstract class AbstractScreen extends Screen implements TabIndexListener,
                 .filter(c -> !c.equals(root()))
                 .reduce((a, b) -> a.zIndex() > b.zIndex() ? a : b)
                 .orElse(null);
-        clickState.value(new ClickState(new ImmutablePoint(pMouseX, pMouseY), pButton, System.currentTimeMillis(), listeners));
+        clickState = new ClickState(new ImmutablePoint(pMouseX, pMouseY), pButton, System.currentTimeMillis(), listeners);
         if (topMost != null && topMost.draggable()) {
             dragManager().current(topMost);
             dragManager().dragging(false); // Reset dragging state
@@ -200,7 +207,7 @@ public abstract class AbstractScreen extends Screen implements TabIndexListener,
         List<EventListener> listeners = eventManager().map(m -> m.listeners(onlyHovered(pMouseX, pMouseY, 0)).stream().toList()).orElse(List.of());
         Event event = new MouseReleasedEvent(Scope.Screen, this, pMouseX, pMouseY, pButton, listeners);
         eventManager().ifPresent(m -> m.dispatchEvent(event));
-        ClickState state = clickState.value();
+        ClickState state = clickState;
         if (state.button() == pButton) {
             List<EventListener> filteredListeners = listeners.stream()
                     .filter(l -> state.listeners().contains(l))
@@ -282,10 +289,12 @@ public abstract class AbstractScreen extends Screen implements TabIndexListener,
             throw new IllegalArgumentException("Offset must be greater than or equal to 0");
         }
         if (offset == 0) {
-            return (l) -> l instanceof AbstractWidget widget && !l.equals(root()) && widget.layout().boxes().rendered().box().contains(mouseX, mouseY);
+            return (l) -> l instanceof AbstractWidget widget && !l.equals(root())
+                    && widget.calculateBoxes().borderBox().contains(mouseX, mouseY);
         }
         return (l) -> l instanceof AbstractWidget widget && !l.equals(root()) &&
-                widget.layout().boxes().rendered().box().add(-offset, -offset, offset * 2, offset * 2).contains(mouseX, mouseY);
+                widget.calculateBoxes().borderBox()
+                        .add(-offset, -offset, offset * 2, offset * 2).contains(mouseX, mouseY);
     }
 
     @Override
@@ -318,5 +327,10 @@ public abstract class AbstractScreen extends Screen implements TabIndexListener,
                 ", root=" + root +
                 ", currentTabIndex=" + currentTabIndex +
                 '}';
+    }
+
+    @Override
+    public Size size() {
+        return Size.ofPixels(width, height);
     }
 }

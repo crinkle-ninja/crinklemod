@@ -62,7 +62,6 @@ public class EventManager {
 
     public void dispatchEvent(Event event, Predicate<EventListener> predicate) {
         if (event.dispatched() || !event.propagate() || event.scope() != scope) {
-            LOGGER.debug("Invalid event: {}", event);
             return;
         }
         event.dispatched(true);

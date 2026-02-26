@@ -8,11 +8,14 @@ import ninja.crinkle.mod.client.gui.overlays.MetabolismOverlay;
 import ninja.crinkle.mod.client.gui.properties.Position;
 import ninja.crinkle.mod.client.gui.widgets.MetabolismWidget;
 import ninja.crinkle.mod.config.ClientConfig;
+import ninja.crinkle.mod.util.ClientUtil;
 import org.jetbrains.annotations.NotNull;
 
 public class OverlayConfigScreen extends AbstractScreen implements MouseListener {
+    private final MetabolismWidget metabolism = new MetabolismWidget(root());
+
     public OverlayConfigScreen() {
-        super(Component.literal("Overlay Config"));
+        super(Component.literal("Overlay Config"), ClientUtil.screenSize());
     }
 
     @Override
@@ -20,22 +23,26 @@ public class OverlayConfigScreen extends AbstractScreen implements MouseListener
         return "OverlayConfigScreen";
     }
 
-    protected void init() {
-        MetabolismWidget metabolismWidget = new MetabolismWidget(root());
-        metabolismWidget.position(Position.relative(
+    public void init() {
+        Position configPos = Position.relative(
                 ClientConfig.overlay().metabolism.x.get(),
                 ClientConfig.overlay().metabolism.y.get()
-        ));
-        metabolismWidget.draggable(true);
-        root().add(metabolismWidget);
-        metabolismWidget.addListener(this);
+        );
+        metabolism.updateLayout(layout -> layout.position(configPos));
+        metabolism.draggable(true);
+        root().add(metabolism);
+        metabolism.addListener(this);
+        metabolism.visible(true);
+        metabolism.active(true);
         super.init();
     }
 
     @Override
     public void onDropped(DroppedEvent event) {
-        Position newPosition = event.widget().position();
-        MetabolismOverlay.HUD.widget.position(newPosition);
+        Position newPosition = event.widget().layout().position();
+        if (newPosition.equals(metabolism.layout().position())) return;
+        metabolism.updateLayout(layout -> layout.position(newPosition));
+        MetabolismOverlay.HUD.widget.updateLayout(layout -> layout.position(newPosition));
         ClientConfig.overlay().metabolism.x.set(newPosition.point().xInt());
         ClientConfig.overlay().metabolism.y.set(newPosition.point().yInt());
         ClientConfig.getSpec().save();

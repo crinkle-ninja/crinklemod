@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class ThemeLoader {
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -46,8 +47,9 @@ public class ThemeLoader {
 
         private List<Error> validateTexturesExist() {
             return theme.textures().stream()
-                    .filter(texture -> !ThemeAtlas.hasTexture(theme.id(), texture.location()))
-                    .map(texture -> new Error("Texture '" + texture.location() + "' for theme '" + theme.id()
+                    .flatMap(texture -> texture.locations(theme.id()).stream())
+                    .filter(location -> (!ThemeAtlas.hasTexture(theme.id(), location)))
+                    .map(location -> new Error("Texture '" + location + "' for theme '" + theme.id()
                             + "' does not exist."))
                     .toList();
         }

@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Optional;
 
 public record StyleData(String id, Map<Style.Variant, Variant> variants, String parent) {
-
     public record Variant(Variant.Data background, Variant.Data foreground) {
         public record Data(String texture, String color, boolean shadow, List<String> filters) {
             public List<ColorFilters> getFilters() {

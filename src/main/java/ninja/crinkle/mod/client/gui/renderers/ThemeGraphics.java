@@ -1,19 +1,22 @@
 package ninja.crinkle.mod.client.gui.renderers;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.*;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import ninja.crinkle.mod.client.color.Color;
 import ninja.crinkle.mod.client.gui.properties.Box;
 import ninja.crinkle.mod.client.gui.properties.Point;
-import ninja.crinkle.mod.client.gui.properties.Size;
 import ninja.crinkle.mod.client.gui.textures.Atlas;
+import ninja.crinkle.mod.client.gui.textures.TextureSize;
 import ninja.crinkle.mod.util.ClientUtil;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Matrix4f;
 import org.slf4j.Logger;
 
 public class ThemeGraphics extends GuiGraphics {
@@ -27,13 +30,26 @@ public class ThemeGraphics extends GuiGraphics {
         this.atlas = atlas;
     }
 
-    public Atlas atlas() {
-        return atlas;
+    public void blit(ResourceLocation texture, Point position, TextureSize size, int zOffset, Color color) {
+        if (!texture.getPath().startsWith("dynamic")) {
+            TextureAtlasSprite sprite = atlas.getSprite(texture);
+            blit(sprite, position, size, zOffset, color);
+            return;
+        }
+        int x = position.xInt();
+        int y = position.yInt();
+        int width = size.width();
+        int height = size.height();
+        internalBlit(texture, x, y, x + width, y + height, 0, 1, 0, 1, color, zOffset);
     }
 
-    public void blit(ResourceLocation texture, Point position, Size size, int zOffset) {
-        TextureAtlasSprite sprite = atlas.getSprite(texture);
-        blit(position.xInt(), position.yInt(), zOffset, size.width(), size.height(), sprite);
+    public void blit(TextureAtlasSprite sprite, Point position, TextureSize size, int zOffset, Color color) {
+        int x = position.xInt();
+        int y = position.yInt();
+        int width = size.width();
+        int height = size.height();
+        internalBlit(sprite.atlasLocation(), x, y, x + width, y + height, sprite.getU0(), sprite.getU1(), sprite.getV0(),
+                sprite.getV1(), color, zOffset);
     }
 
     public void drawBox(Box pBox, Color pColor, int zIndex) {
@@ -66,7 +82,7 @@ public class ThemeGraphics extends GuiGraphics {
         assert pBox.position().absolute() : "Box must have an absolute position";
         Point topLeft = pBox.topLeft();
         Point bottomRight = pBox.bottomRight();
-        fill(topLeft.xInt(), topLeft.yInt(), bottomRight.xInt(), bottomRight.yInt(), zIndex, pColor.color());
+        fill(topLeft.xInt(), topLeft.yInt(), bottomRight.xInt(), bottomRight.yInt(), zIndex, pColor.get().color());
     }
 
     public GuiGraphics graphics() {
@@ -75,7 +91,7 @@ public class ThemeGraphics extends GuiGraphics {
 
     public void text(String text, Point point, int zIndex, Color color, boolean shadow) {
         pose().translate(0, 0, zIndex);
-        drawString(ClientUtil.getMinecraft().font, text, point.xInt(), point.yInt(), color.color(), shadow);
+        drawString(ClientUtil.getMinecraft().font, text, point.xInt(), point.yInt(), color.get().color(), shadow);
         pose().translate(0, 0, -zIndex);
     }
 
@@ -85,5 +101,22 @@ public class ThemeGraphics extends GuiGraphics {
 
     public int textWidth(String text) {
         return ClientUtil.getMinecraft().font.width(text);
+    }
+
+    private void internalBlit(ResourceLocation location, float x1, float y1, float x2, float y2, float minU, float maxU,
+                            float minV, float maxV, Color color, int zIndex) {
+        RenderSystem.setShaderTexture(0, location);
+        RenderSystem.setShader(GameRenderer::getPositionColorTexShader);
+        RenderSystem.enableBlend();
+        Matrix4f matrix4f = graphics.pose().last().pose();
+        BufferBuilder bufferbuilder = Tesselator.getInstance().getBuilder();
+        bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR_TEX);
+        Color c = color.get();
+        bufferbuilder.vertex(matrix4f, x1, y1, zIndex).color(c.color()).uv(minU, minV).endVertex();
+        bufferbuilder.vertex(matrix4f, x1, y2, zIndex).color(c.color()).uv(minU, maxV).endVertex();
+        bufferbuilder.vertex(matrix4f, x2, y2, zIndex).color(c.color()).uv(maxU, maxV).endVertex();
+        bufferbuilder.vertex(matrix4f, x2, y1, zIndex).color(c.color()).uv(maxU, minV).endVertex();
+        BufferUploader.drawWithShader(bufferbuilder.end());
+        RenderSystem.disableBlend();
     }
 }

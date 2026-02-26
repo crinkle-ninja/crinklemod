@@ -9,10 +9,6 @@ public record Margin(int top, int right, int bottom, int left) implements BoxPro
         }
     }
 
-    public Margin(int horizontal, int vertical) {
-        this(vertical, horizontal, vertical, horizontal);
-    }
-
     public Margin(int all) {
         this(all, all, all, all);
     }

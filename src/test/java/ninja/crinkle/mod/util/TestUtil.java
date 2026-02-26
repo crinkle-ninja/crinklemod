@@ -1,16 +1,16 @@
 package ninja.crinkle.mod.util;
 
-import com.mojang.blaze3d.platform.Window;
 import net.minecraft.client.KeyboardHandler;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.MouseHandler;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import ninja.crinkle.mod.client.color.Color;
 import ninja.crinkle.mod.client.gui.properties.Point;
-import ninja.crinkle.mod.client.gui.properties.Size;
 import ninja.crinkle.mod.client.gui.textures.Texture;
+import ninja.crinkle.mod.client.gui.textures.TextureSize;
 import ninja.crinkle.mod.client.gui.textures.ThemeAtlas;
 import ninja.crinkle.mod.client.gui.themes.StyleVariant;
 import ninja.crinkle.mod.client.gui.themes.Theme;
@@ -45,15 +45,15 @@ public class TestUtil {
     public static String FULL_TEXTURE_PATH = "theme/test/widgets/panel_background";
     public static Texture spyTexture(Theme theme) {
         Texture.Builder b = new Texture.Builder("panel_background", theme).location("widgets/panel_background");
-        b.addSlice(Texture.Slice.Location.topRight, Point.of(0, 0), Size.of(5, 5));
-        b.addSlice(Texture.Slice.Location.top, Point.of(5, 0), Size.of(1, 5));
-        b.addSlice(Texture.Slice.Location.topLeft, Point.of(6, 0), Size.of(5, 5));
-        b.addSlice(Texture.Slice.Location.right, Point.of(0, 5), Size.of(5, 1));
-        b.addSlice(Texture.Slice.Location.center, Point.of(5, 5), Size.of(1, 1));
-        b.addSlice(Texture.Slice.Location.left, Point.of(6, 5), Size.of(5, 1));
-        b.addSlice(Texture.Slice.Location.bottomRight, Point.of(0, 6), Size.of(5, 5));
-        b.addSlice(Texture.Slice.Location.bottom, Point.of(5, 6), Size.of(1, 5));
-        b.addSlice(Texture.Slice.Location.bottomLeft, Point.of(6, 6), Size.of(5, 5));
+        b.addSlice(Texture.Slice.Location.topRight, Point.of(0, 0), TextureSize.of(5, 5));
+        b.addSlice(Texture.Slice.Location.top, Point.of(5, 0), TextureSize.of(1, 5));
+        b.addSlice(Texture.Slice.Location.topLeft, Point.of(6, 0), TextureSize.of(5, 5));
+        b.addSlice(Texture.Slice.Location.right, Point.of(0, 5), TextureSize.of(5, 1));
+        b.addSlice(Texture.Slice.Location.center, Point.of(5, 5), TextureSize.of(1, 1));
+        b.addSlice(Texture.Slice.Location.left, Point.of(6, 5), TextureSize.of(5, 1));
+        b.addSlice(Texture.Slice.Location.bottomRight, Point.of(0, 6), TextureSize.of(5, 5));
+        b.addSlice(Texture.Slice.Location.bottom, Point.of(5, 6), TextureSize.of(1, 5));
+        b.addSlice(Texture.Slice.Location.bottomLeft, Point.of(6, 6), TextureSize.of(5, 5));
         return spy(b.build());
     }
 
@@ -83,6 +83,10 @@ public class TestUtil {
         mockField(Font.class, "lineHeight", font, 10);
         var keyboardHandler = mock(KeyboardHandler.class);
         mockField(Minecraft.class, "keyboardHandler", minecraft, keyboardHandler);
+        var mouseHandler = mock(MouseHandler.class);
+        mockField(Minecraft.class, "mouseHandler", minecraft, mouseHandler);
+        when(mouseHandler.xpos()).thenReturn(0.0);
+        when(mouseHandler.ypos()).thenReturn(0.0);
         var textureManager = mock(TextureManager.class);
         var resourceManager = mock(ResourceManager.class);
         when(minecraft.getResourceManager()).thenReturn(resourceManager);
