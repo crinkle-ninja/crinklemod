@@ -3,9 +3,8 @@ package ninja.crinkle.mod.client.gui.widgets;
 import ninja.crinkle.mod.client.gui.managers.GuiManager;
 import org.jetbrains.annotations.NotNull;
 
-public class Container extends AbstractContainer {
-
-    protected Container(@NotNull AbstractContainerBuilder<?> builder) {
+public class HBoxContainer extends Container {
+    protected HBoxContainer(@NotNull AbstractContainerBuilder<?> builder) {
         super(builder);
     }
 
@@ -34,12 +33,12 @@ public class Container extends AbstractContainer {
         }
 
         @Override
-        public Container build() {
-            return new Container(this);
+        public HBoxContainer build() {
+            return new HBoxContainer(this);
         }
 
         @Override
-        protected Builder self() {
+        protected HBoxContainer.Builder self() {
             return this;
         }
     }

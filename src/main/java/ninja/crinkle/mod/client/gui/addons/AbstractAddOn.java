@@ -10,8 +10,6 @@ import ninja.crinkle.mod.client.gui.properties.Point;
 import ninja.crinkle.mod.client.gui.renderers.ThemeGraphics;
 import ninja.crinkle.mod.client.gui.screens.AbstractScreen;
 import ninja.crinkle.mod.client.gui.textures.ThemeAtlas;
-import ninja.crinkle.mod.client.gui.themes.Theme;
-import ninja.crinkle.mod.client.gui.themes.ThemeRegistry;
 import ninja.crinkle.mod.util.ClientUtil;
 
 public abstract class AbstractAddOn extends AbstractScreen {

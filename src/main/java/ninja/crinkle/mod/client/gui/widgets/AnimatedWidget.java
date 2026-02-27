@@ -77,7 +77,7 @@ public class AnimatedWidget extends AbstractWidget {
         private int textureSize = 64;
         private int fps = 10;
 
-        protected Builder(AbstractContainer parent) {
+        public Builder(AbstractContainer parent) {
             super(parent);
         }
 

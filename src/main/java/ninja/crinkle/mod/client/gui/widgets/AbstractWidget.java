@@ -1,6 +1,5 @@
 package ninja.crinkle.mod.client.gui.widgets;
 
-import com.mojang.logging.LogUtils;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.events.GuiEventListener;
@@ -30,7 +29,6 @@ import ninja.crinkle.mod.client.gui.themes.ThemeRegistry;
 import ninja.crinkle.mod.config.ClientConfig;
 import ninja.crinkle.mod.util.ClientUtil;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -38,11 +36,10 @@ import java.util.function.Predicate;
 
 public abstract class AbstractWidget implements Renderable, Widget, MouseSource, MouseListener,
         FocusSource, FocusListener, LayoutSource, TabIndexSource, ThemeRenderable, GuiEventListener {
-    private static final Logger LOGGER = LogUtils.getLogger();
     private WidgetBehavior behavior;
     private WidgetDisplay display;
     private WidgetLayout layout;
-    private CalculatedBoxes calculatedBoxes;
+//    private CalculatedBoxes calculatedBoxes;
     private final GuiManager manager;
     private Predicate<AbstractWidget> activePredicate;
     private String name;
@@ -72,13 +69,13 @@ public abstract class AbstractWidget implements Renderable, Widget, MouseSource,
         }
     }
 
-    public CalculatedBoxes cachedBoxes() {
-        return calculatedBoxes;
-    }
+    // public CalculatedBoxes cachedBoxes() {
+        // return calculatedBoxes;
+    // }
 
-    public void cachedBoxes(@NotNull CalculatedBoxes calculatedBoxes) {
-        this.calculatedBoxes = calculatedBoxes;
-    }
+//    public void cachedBoxes(@NotNull CalculatedBoxes calculatedBoxes) {
+//        this.calculatedBoxes = calculatedBoxes;
+//    }
 
     public WidgetLayout layout() {
         return layout;
@@ -180,7 +177,6 @@ public abstract class AbstractWidget implements Renderable, Widget, MouseSource,
 
     @Override
     public boolean mouseOver(Point position) {
-        return cachedBoxes().borderBox().contains(position);
     }
 
     @Override
@@ -190,20 +186,6 @@ public abstract class AbstractWidget implements Renderable, Widget, MouseSource,
 
     @Override
     public abstract void renderContent(ThemeGraphics graphics, Point pMouse, Box renderedBox, float pPartialTick);
-
-    @Override
-    public void renderDebug(ThemeGraphics pGuiGraphics) {
-        if (parent().isEmpty()) return;
-        Box pBorder = cachedBoxes().borderBox();
-        Box pBackground = cachedBoxes().backgroundBox();
-        Box pPadding = cachedBoxes().paddingBox();
-        Box pInner = cachedBoxes().contentBox();
-        // Render an outline around the widget
-        pGuiGraphics.drawBox(pBorder, Color.GREEN, zIndex());
-        pGuiGraphics.drawBox(pBackground, Color.CYAN, zIndex());
-        pGuiGraphics.drawBox(pPadding, Color.YELLOW, zIndex());
-        pGuiGraphics.drawBox(pInner, Color.BLUE, zIndex());
-    }
 
     public AbstractContainer parentOrThrow() {
         if (parent == null) {
@@ -369,8 +351,8 @@ public abstract class AbstractWidget implements Renderable, Widget, MouseSource,
         behavior(behavior().withHovered(hovered));
     }
 
-    protected void init() {
-        cachedBoxes(calculateBoxes());
+    public void init() {
+//        cachedBoxes(calculateBoxes());
     }
 
     public void name(String name) {
@@ -500,7 +482,7 @@ public abstract class AbstractWidget implements Renderable, Widget, MouseSource,
 
     @Override
     public void render(@NotNull ThemeGraphics graphics, Point pMouse, float pPartialTick) {
-        if (!visible() || cachedBoxes() == null || cachedBoxes().borderBox() == null) return;
+        if (!visible()) return;
         Box borderBox = cachedBoxes().borderBox();
         layout().border().render(graphics, borderBox, zIndex() - 10);
         if (!ClientConfig.debug()) widgetTheme().render(graphics, borderBox, this);
@@ -535,7 +517,7 @@ public abstract class AbstractWidget implements Renderable, Widget, MouseSource,
                 .orElse(StyleVariant.EMPTY);
     }
 
-    protected void tick() {
+    public void tick() {
     }
 
     public void visible(boolean visible) {

@@ -2,7 +2,6 @@ package ninja.crinkle.mod.client.gui.managers;
 
 import ninja.crinkle.mod.client.gui.properties.Size;
 import ninja.crinkle.mod.client.gui.widgets.AbstractContainer;
-import ninja.crinkle.mod.client.gui.widgets.Container;
 
 import java.util.Optional;
 

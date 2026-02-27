@@ -1,7 +1,5 @@
 package ninja.crinkle.mod.client.gui.layouts;
 
-import ninja.crinkle.mod.client.gui.properties.Position;
-import ninja.crinkle.mod.client.gui.states.WidgetLayout;
 import ninja.crinkle.mod.client.gui.widgets.AbstractContainer;
 
 public interface Layout {

@@ -35,21 +35,21 @@ public class TestScreen extends AbstractScreen {
                 .draggable(true)
                 .pushAndReturn();
 
-        int height = ClientUtil.getMinecraft().font.lineHeight + 13;
-        int textboxHeight = ClientUtil.getMinecraft().font.lineHeight + 11;
-        vPanel.addContainer()
-                .name("textboxContainer0")
-                .layoutManager(Layout.horizontal().alignment(Layout.Alignment.CENTER).spacing(5))
-                .size(vPanel.cachedBoxes().contentBox().size().widthInt(), textboxHeight)
-                .pushAndReturn()
-                .addTextBox()
-                .name("textbox0")
-                .placeholder("Enter text here")
-                .text("Diapers R COOL")
-                .padding(1)
-                .widgetTheme("textbox")
-                .size(vPanel.cachedBoxes().contentBox().size().widthInt(), textboxHeight)
-                .push();
+//        int height = ClientUtil.getMinecraft().font.lineHeight + 13;
+//        int textboxHeight = ClientUtil.getMinecraft().font.lineHeight + 11;
+//        vPanel.addContainer()
+//                .name("textboxContainer0")
+//                .layoutManager(Layout.horizontal().alignment(Layout.Alignment.CENTER).spacing(5))
+//                .size(vPanel.cachedBoxes().contentBox().size().widthInt(), textboxHeight)
+//                .pushAndReturn()
+//                .addTextBox()
+//                .name("textbox0")
+//                .placeholder("Enter text here")
+//                .text("Diapers R COOL")
+//                .padding(1)
+//                .widgetTheme("textbox")
+//                .size(vPanel.cachedBoxes().contentBox().size().widthInt(), textboxHeight)
+//                .push();
 
         for (int p = 0; p < 4; p++) {
             AbstractContainer hPanel = vPanel.addContainer()
