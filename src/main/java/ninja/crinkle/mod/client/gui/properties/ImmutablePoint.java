@@ -56,11 +56,6 @@ public class ImmutablePoint implements Point, Comparable<Point> {
     }
 
     @Override
-    public ImmutablePoint add(Size size) {
-        return add(size.width(), size.height());
-    }
-
-    @Override
     public ImmutablePoint add(TextureSize size) {
         return add(size.width(), size.height());
     }

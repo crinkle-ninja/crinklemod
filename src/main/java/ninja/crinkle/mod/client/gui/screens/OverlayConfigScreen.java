@@ -5,7 +5,7 @@ import net.minecraft.network.chat.Component;
 import ninja.crinkle.mod.client.gui.events.DroppedEvent;
 import ninja.crinkle.mod.client.gui.events.listeners.MouseListener;
 import ninja.crinkle.mod.client.gui.overlays.MetabolismOverlay;
-import ninja.crinkle.mod.client.gui.properties.Position;
+import ninja.crinkle.mod.client.gui.properties.Rect;
 import ninja.crinkle.mod.client.gui.widgets.MetabolismWidget;
 import ninja.crinkle.mod.config.ClientConfig;
 import ninja.crinkle.mod.util.ClientUtil;
@@ -15,7 +15,7 @@ public class OverlayConfigScreen extends AbstractScreen implements MouseListener
     private final MetabolismWidget metabolism = new MetabolismWidget(root());
 
     public OverlayConfigScreen() {
-        super(Component.literal("Overlay Config"), ClientUtil.screenSize());
+        super(Component.literal("Overlay Config"), ClientUtil.screenWidth(), ClientUtil.screenHeight());
     }
 
     @Override
@@ -24,11 +24,9 @@ public class OverlayConfigScreen extends AbstractScreen implements MouseListener
     }
 
     public void init() {
-        Position configPos = Position.relative(
-                ClientConfig.overlay().metabolism.x.get(),
-                ClientConfig.overlay().metabolism.y.get()
-        );
-        metabolism.updateLayout(layout -> layout.position(configPos));
+        int configX = ClientConfig.overlay().metabolism.x.get();
+        int configY = ClientConfig.overlay().metabolism.y.get();
+        metabolism.setRect(new Rect(configX, configY, metabolism.getMinimumWidth(), metabolism.getMinimumHeight()));
         metabolism.draggable(true);
         root().add(metabolism);
         metabolism.addListener(this);
@@ -39,12 +37,13 @@ public class OverlayConfigScreen extends AbstractScreen implements MouseListener
 
     @Override
     public void onDropped(DroppedEvent event) {
-        Position newPosition = event.widget().layout().position();
-        if (newPosition.equals(metabolism.layout().position())) return;
-        metabolism.updateLayout(layout -> layout.position(newPosition));
-        MetabolismOverlay.HUD.widget.updateLayout(layout -> layout.position(newPosition));
-        ClientConfig.overlay().metabolism.x.set(newPosition.point().xInt());
-        ClientConfig.overlay().metabolism.y.set(newPosition.point().yInt());
+        Rect newRect = event.widget().rect();
+        Rect oldRect = metabolism.rect();
+        if (newRect.equals(oldRect)) return;
+        metabolism.setRect(newRect);
+        MetabolismOverlay.HUD.widget.setRect(newRect);
+        ClientConfig.overlay().metabolism.x.set(newRect.x());
+        ClientConfig.overlay().metabolism.y.set(newRect.y());
         ClientConfig.getSpec().save();
     }
 

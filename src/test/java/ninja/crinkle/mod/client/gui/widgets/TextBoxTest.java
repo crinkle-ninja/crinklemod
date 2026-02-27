@@ -5,8 +5,8 @@ import net.minecraft.client.gui.screens.Screen;
 import ninja.crinkle.mod.client.gui.events.*;
 import ninja.crinkle.mod.client.gui.managers.GuiManager;
 import ninja.crinkle.mod.client.gui.properties.Point;
+import ninja.crinkle.mod.client.gui.properties.Rect;
 import ninja.crinkle.mod.client.gui.properties.Scope;
-import ninja.crinkle.mod.client.gui.properties.Size;
 import ninja.crinkle.mod.util.ClientUtil;
 import ninja.crinkle.mod.util.TestUtil;
 import org.junit.jupiter.api.AfterEach;
@@ -359,7 +359,7 @@ class TextBoxTest {
     @Test
     void testVisibleText_short() {
         when(textBox.focused()).thenReturn(true);
-        textBox.updateLayout(layout -> layout.size(Size.ofPixels(100, 10)));
+        textBox.setRect(new Rect(0, 0, 100, 10));
         textBox.text("short");
         try(MockedStatic<ClientUtil> ignored = TestUtil.mockClientUtil()) {
             assertEquals("short", textBox.visibleText());
@@ -373,7 +373,7 @@ class TextBoxTest {
         String expected = "ape";
         int width = expected.length() * TestUtil.DEFAULT_FONT_WIDTH;
         try(MockedStatic<ClientUtil> ignored = TestUtil.mockClientUtil()) {
-            textBox.updateLayout(layout -> layout.size(Size.ofPixels(width, 10)));
+            textBox.setRect(new Rect(0, 0, width, 10));
             textBox.text(text);
             textBox.cursorPos(5);
             assertEquals(2, textBox.visibleStart());
@@ -389,7 +389,7 @@ class TextBoxTest {
         String expected = "dia";
         int width = expected.length() * TestUtil.DEFAULT_FONT_WIDTH;
         try(MockedStatic<ClientUtil> ignored = TestUtil.mockClientUtil()) {
-            textBox.updateLayout(layout -> layout.size(Size.ofPixels(width, 10)));
+            textBox.setRect(new Rect(0, 0, width, 10));
             textBox.text(text);
             textBox.cursorPos(0);
             assertEquals(0, textBox.visibleStart());
@@ -405,7 +405,7 @@ class TextBoxTest {
         String expected = "per";
         int width = expected.length() * TestUtil.DEFAULT_FONT_WIDTH;
         try(MockedStatic<ClientUtil> ignored = TestUtil.mockClientUtil()) {
-            textBox.updateLayout(layout -> layout.size(Size.ofPixels(width, 10)));
+            textBox.setRect(new Rect(0, 0, width, 10));
             textBox.text(text);
             textBox.cursorPos(text.length());
             assertEquals(3, textBox.visibleStart());

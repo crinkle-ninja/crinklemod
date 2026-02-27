@@ -41,18 +41,18 @@ public abstract class AbstractScreen extends Screen implements TabIndexListener,
     private final AbstractContainer root;
     private boolean ready = false;
     private int currentTabIndex = 0;
-    private Size lastScreenSize;
+    private Rect lastScreenRect;
     private Point mouse = ImmutablePoint.ZERO;
 
-    protected AbstractScreen(Component pTitle, Size screenSize) {
+    protected AbstractScreen(Component pTitle, int screenWidth, int screenHeight) {
         super(pTitle);
-        this.width = screenSize.widthInt();
-        this.height = screenSize.heightInt();
+        this.width = screenWidth;
+        this.height = screenHeight;
         this.root = new Container.Builder(this)
                 .name("root")
-                .size(screenSize)
-                .absolute(ImmutablePoint.ZERO)
+                .minSize(screenWidth, screenHeight)
                 .build();
+        this.root.setRect(new Rect(0, 0, screenWidth, screenHeight));
         addListener(root());
         addListener(focusManager());
         addListener(dragManager());
@@ -100,12 +100,11 @@ public abstract class AbstractScreen extends Screen implements TabIndexListener,
 
     @Override
     public void tick() {
-        Size size = Size.ofPixels(width, height);
-        if (lastScreenSize != null && !lastScreenSize.equals(size)) {
-            LOGGER.debug("Screen size changed: {} -> {}", lastScreenSize, size);
-            // root().resize(lastScreenSize, screenSize);
+        Rect currentRect = new Rect(0, 0, width, height);
+        if (lastScreenRect != null && !lastScreenRect.equals(currentRect)) {
+            LOGGER.debug("Screen size changed: {} -> {}", lastScreenRect, currentRect);
         }
-        lastScreenSize = size;
+        lastScreenRect = currentRect;
         super.tick();
         root().tick();
     }
@@ -113,6 +112,7 @@ public abstract class AbstractScreen extends Screen implements TabIndexListener,
     @Override
     public void init() {
         super.init();
+        root().setRect(new Rect(0, 0, width, height));
         root().init();
         ready = true;
     }
@@ -152,7 +152,6 @@ public abstract class AbstractScreen extends Screen implements TabIndexListener,
         List<EventListener> listeners = eventManager()
                 .map(m -> m.listeners(onlyHovered(pMouseX, pMouseY, 0)).stream().toList())
                 .orElse(List.of());
-        // We want to prep to drag the top-most draggable parent container.
         AbstractWidget topMost = listeners.stream()
                 .filter(l -> l instanceof AbstractWidget)
                 .map(l -> (AbstractWidget) l)
@@ -162,7 +161,7 @@ public abstract class AbstractScreen extends Screen implements TabIndexListener,
         clickState = new ClickState(new ImmutablePoint(pMouseX, pMouseY), pButton, System.currentTimeMillis(), listeners);
         if (topMost != null && topMost.draggable()) {
             dragManager().current(topMost);
-            dragManager().dragging(false); // Reset dragging state
+            dragManager().dragging(false);
         }
         AbstractWidget topFocusable = listeners.stream()
                 .filter(l -> l instanceof AbstractWidget)
@@ -290,11 +289,15 @@ public abstract class AbstractScreen extends Screen implements TabIndexListener,
         }
         if (offset == 0) {
             return (l) -> l instanceof AbstractWidget widget && !l.equals(root())
-                    && widget.calculateBoxes().borderBox().contains(mouseX, mouseY);
+                    && widget.rect().contains(mouseX, mouseY);
         }
-        return (l) -> l instanceof AbstractWidget widget && !l.equals(root()) &&
-                widget.calculateBoxes().borderBox()
-                        .add(-offset, -offset, offset * 2, offset * 2).contains(mouseX, mouseY);
+        Rect expanded = new Rect(0, 0, 0, 0); // unused, expand inline below
+        return (l) -> {
+            if (!(l instanceof AbstractWidget widget) || l.equals(root())) return false;
+            Rect r = widget.rect();
+            return mouseX >= r.x() - offset && mouseX < r.right() + offset
+                    && mouseY >= r.y() - offset && mouseY < r.bottom() + offset;
+        };
     }
 
     @Override
@@ -330,7 +333,7 @@ public abstract class AbstractScreen extends Screen implements TabIndexListener,
     }
 
     @Override
-    public Size size() {
-        return Size.ofPixels(width, height);
+    public Rect size() {
+        return new Rect(0, 0, width, height);
     }
 }

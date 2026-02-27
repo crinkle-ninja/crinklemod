@@ -3,8 +3,6 @@ package ninja.crinkle.mod.client.gui.addons;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.gui.screens.PauseScreen;
 import net.minecraftforge.client.event.ScreenEvent;
-import ninja.crinkle.mod.client.gui.properties.Position;
-import ninja.crinkle.mod.client.gui.properties.Size;
 import ninja.crinkle.mod.client.gui.screens.TestScreen;
 import ninja.crinkle.mod.client.gui.widgets.Button;
 import ninja.crinkle.mod.util.ClientUtil;
@@ -18,11 +16,11 @@ public class PauseScreenAddOn extends AbstractAddOn {
         this.testButton = Button.builder(root())
                 .text("Test Button")
                 .widgetTheme("button")
-                .position(Position.absolute(100, 100))
-                .size(Size.ofPixels(100, 20))
+                .minSize(100, 20)
                 .visible(true)
                 .onClick((e, w) -> ClientUtil.getMinecraft().setScreen(new TestScreen()))
                 .build();
+        this.testButton.setRect(new ninja.crinkle.mod.client.gui.properties.Rect(100, 100, 100, 20));
         this.root().add(testButton);
     }
 
@@ -32,7 +30,7 @@ public class PauseScreenAddOn extends AbstractAddOn {
         if (event.isCanceled()) return;
         if (!root().active() || !root().visible()) return;
         if (ClientUtil.getMinecraft() == null || ClientUtil.getMinecraft().screen == null) return;
-        LOGGER.info("PauseScreenAddOn rendered dimensions: {}x{}", testButton.cachedBoxes().borderBox().size().width(),
-                testButton.cachedBoxes().borderBox().size().height());
+        LOGGER.info("PauseScreenAddOn rendered dimensions: {}x{}", testButton.rect().width(),
+                testButton.rect().height());
     }
 }

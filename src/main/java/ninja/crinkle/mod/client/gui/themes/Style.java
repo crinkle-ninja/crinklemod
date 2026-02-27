@@ -3,7 +3,7 @@ package ninja.crinkle.mod.client.gui.themes;
 import com.mojang.logging.LogUtils;
 import ninja.crinkle.mod.client.color.Color;
 import ninja.crinkle.mod.client.gui.builders.GenericBuilder;
-import ninja.crinkle.mod.client.gui.properties.Box;
+import ninja.crinkle.mod.client.gui.properties.Rect;
 import ninja.crinkle.mod.client.gui.renderers.ThemeGraphics;
 import ninja.crinkle.mod.client.gui.textures.ColorFilters;
 import ninja.crinkle.mod.client.gui.textures.Texture;
@@ -86,13 +86,13 @@ public record Style(String id, Map<Variant, StyleVariant> appearances, Theme the
         return appearances.get(variant);
     }
 
-    public void render(ThemeGraphics graphics, Box pBox, AbstractWidget widget) {
+    public void render(ThemeGraphics graphics, Rect rect, AbstractWidget widget) {
         StyleVariant styleVariant = widget.appearance();
         if (styleVariant == null) {
             styleVariant = appearances.get(Style.Variant.active);
         }
         if (styleVariant != null) {
-            styleVariant.render(graphics, pBox, widget);
+            styleVariant.render(graphics, rect, widget);
         } else {
             LOGGER.warn("No appearance found for widget {} at all", widget.name());
         }

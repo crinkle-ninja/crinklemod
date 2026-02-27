@@ -15,8 +15,6 @@ public interface Point {
 
     Point add(Point point);
 
-    Point add(Size size);
-
     Point add(TextureSize size);
 
     Point add(int x, int y);

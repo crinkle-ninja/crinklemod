@@ -18,7 +18,7 @@ public abstract class AbstractAddOn extends AbstractScreen {
     private final Class<? extends Screen> screenClass;
 
     protected AbstractAddOn(Class<? extends Screen> screenClass) {
-        super(Component.literal(screenClass.getSimpleName() + "AddOn"), ClientUtil.screenSize());
+        super(Component.literal(screenClass.getSimpleName() + "AddOn"), ClientUtil.screenWidth(), ClientUtil.screenHeight());
         this.screenClass = screenClass;
         this.root().active(false);
         this.root().visible(false);

@@ -47,7 +47,7 @@ class AbstractWidgetTest {
             assertTrue(widget.name().startsWith("Unnamed_"), "Should have default name pattern");
             assertNotNull(widget.behavior(), "Behavior should be initialized");
             assertNotNull(widget.display(), "Display should be initialized");
-            assertNotNull(widget.layout(), "Layout should be initialized");
+            assertNotNull(widget.rect(), "Rect should be initialized");
             assertEquals(0, widget.tabIndex(), "Default tab index should be 0");
         }
     }
@@ -136,11 +136,11 @@ class AbstractWidgetTest {
         }
 
         @Test
-        @DisplayName("layout() should return widget layout")
-        void layout_shouldReturnWidgetLayout() {
+        @DisplayName("rect() should return widget rect")
+        void rect_shouldReturnWidgetRect() {
             TestWidget widget = TestWidget.builder(parent).build();
 
-            assertNotNull(widget.layout(), "Layout should not be null");
+            assertNotNull(widget.rect(), "Rect should not be null");
         }
 
         @Test

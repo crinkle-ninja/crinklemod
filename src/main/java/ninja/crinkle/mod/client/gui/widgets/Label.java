@@ -1,8 +1,8 @@
 package ninja.crinkle.mod.client.gui.widgets;
 
 import ninja.crinkle.mod.client.color.Color;
-import ninja.crinkle.mod.client.gui.properties.Box;
 import ninja.crinkle.mod.client.gui.properties.Point;
+import ninja.crinkle.mod.client.gui.properties.Rect;
 import ninja.crinkle.mod.client.gui.renderers.ThemeGraphics;
 import org.jetbrains.annotations.NotNull;
 
@@ -18,9 +18,8 @@ public class Label extends AbstractWidget {
 
     @Override
     public void render(@NotNull ThemeGraphics graphics, Point pMouse, float pPartialTick) {
-        // The theory here is that a label inside a container, such as a Button, should not need
-        // to render itself, as the container will render it for us via renderContent.
-        // This prevents state updates, border, background, and debug rendering.
+        // A label inside a container (e.g. Button) should not render itself independently;
+        // the container renders it via renderContent.
         if (!(parentOrThrow() instanceof AbstractContainer)) {
             super.render(graphics, pMouse, pPartialTick);
         }
@@ -35,11 +34,11 @@ public class Label extends AbstractWidget {
     }
 
     @Override
-    public void renderContent(ThemeGraphics graphics, Point pMouse, Box renderedBox, float pPartialTick) {
-        Point topLeft = renderedBox.topLeft();
-        int xOffset = (int) Math.ceil((double) (renderedBox.size().width() - graphics.textWidth(text())) / 2);
-        int yOffset = (int) Math.ceil((double) (renderedBox.size().height() - graphics.textHeight()) / 2);
-        graphics.text(text(), topLeft.add(xOffset, yOffset), zIndex(), color(), appearance().hasShadow());
+    public void renderContent(ThemeGraphics graphics, Point pMouse, Rect renderedRect, float pPartialTick) {
+        int xOffset = (int) Math.ceil((double) (renderedRect.width() - graphics.textWidth(text())) / 2);
+        int yOffset = (int) Math.ceil((double) (renderedRect.height() - graphics.textHeight()) / 2);
+        graphics.text(text(), Point.of(renderedRect.x() + xOffset, renderedRect.y() + yOffset),
+                zIndex(), color(), appearance().hasShadow());
     }
 
     public String text() {

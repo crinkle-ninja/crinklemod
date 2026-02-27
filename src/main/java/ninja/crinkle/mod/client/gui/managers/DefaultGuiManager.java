@@ -1,9 +1,7 @@
 package ninja.crinkle.mod.client.gui.managers;
 
-import ninja.crinkle.mod.client.gui.layouts.Horizontal;
-import ninja.crinkle.mod.client.gui.properties.Position;
+import ninja.crinkle.mod.client.gui.properties.Rect;
 import ninja.crinkle.mod.client.gui.properties.Scope;
-import ninja.crinkle.mod.client.gui.properties.Size;
 import ninja.crinkle.mod.client.gui.widgets.Container;
 
 import java.util.Optional;
@@ -20,15 +18,14 @@ public class DefaultGuiManager implements GuiManager {
         this.focusManager = new FocusManager();
         this.root = Container.builder(this)
                 .name("root")
-                .position(Position.absolute(0, 0))
-                .size(Size.ofPixels(width, height))
-                .layoutManager(Horizontal.builder().build())
+                .minSize(width, height)
                 .build();
+        this.root.setRect(new Rect(0, 0, width, height));
     }
 
     @Override
-    public Size size() {
-        return root().layout().size();
+    public Rect size() {
+        return root().rect();
     }
 
     @Override

@@ -10,8 +10,8 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import ninja.crinkle.mod.client.color.Color;
-import ninja.crinkle.mod.client.gui.properties.Box;
 import ninja.crinkle.mod.client.gui.properties.Point;
+import ninja.crinkle.mod.client.gui.properties.Rect;
 import ninja.crinkle.mod.client.gui.textures.Atlas;
 import ninja.crinkle.mod.client.gui.textures.TextureSize;
 import ninja.crinkle.mod.util.ClientUtil;
@@ -52,10 +52,10 @@ public class ThemeGraphics extends GuiGraphics {
                 sprite.getV1(), color, zOffset);
     }
 
-    public void drawBox(Box pBox, Color pColor, int zIndex) {
+    public void drawBox(Rect pRect, Color pColor, int zIndex) {
         RenderSystem.enableBlend();
         RenderSystem.enableDepthTest();
-        fill(pBox, pColor, zIndex);
+        fill(pRect, pColor, zIndex);
         RenderSystem.disableDepthTest();
         RenderSystem.disableBlend();
     }
@@ -78,11 +78,20 @@ public class ThemeGraphics extends GuiGraphics {
     }
 
 
-    public void fill(Box pBox, Color pColor, int zIndex) {
-        assert pBox.position().absolute() : "Box must have an absolute position";
-        Point topLeft = pBox.topLeft();
-        Point bottomRight = pBox.bottomRight();
-        fill(topLeft.xInt(), topLeft.yInt(), bottomRight.xInt(), bottomRight.yInt(), zIndex, pColor.get().color());
+    public void fill(int x1, int y1, int x2, int y2, Color color, int zIndex) {
+        fill(x1, y1, x2, y2, zIndex, color.get().color());
+    }
+
+    public void fill(Rect rect, Color color, int zIndex) {
+        fill(rect.x(), rect.y(), rect.right(), rect.bottom(), zIndex, color.get().color());
+    }
+
+    public void drawRect(Rect rect, Color color, int zIndex) {
+        RenderSystem.enableBlend();
+        RenderSystem.enableDepthTest();
+        fill(rect, color, zIndex);
+        RenderSystem.disableDepthTest();
+        RenderSystem.disableBlend();
     }
 
     public GuiGraphics graphics() {

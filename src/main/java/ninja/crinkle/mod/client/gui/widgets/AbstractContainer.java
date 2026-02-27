@@ -7,19 +7,16 @@ import ninja.crinkle.mod.client.gui.events.DroppedEvent;
 import ninja.crinkle.mod.client.gui.events.LayoutChangedEvent;
 import ninja.crinkle.mod.client.gui.events.listeners.LayoutListener;
 import ninja.crinkle.mod.client.gui.events.sources.InputSource;
-import ninja.crinkle.mod.client.gui.layouts.AbstractLayout;
-import ninja.crinkle.mod.client.gui.layouts.Layout;
+import ninja.crinkle.mod.client.gui.layouts.SizeFlags;
 import ninja.crinkle.mod.client.gui.managers.EventManager;
 import ninja.crinkle.mod.client.gui.managers.GuiManager;
-import ninja.crinkle.mod.client.gui.properties.*;
+import ninja.crinkle.mod.client.gui.properties.Point;
+import ninja.crinkle.mod.client.gui.properties.Rect;
 import ninja.crinkle.mod.client.gui.renderers.ThemeGraphics;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -27,16 +24,19 @@ public abstract class AbstractContainer extends AbstractWidget implements InputS
     private static final Logger LOGGER = LogUtils.getLogger();
     private final List<AbstractWidget> children = new ArrayList<>();
     private final EventManager eventManager = EventManager.createLocal();
-    private Layout layoutManager;
+    private int separation;
 
     protected AbstractContainer(@NotNull AbstractContainerBuilder<?> builder) {
         super(builder);
-        this.layoutManager = builder.layoutManager();
+        this.separation = builder.separation();
     }
 
     public AbstractContainer() {
         super();
+        this.separation = 0;
     }
+
+    // --- Children ---
 
     public AbstractContainer add(AbstractBuilder<?> builder) {
         return add(builder.build());
@@ -60,7 +60,7 @@ public abstract class AbstractContainer extends AbstractWidget implements InputS
         return this;
     }
 
-    @SuppressWarnings( "unused" )
+    @SuppressWarnings("unused")
     public AnimatedWidget.Builder addAnimation() {
         return new AnimatedWidget.Builder(this);
     }
@@ -81,19 +81,90 @@ public abstract class AbstractContainer extends AbstractWidget implements InputS
         return children.stream().toList();
     }
 
+    public void remove(AbstractWidget widget) {
+        EventManager.global().removeListener(widget);
+        manager().eventManager().ifPresent(m -> m.removeListener(widget));
+        eventManager().ifPresent(m -> m.removeListener(widget));
+        children.remove(widget);
+        widget.parent(null);
+    }
+
+    // --- Layout ---
+
+    public int separation() {
+        return separation;
+    }
+
+    public void separation(int separation) {
+        this.separation = separation;
+    }
+
+    @Override
+    public void setRect(Rect rect) {
+        super.setRect(rect);
+        arrange();
+    }
+
+    /**
+     * Place children within this container's rect. Subclasses override to implement
+     * specific layout strategies (HBox, VBox, etc.). Default does nothing.
+     */
+    public void arrange() {
+        // Default: no arrangement. Subclasses override.
+    }
+
+    /**
+     * Applies a child's size flags to an allocated rectangle.
+     * Per-axis: if FILL → use allocated size; if SHRINK_* → use min size + align within allocated rect.
+     */
+    protected static Rect fitChildInRect(AbstractWidget child, Rect allocated) {
+        int x = allocated.x();
+        int y = allocated.y();
+        int w = allocated.width();
+        int h = allocated.height();
+
+        EnumSet<SizeFlags> hFlags = child.hSizeFlags();
+        EnumSet<SizeFlags> vFlags = child.vSizeFlags();
+        int childMinW = child.getMinimumWidth();
+        int childMinH = child.getMinimumHeight();
+
+        // Horizontal axis
+        if (!hFlags.contains(SizeFlags.FILL)) {
+            w = childMinW;
+            if (hFlags.contains(SizeFlags.SHRINK_CENTER)) {
+                x += (allocated.width() - w) / 2;
+            } else if (hFlags.contains(SizeFlags.SHRINK_END)) {
+                x += allocated.width() - w;
+            }
+            // SHRINK_BEGIN: x stays at allocated.x()
+        }
+
+        // Vertical axis
+        if (!vFlags.contains(SizeFlags.FILL)) {
+            h = childMinH;
+            if (vFlags.contains(SizeFlags.SHRINK_CENTER)) {
+                y += (allocated.height() - h) / 2;
+            } else if (vFlags.contains(SizeFlags.SHRINK_END)) {
+                y += allocated.height() - h;
+            }
+            // SHRINK_BEGIN: y stays at allocated.y()
+        }
+
+        return new Rect(x, y, w, h);
+    }
+
+    // --- Events ---
+
     @Override
     public Optional<EventManager> eventManager() {
         return Optional.ofNullable(eventManager);
     }
 
-    public Optional<Layout> layoutManager() {
-        return Optional.ofNullable(layoutManager);
-    }
-
     @Override
     public void onDrag(DragEvent event) {
         super.onDrag(event);
-        children().stream().filter(c -> c.layout().position().absolute()).forEach(c -> c.onDrag(event));
+        // When this container is dragged, move all children too
+        children().forEach(c -> c.onDrag(event));
     }
 
     @Override
@@ -108,6 +179,12 @@ public abstract class AbstractContainer extends AbstractWidget implements InputS
         children().forEach(c -> c.onDropped(event));
     }
 
+    @Override
+    public void onLayoutChanged(LayoutChangedEvent event) {
+        if (event.cancelled() || event.consumed()) return;
+        arrange();
+    }
+
     public boolean isRoot() {
         return manager().root() == this;
     }
@@ -118,35 +195,21 @@ public abstract class AbstractContainer extends AbstractWidget implements InputS
         eventManager().ifPresent(m -> m.addListener(widget));
     }
 
-    public void remove(AbstractWidget widget) {
-        EventManager.global().removeListener(widget);
-        manager().eventManager().ifPresent(m -> m.removeListener(widget));
-        eventManager().ifPresent(m -> m.removeListener(widget));
-        children.remove(widget);
-        widget.parent(null);
-    }
+    // --- Rendering ---
 
     @Override
-    public void renderContent(ThemeGraphics graphics, Point pMouse, Box renderBox, float pPartialTick) {
+    public void renderContent(ThemeGraphics graphics, Point pMouse, Rect renderRect, float pPartialTick) {
         children().stream().sorted(Comparator.comparingInt(AbstractWidget::zIndexOf))
                 .forEach(child -> child.render(graphics, pMouse, pPartialTick));
     }
 
-    @Override
-    public String toString() {
-        return "Container{" +
-                "children=[" + children().stream().map(AbstractWidget::toString)
-                .collect(Collectors.joining(",")) +
-                "](" + children().size() + ")" +
-                ", layout=" + layoutManager +
-                ", " + super.toString() +
-                '}';
-    }
+    // --- Lifecycle ---
 
     @Override
-    public void onLayoutChanged(LayoutChangedEvent event) {
-        if (event.cancelled() || event.consumed() || event.old().equals(layout())) return;
-        updateLayout();
+    public void init() {
+        super.init();
+        arrange();
+        children().forEach(AbstractWidget::init);
     }
 
     @Override
@@ -154,27 +217,24 @@ public abstract class AbstractContainer extends AbstractWidget implements InputS
         children().forEach(AbstractWidget::tick);
     }
 
+    // --- Object ---
+
     @Override
-    public void init() {
-        super.init();
-        children().forEach(AbstractWidget::init);
+    public String toString() {
+        return "Container{" +
+                "children=[" + children().stream().map(AbstractWidget::toString)
+                .collect(Collectors.joining(",")) +
+                "](" + children().size() + ")" +
+                ", separation=" + separation +
+                ", " + super.toString() +
+                '}';
     }
 
-    public void updateLayout() {
-        if (cachedBoxes() == null) {
-            LOGGER.warn("Attempted to update layout before cached boxes were set for container: {}", this.name());
-            return;
-        }
-        if (layoutManager().isPresent()) {
-            layoutManager().get().arrange(this);
-        }
-        children(c -> c instanceof AbstractContainer)
-                .forEach(c -> ((AbstractContainer) c).updateLayout());
-    }
+    // --- Builder ---
 
     public static abstract class AbstractContainerBuilder<T extends AbstractContainerBuilder<T>>
             extends AbstractBuilder<T> {
-        private Layout layout;
+        private int separation = 0;
 
         public AbstractContainerBuilder(AbstractContainer container) {
             super(container.manager(), container);
@@ -184,27 +244,23 @@ public abstract class AbstractContainer extends AbstractWidget implements InputS
             super(abstractScreen);
         }
 
+        public T separation(int separation) {
+            this.separation = separation;
+            return self();
+        }
+
+        public int separation() {
+            return separation;
+        }
+
         @Override
         public abstract AbstractContainer build();
 
         @Override
         public abstract AbstractContainer push();
 
-        public T layoutManager(AbstractLayout.AbstractBuilder<?> layout) {
-            return layoutManager(layout.build());
-        }
-
-        public T layoutManager(Layout layout) {
-            this.layout = layout;
-            return self();
-        }
-
         @Override
         protected abstract T self();
-
-        public Layout layoutManager() {
-            return layout;
-        }
 
         public abstract AbstractContainer pushAndReturn();
     }

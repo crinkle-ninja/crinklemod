@@ -1,6 +1,6 @@
 package ninja.crinkle.mod.client.gui.textures;
 
-import ninja.crinkle.mod.client.gui.properties.*;
+import ninja.crinkle.mod.client.gui.properties.Point;
 
 import java.util.Objects;
 
@@ -9,10 +9,6 @@ public class TextureBox {
 
     public TextureBox(TextureSize size) {
         this.size = size;
-    }
-
-    public static TextureBox from(Box box) {
-        return new TextureBox(TextureSize.of(box.size().width(), box.size().height()));
     }
 
     public boolean contains(Point point) {

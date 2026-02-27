@@ -4,7 +4,7 @@ import com.mojang.logging.LogUtils;
 import net.minecraft.client.gui.Font;
 import ninja.crinkle.mod.client.color.Color;
 import ninja.crinkle.mod.client.gui.builders.GenericBuilder;
-import ninja.crinkle.mod.client.gui.properties.Box;
+import ninja.crinkle.mod.client.gui.properties.Rect;
 import ninja.crinkle.mod.client.gui.renderers.ThemeGraphics;
 import ninja.crinkle.mod.client.gui.textures.ColorFilters;
 import ninja.crinkle.mod.client.gui.textures.Texture;
@@ -91,11 +91,11 @@ public class StyleVariant {
         return parent;
     }
 
-    public void render(ThemeGraphics pGuiGraphics, Box pBox, AbstractWidget widget) {
+    public void render(ThemeGraphics pGuiGraphics, Rect rect, AbstractWidget widget) {
         if (backgroundTexture != null) {
             backgroundTexture.render(pGuiGraphics, widget, backgroundColorFilters);
         } else if (backgroundColor != null) {
-            pGuiGraphics.fill(pBox, backgroundColor, widget.zIndex());
+            pGuiGraphics.fill(rect, backgroundColor, widget.zIndex());
         }
 
         if (foregroundTexture != null) {

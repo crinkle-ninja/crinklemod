@@ -1,8 +1,8 @@
 package ninja.crinkle.mod.client.gui.widgets;
 
 import ninja.crinkle.mod.client.gui.managers.GuiManager;
-import ninja.crinkle.mod.client.gui.properties.Box;
 import ninja.crinkle.mod.client.gui.properties.Point;
+import ninja.crinkle.mod.client.gui.properties.Rect;
 import ninja.crinkle.mod.client.gui.renderers.ThemeGraphics;
 
 public class TestWidget extends AbstractWidget {
@@ -19,7 +19,7 @@ public class TestWidget extends AbstractWidget {
     }
 
     @Override
-    public void renderContent(ThemeGraphics graphics, Point pMouse, Box renderedBox, float pPartialTick) {
+    public void renderContent(ThemeGraphics graphics, Point pMouse, Rect renderedRect, float pPartialTick) {
         // Nothing to render for testing
     }
 

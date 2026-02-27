@@ -4,7 +4,6 @@ import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
 import ninja.crinkle.mod.client.color.Color;
 import ninja.crinkle.mod.client.gui.properties.Point;
-import ninja.crinkle.mod.client.gui.properties.Position;
 import ninja.crinkle.mod.client.gui.textures.TextureSize;
 import ninja.crinkle.mod.client.gui.renderers.ThemeGraphics;
 import ninja.crinkle.mod.client.gui.renderers.ThemeRenderable;
@@ -21,7 +20,7 @@ public class Player implements ThemeRenderable {
     private double startTime;
     private double elapsedTime;
     private double speed;
-    private Position position;
+    private Point position;
     private int zIndex = 0;
     private int size = DEFAULT_SIZE;
     private final Map<Animation, String> animations = new ConcurrentHashMap<>();
@@ -70,11 +69,11 @@ public class Player implements ThemeRenderable {
         return zIndex;
     }
 
-    public Position position() {
+    public Point position() {
         return position;
     }
 
-    public Player position(Position position) {
+    public Player position(Point position) {
         this.position = position;
         return this;
     }
@@ -90,7 +89,7 @@ public class Player implements ThemeRenderable {
         for (Animation animation : animations.keySet()) {
             Frame frame = currentFrame(gameTime, animation);
             if (frame != null) {
-                graphics.blit(frame.resourceLocation(size()), position().point().add(animation.offset()),
+                graphics.blit(frame.resourceLocation(size()), position().add(animation.offset()),
                         TextureSize.of(size(), size()), zIndex(), Color.WHITE);
             } else {
                 LOGGER.error("No frame for animation: {} and sprite {}", animation, animations.get(animation));

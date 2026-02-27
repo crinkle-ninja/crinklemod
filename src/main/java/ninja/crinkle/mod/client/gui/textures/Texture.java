@@ -173,12 +173,13 @@ public record Texture(String id, String location, Map<Slice.Location, Slice> sli
         for (var filter : styleVariant.backgroundColorFilters()) {
             color = Color.of(filter.filter().applyAsInt(color.color()));
         }
-        TextureBox background = TextureBox.from(widget.cachedBoxes().backgroundBox());
-        if (background.size().equals(TextureSize.ZERO)) {
+        ninja.crinkle.mod.client.gui.properties.Rect widgetRect = widget.rect();
+        TextureSize textureSize = TextureSize.of(widgetRect.width(), widgetRect.height());
+        if (textureSize.equals(TextureSize.ZERO)) {
             return;
         }
-        ResourceLocation texture = theme.generateTexture(this, background.size(), colorFilters);
-        graphics.blit(texture, background.topLeft(), background.size(), widget.zIndex(), color.withAlpha(widget.alpha()));
+        ResourceLocation texture = theme.generateTexture(this, textureSize, colorFilters);
+        graphics.blit(texture, Point.of(widgetRect.x(), widgetRect.y()), textureSize, widget.zIndex(), color.withAlpha(widget.alpha()));
     }
 
     public static class Builder extends GenericBuilder<Builder, Texture> {

@@ -19,10 +19,18 @@ public class ClientUtil {
         return DistExecutor.safeCallWhenOn(Dist.CLIENT, () -> ClientHooks::getMinecraft);
     }
 
-    public static Size screenSize() {
+    public static Rect screenRect() {
         int width = getMinecraft().getWindow().getGuiScaledWidth();
         int height = getMinecraft().getWindow().getGuiScaledHeight();
-        return Size.ofPixels(width, height);
+        return new Rect(0, 0, width, height);
+    }
+
+    public static int screenWidth() {
+        return getMinecraft().getWindow().getGuiScaledWidth();
+    }
+
+    public static int screenHeight() {
+        return getMinecraft().getWindow().getGuiScaledHeight();
     }
 
     public static Point getMousePosition() {

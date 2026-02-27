@@ -84,7 +84,12 @@ public class DragManager implements MouseListener, MouseSource {
     }
 
     private Predicate<EventListener> onlyOverlapping(EventListener other) {
-        return (l) -> l instanceof AbstractWidget widget && other instanceof AbstractWidget otherWidget &&
-                widget.cachedBoxes().borderBox().overlaps(otherWidget.cachedBoxes().borderBox());
+        return (l) -> {
+            if (!(l instanceof AbstractWidget widget) || !(other instanceof AbstractWidget otherWidget))
+                return false;
+            ninja.crinkle.mod.client.gui.properties.Rect a = widget.rect();
+            ninja.crinkle.mod.client.gui.properties.Rect b = otherWidget.rect();
+            return a.x() < b.right() && a.right() > b.x() && a.y() < b.bottom() && a.bottom() > b.y();
+        };
     }
 }

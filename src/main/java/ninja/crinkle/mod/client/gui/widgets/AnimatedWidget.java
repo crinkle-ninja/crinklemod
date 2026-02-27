@@ -5,7 +5,9 @@ import ninja.crinkle.mod.client.gui.animations.Player;
 import ninja.crinkle.mod.client.gui.events.DragEvent;
 import ninja.crinkle.mod.client.gui.events.DragStoppedEvent;
 import ninja.crinkle.mod.client.gui.events.MoveEvent;
-import ninja.crinkle.mod.client.gui.properties.*;
+import ninja.crinkle.mod.client.gui.properties.ImmutablePoint;
+import ninja.crinkle.mod.client.gui.properties.Point;
+import ninja.crinkle.mod.client.gui.properties.Rect;
 import ninja.crinkle.mod.client.gui.renderers.ThemeGraphics;
 
 public class AnimatedWidget extends AbstractWidget {
@@ -21,17 +23,16 @@ public class AnimatedWidget extends AbstractWidget {
 
     public void animation(Animation animation, String spriteId) {
         this.player.play(animation, spriteId);
-        Size size = Size.ofPercent(this.player.animationSize().width(),
-                this.player.animationSize().height());
-        updateLayout(layout -> layout.size(size));
+        // Update min size based on animation size
+        setMinimumSize(this.player.animationSize().width(), this.player.animationSize().height());
     }
 
     @Override
     public void onDrag(DragEvent event) {
         if (!visible() || !active()) return;
         Point mouse = event.position();
-        mouse.subtract(layout().size().width() / 2, layout().size().height() / 2);
-        player.position(Position.relative(ImmutablePoint.from(mouse)));
+        mouse = mouse.subtract(rect().width() / 2.0, rect().height() / 2.0);
+        player.position(mouse);
         super.onDrag(event);
     }
 
@@ -40,7 +41,7 @@ public class AnimatedWidget extends AbstractWidget {
     }
 
     @Override
-    public void renderContent(ThemeGraphics graphics, Point pMouse, Box renderedBox, float pPartialTick) {
+    public void renderContent(ThemeGraphics graphics, Point pMouse, Rect renderedRect, float pPartialTick) {
         if (!visible() || !active()) return;
         this.player.render(graphics, pMouse, pPartialTick);
     }
@@ -64,13 +65,13 @@ public class AnimatedWidget extends AbstractWidget {
     @Override
     public void onDragStopped(DragStoppedEvent event) {
         super.onDragStopped(event);
-        this.player.position(layout().position());
+        this.player.position(Point.of(rect().x(), rect().y()));
     }
 
     @Override
     public void onMove(MoveEvent event) {
         super.onMove(event);
-        this.player.position(layout().position());
+        this.player.position(Point.of(rect().x(), rect().y()));
     }
 
     public static class Builder extends AbstractWidget.AbstractBuilder<Builder> {

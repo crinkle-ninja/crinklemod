@@ -10,8 +10,8 @@ import ninja.crinkle.mod.client.gui.events.*;
 import ninja.crinkle.mod.client.gui.events.listeners.FocusListener;
 import ninja.crinkle.mod.client.gui.events.listeners.KeyListener;
 import ninja.crinkle.mod.client.gui.events.listeners.MouseListener;
-import ninja.crinkle.mod.client.gui.properties.Box;
 import ninja.crinkle.mod.client.gui.properties.Point;
+import ninja.crinkle.mod.client.gui.properties.Rect;
 import ninja.crinkle.mod.client.gui.renderers.ThemeGraphics;
 import ninja.crinkle.mod.util.ClientUtil;
 import org.jetbrains.annotations.NotNull;
@@ -42,7 +42,6 @@ public class TextBox extends AbstractWidget implements KeyListener, MouseListene
                 && selection().contains(cursorPosFromPoint(event.position()))) {
             selection(new Selection(0, text().length()));
         } else {
-            // select word or whole text
             int start = cursorPos();
             int end = cursorPos();
             while (start > 0 && !Character.isWhitespace(text().charAt(start - 1))) {
@@ -320,43 +319,35 @@ public class TextBox extends AbstractWidget implements KeyListener, MouseListene
         this.cursorPos = cursorPos;
 
         if (cursorPos == -1) {
-            // Reset to the beginning when the cursor is invalid
             visibleStart(0);
             return;
         }
 
-        // Ensure the cursor is within the bounds of the text
         cursorPos = Math.max(0, Math.min(cursorPos, text().length()));
 
-        // Calculate the width of the visible area
-        int visibleWidth = cachedBoxes().contentBox().size().widthInt();
+        int visibleWidth = rect().width();
         Font font = appearance().font();
 
-        // Special case: If the cursor is at the end of the text
         if (cursorPos == text().length()) {
             int textPixelWidth = font.width(text());
             if (textPixelWidth > visibleWidth) {
-                // Shift `newStart` to ensure the last portion of text fits in the visible area
                 int newStart = 0;
                 while (font.width(text().substring(newStart)) > visibleWidth) {
                     newStart++;
                 }
                 visibleStart(newStart);
             } else {
-                visibleStart(0); // Entire text fits in the box
+                visibleStart(0);
             }
             return;
         }
 
-        // General case: Adjust visibleStart based on cursor position
         int newStart = Math.min(visibleStart(), cursorPos);
         int cursorPixelPos = font.width(text().substring(newStart, cursorPos));
 
         if (cursorPixelPos < 0) {
-            // The Cursor is to the left of the visible area
             newStart = cursorPos;
         } else if (cursorPixelPos > visibleWidth) {
-            // The Cursor is to the right of the visible area
             while (font.width(text().substring(newStart, cursorPos)) > visibleWidth) {
                 newStart++;
             }
@@ -392,7 +383,7 @@ public class TextBox extends AbstractWidget implements KeyListener, MouseListene
 
     private int cursorPosFromPoint(Point point) {
         int cursorPos = 0;
-        double charX = cachedBoxes().contentBox().topLeft().x();
+        double charX = rect().x();
         for (int i = 0; i < text().length(); i++) {
             double halfWidth = appearance().font().width(text().substring(i, i + 1)) / 2.0;
             charX += halfWidth;
@@ -428,11 +419,11 @@ public class TextBox extends AbstractWidget implements KeyListener, MouseListene
     }
 
     protected String visibleText() {
-        int width = cachedBoxes().contentBox().size().widthInt();
+        int width = rect().width();
         Font font = appearance().font();
         String visibleText = text().substring(visibleStart());
 
-        for (int i = 1; i <= visibleText.length(); i++) { // Start at 1 to avoid substring(0, 0)
+        for (int i = 1; i <= visibleText.length(); i++) {
             if (font.width(visibleText.substring(0, i)) > width) {
                 return visibleText.substring(0, i - 1);
             }
@@ -445,8 +436,8 @@ public class TextBox extends AbstractWidget implements KeyListener, MouseListene
     }
 
     @Override
-    public void renderContent(ThemeGraphics graphics, Point pMouse, Box renderedBox, float pPartialTick) {
-        Point renderPos = renderedBox.topLeft();
+    public void renderContent(ThemeGraphics graphics, Point pMouse, Rect renderedRect, float pPartialTick) {
+        Point renderPos = Point.of(renderedRect.x(), renderedRect.y());
         if (text().isEmpty() && !focused()) {
             graphics.text(placeholder().getString(), renderPos, zIndex(), appearance().getForegroundColor().halftone(),
                     appearance().hasShadow());
@@ -479,7 +470,6 @@ public class TextBox extends AbstractWidget implements KeyListener, MouseListene
             return;
         }
 
-        // Assume cursor is at the end at first
         int cursorX = renderPos.xInt() + graphics.textWidth(visibleText());
         String character = "_";
         int cursorXEnd = insertMode() ? cursorX + 1 : cursorX + graphics.textWidth(character);

@@ -5,8 +5,8 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import ninja.crinkle.mod.CrinkleMod;
 import ninja.crinkle.mod.client.gui.animations.Animation;
-import ninja.crinkle.mod.client.gui.properties.Box;
 import ninja.crinkle.mod.client.gui.properties.Point;
+import ninja.crinkle.mod.client.gui.properties.Rect;
 import ninja.crinkle.mod.client.gui.renderers.ThemeGraphics;
 import ninja.crinkle.mod.client.gui.themes.Theme;
 import ninja.crinkle.mod.client.gui.themes.ThemeRegistry;
@@ -37,11 +37,11 @@ public class MetabolismWidget extends AnimatedWidget {
     }
 
     @Override
-    public void renderContent(ThemeGraphics graphics, Point pMouse, Box renderedBox, float pPartialTick) {
+    public void renderContent(ThemeGraphics graphics, Point pMouse, Rect renderedRect, float pPartialTick) {
         if (isFinished()) {
             setDesperationAnimation();
         }
-        super.renderContent(graphics, pMouse, renderedBox, pPartialTick);
+        super.renderContent(graphics, pMouse, renderedRect, pPartialTick);
     }
 
     @SubscribeEvent
@@ -52,9 +52,9 @@ public class MetabolismWidget extends AnimatedWidget {
             type = CrinkleEvent.Type.BOTH;
         }
         this.accidentType = type;
-        
+
         if (!trySetAnimations(4.0f, "accident", typeSpriteId(type))) return;
-        
+
         onFinished(() -> {
             this.accidentType = CrinkleEvent.Type.NONE;
             trySetAnimations(0.75f, "relief", "normal");
@@ -69,7 +69,7 @@ public class MetabolismWidget extends AnimatedWidget {
     private boolean trySetAnimations(double speed, String characterSprite, String bubbleSprite) {
         Theme theme = ThemeRegistry.current();
         if (theme == null) return false;
-        
+
         Animation character = theme.getAnimation("character").orElse(null);
         Animation bubble = theme.getAnimation("bubble").orElse(null);
         if (character == null) {

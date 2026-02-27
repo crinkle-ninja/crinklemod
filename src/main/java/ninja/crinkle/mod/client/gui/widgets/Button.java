@@ -2,8 +2,8 @@ package ninja.crinkle.mod.client.gui.widgets;
 
 import ninja.crinkle.mod.client.gui.events.ClickEvent;
 import ninja.crinkle.mod.client.gui.managers.EventManager;
-import ninja.crinkle.mod.client.gui.properties.Box;
 import ninja.crinkle.mod.client.gui.properties.Point;
+import ninja.crinkle.mod.client.gui.properties.Rect;
 import ninja.crinkle.mod.client.gui.renderers.ThemeGraphics;
 
 import java.util.function.BiConsumer;
@@ -24,10 +24,10 @@ public class Button extends AbstractContainer {
     }
 
     @Override
-    public void renderContent(ThemeGraphics graphics, Point pMouse, Box renderBox, float pPartialTick) {
-        super.renderContent(graphics, pMouse, renderBox, pPartialTick);
+    public void renderContent(ThemeGraphics graphics, Point pMouse, Rect renderRect, float pPartialTick) {
+        super.renderContent(graphics, pMouse, renderRect, pPartialTick);
         if (text != null) {
-            text.renderContent(graphics, pMouse, renderBox, pPartialTick);
+            text.renderContent(graphics, pMouse, renderRect, pPartialTick);
         }
     }
 
