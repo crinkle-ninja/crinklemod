@@ -55,6 +55,8 @@ public abstract class AbstractWidget implements Renderable, Widget, MouseSource,
     private EnumSet<SizeFlags> hSizeFlags;
     private EnumSet<SizeFlags> vSizeFlags;
     private float stretchRatio;
+    private double dragAccumX;
+    private double dragAccumY;
 
     protected AbstractWidget(@NotNull AbstractBuilder<?> builder) {
         this.activePredicate = builder.activePredicate();
@@ -93,8 +95,8 @@ public abstract class AbstractWidget implements Renderable, Widget, MouseSource,
         this.behavior = new WidgetBehavior();
         this.minWidth = 0;
         this.minHeight = 0;
-        this.hSizeFlags = EnumSet.of(SizeFlags.FILL);
-        this.vSizeFlags = EnumSet.of(SizeFlags.FILL);
+        this.hSizeFlags = EnumSet.of(SizeFlags.Fill);
+        this.vSizeFlags = EnumSet.of(SizeFlags.Fill);
         this.stretchRatio = 1.0f;
     }
 
@@ -126,8 +128,16 @@ public abstract class AbstractWidget implements Renderable, Widget, MouseSource,
         return hSizeFlags;
     }
 
+    public void hSizeFlags(SizeFlags... flags) {
+        this.hSizeFlags = SizeFlags.of(flags);
+    }
+
     public EnumSet<SizeFlags> vSizeFlags() {
         return vSizeFlags;
+    }
+
+    public void vSizeFlags(SizeFlags... flags) {
+        this.vSizeFlags = SizeFlags.of(flags);
     }
 
     public float stretchRatio() {
@@ -259,6 +269,14 @@ public abstract class AbstractWidget implements Renderable, Widget, MouseSource,
     @SuppressWarnings("unused")
     public void pressable(boolean pressable) {
         behavior(behavior().withPressable(pressable));
+    }
+
+    public boolean repositionable() {
+        return behavior().repositionable();
+    }
+
+    public void repositionable(boolean repositionable) {
+        behavior(behavior().withRepositionable(repositionable));
     }
 
     @Override
@@ -419,9 +437,15 @@ public abstract class AbstractWidget implements Renderable, Widget, MouseSource,
     public void onDrag(DragEvent event) {
         if (event.cancelled()) return;
         if (!dragged()) return;
+        dragAccumX += event.dragX();
+        dragAccumY += event.dragY();
+        int dx = (int) dragAccumX;
+        int dy = (int) dragAccumY;
+        if (dx == 0 && dy == 0) return;
+        dragAccumX -= dx;
+        dragAccumY -= dy;
         Rect old = rect;
-        setRect(new Rect(rect.x() + (int) event.dragX(), rect.y() + (int) event.dragY(),
-                rect.width(), rect.height()));
+        setRect(new Rect(rect.x() + dx, rect.y() + dy, rect.width(), rect.height()));
         if (rect.equals(old)) return;
         event.consumer(this);
     }
@@ -430,6 +454,8 @@ public abstract class AbstractWidget implements Renderable, Widget, MouseSource,
     public void onDragStarted(DragStartedEvent event) {
         if (event.cancelled()) return;
         if (event.widget() == this) {
+            dragAccumX = 0;
+            dragAccumY = 0;
             dragged(true);
             event.consumer(this);
         }
@@ -584,8 +610,8 @@ public abstract class AbstractWidget implements Renderable, Widget, MouseSource,
         // New layout fields
         private int minWidth = 0;
         private int minHeight = 0;
-        private EnumSet<SizeFlags> hSizeFlags = EnumSet.of(SizeFlags.FILL);
-        private EnumSet<SizeFlags> vSizeFlags = EnumSet.of(SizeFlags.FILL);
+        private EnumSet<SizeFlags> hSizeFlags = EnumSet.of(SizeFlags.Fill);
+        private EnumSet<SizeFlags> vSizeFlags = EnumSet.of(SizeFlags.Fill);
         private float stretchRatio = 1.0f;
 
         protected AbstractBuilder(GuiManager manager) {
@@ -748,6 +774,15 @@ public abstract class AbstractWidget implements Renderable, Widget, MouseSource,
 
         public T pressable(boolean pressable) {
             behavior = behavior.withPressable(pressable);
+            return self();
+        }
+
+        public boolean repositionable() {
+            return behavior.repositionable();
+        }
+
+        public T repositionable(boolean repositionable) {
+            behavior = behavior.withRepositionable(repositionable);
             return self();
         }
 

@@ -1,8 +1,13 @@
 package ninja.crinkle.mod.client.gui.widgets;
 
 import ninja.crinkle.mod.client.gui.managers.GuiManager;
+import ninja.crinkle.mod.client.gui.properties.Rect;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * A stack container — all children overlap, each receiving the full rect
+ * with their size flags applied via fitChildInRect.
+ */
 public class Container extends AbstractContainer {
     public Container() {
         super();
@@ -10,6 +15,15 @@ public class Container extends AbstractContainer {
 
     protected Container(@NotNull AbstractContainerBuilder<?> builder) {
         super(builder);
+    }
+
+    @Override
+    public void arrange() {
+        if (children().isEmpty() || rect().equals(Rect.ZERO)) return;
+        for (AbstractWidget child : children()) {
+            Rect fitted = fitChildInRect(child, rect());
+            child.setRect(fitted);
+        }
     }
 
     public static Builder builder(AbstractContainer parent) {

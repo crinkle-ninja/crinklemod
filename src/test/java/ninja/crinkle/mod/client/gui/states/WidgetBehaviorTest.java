@@ -36,7 +36,8 @@ public class WidgetBehaviorTest {
         @Test
         @DisplayName("should create a new WidgetBehavior with draggable set to false")
         void shouldCreateWidgetBehaviorWithDraggableFalse() {
-            WidgetBehavior original = new WidgetBehavior(true, false, false, false, false, false, false, false, false);
+            WidgetBehavior original = new WidgetBehavior(true, false, false, false, false, false, false, false, false, false);
+
             WidgetBehavior updated = original.withDraggable(false);
 
             assertAll(
@@ -56,7 +57,7 @@ public class WidgetBehaviorTest {
         @Test
         @DisplayName("should throw IllegalArgumentException if trying to set dragged to true with draggable false")
         void shouldThrowExceptionForInvalidDraggedState() {
-            WidgetBehavior original = new WidgetBehavior(false, false, false, false, false, false, false, false, false);
+            WidgetBehavior original = new WidgetBehavior(false, false, false, false, false, false, false, false, false, false);
 
             IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                     () -> original.withDragged(true),
@@ -74,7 +75,7 @@ public class WidgetBehaviorTest {
         @Test
         @DisplayName("should create a new WidgetBehavior with dragged set to true")
         void shouldCreateWidgetBehaviorWithDraggedTrue() {
-            WidgetBehavior original = new WidgetBehavior(true, false, false, false, false, false, false, false, false);
+            WidgetBehavior original = new WidgetBehavior(true, false, false, false, false, false, false, false, false, false);
             WidgetBehavior updated = original.withDragged(true);
 
             assertAll(
@@ -94,7 +95,7 @@ public class WidgetBehaviorTest {
         @Test
         @DisplayName("should throw IllegalArgumentException when dragged is true but draggable is false")
         void shouldThrowExceptionWhenDraggedTrueAndDraggableFalse() {
-            WidgetBehavior original = new WidgetBehavior(false, false, false, false, false, false, false, false, false);
+            WidgetBehavior original = new WidgetBehavior(false, false, false, false, false, false, false, false, false, false);
 
             IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                     () -> original.withDragged(true),
@@ -180,9 +181,9 @@ public class WidgetBehaviorTest {
     @Test
     @DisplayName("should return correct toString representation of WidgetBehavior")
     void shouldReturnCorrectToStringRepresentation() {
-        WidgetBehavior behavior = new WidgetBehavior(true, true, false, false, true, false, true, false, true);
+        WidgetBehavior behavior = new WidgetBehavior(true, true, false, false, true, false, true, false, true, false);
 
-        String expected = "WidgetBehavior{draggable=true, dragged=true, pressed=false, focused=false, hovered=true, active=false, focusable=true, highlightable=false, pressable=true}";
+        String expected = "WidgetBehavior{draggable=true, dragged=true, pressed=false, focused=false, hovered=true, active=false, focusable=true, highlightable=false, pressable=true, repositionable=false}";
         assertEquals(expected, behavior.toString(), "toString output mismatch");
     }
 }

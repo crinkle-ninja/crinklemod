@@ -52,7 +52,7 @@ public class VBoxContainer extends AbstractContainer {
         int nonExpandSum = 0;
         float totalRatio = 0;
         for (AbstractWidget child : kids) {
-            if (child.vSizeFlags().contains(SizeFlags.EXPAND)) {
+            if (child.vSizeFlags().contains(SizeFlags.Expand)) {
                 totalRatio += child.stretchRatio();
             } else {
                 nonExpandSum += child.getMinimumHeight();
@@ -65,7 +65,7 @@ public class VBoxContainer extends AbstractContainer {
         int offset = rect().y();
         for (AbstractWidget child : kids) {
             int allocH;
-            if (child.vSizeFlags().contains(SizeFlags.EXPAND)) {
+            if (child.vSizeFlags().contains(SizeFlags.Expand)) {
                 int extra = totalRatio > 0 ? (int) (leftover * (child.stretchRatio() / totalRatio)) : 0;
                 allocH = child.getMinimumHeight() + extra;
             } else {

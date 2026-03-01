@@ -39,7 +39,7 @@ public class TestScreen extends AbstractScreen {
             HBoxContainer hPanel = HBoxContainer.builder(vPanel)
                     .name("container" + p)
                     .separation(5)
-                    .hSizeFlags(SizeFlags.EXPAND, SizeFlags.FILL)
+                    .hSizeFlags(SizeFlags.Expand, SizeFlags.Fill)
                     .build();
             vPanel.add(hPanel);
 
@@ -52,7 +52,7 @@ public class TestScreen extends AbstractScreen {
                         .text("Button " + i + p)
                         .onClick((event, widget) -> LOGGER.info("Button {} clicked", widget.name()))
                         .minSize(btnWidth, height)
-                        .hSizeFlags(SizeFlags.EXPAND, SizeFlags.FILL)
+                        .hSizeFlags(SizeFlags.Expand, SizeFlags.Fill)
                         .pushAndReturn();
             }
         }

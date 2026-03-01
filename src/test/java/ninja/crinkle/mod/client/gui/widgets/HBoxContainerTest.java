@@ -86,7 +86,7 @@ class HBoxContainerTest {
             root.add(hbox);
             TestWidget fixed = TestWidget.builder(hbox).minSize(50, 10).build();
             TestWidget expanding = TestWidget.builder(hbox).minSize(0, 10)
-                    .hSizeFlags(SizeFlags.EXPAND, SizeFlags.FILL).build();
+                    .hSizeFlags(SizeFlags.Expand, SizeFlags.Fill).build();
             hbox.add(fixed);
             hbox.add(expanding);
 
@@ -102,9 +102,9 @@ class HBoxContainerTest {
             HBoxContainer hbox = HBoxContainer.builder(root).separation(0).build();
             root.add(hbox);
             TestWidget a = TestWidget.builder(hbox).minSize(0, 10)
-                    .hSizeFlags(SizeFlags.EXPAND, SizeFlags.FILL).stretchRatio(1.0f).build();
+                    .hSizeFlags(SizeFlags.Expand, SizeFlags.Fill).stretchRatio(1.0f).build();
             TestWidget b = TestWidget.builder(hbox).minSize(0, 10)
-                    .hSizeFlags(SizeFlags.EXPAND, SizeFlags.FILL).stretchRatio(2.0f).build();
+                    .hSizeFlags(SizeFlags.Expand, SizeFlags.Fill).stretchRatio(2.0f).build();
             hbox.add(a);
             hbox.add(b);
 
@@ -140,7 +140,7 @@ class HBoxContainerTest {
             HBoxContainer hbox = HBoxContainer.builder(root).build();
             root.add(hbox);
             TestWidget child = TestWidget.builder(hbox).minSize(30, 20)
-                    .vSizeFlags(SizeFlags.SHRINK_CENTER).build();
+                    .vSizeFlags(SizeFlags.ShrinkCenter).build();
             hbox.add(child);
 
             hbox.setRect(new Rect(0, 0, 200, 100));

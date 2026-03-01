@@ -24,6 +24,15 @@ public class Button extends AbstractContainer {
     }
 
     @Override
+    public void arrange() {
+        if (children().isEmpty() || rect().equals(Rect.ZERO)) return;
+        for (AbstractWidget child : children()) {
+            Rect fitted = fitChildInRect(child, rect());
+            child.setRect(fitted);
+        }
+    }
+
+    @Override
     public void renderContent(ThemeGraphics graphics, Point pMouse, Rect renderRect, float pPartialTick) {
         super.renderContent(graphics, pMouse, renderRect, pPartialTick);
         if (text != null) {

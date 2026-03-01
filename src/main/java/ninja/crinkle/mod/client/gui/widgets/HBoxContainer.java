@@ -52,7 +52,7 @@ public class HBoxContainer extends AbstractContainer {
         int nonExpandSum = 0;
         float totalRatio = 0;
         for (AbstractWidget child : kids) {
-            if (child.hSizeFlags().contains(SizeFlags.EXPAND)) {
+            if (child.hSizeFlags().contains(SizeFlags.Expand)) {
                 totalRatio += child.stretchRatio();
             } else {
                 nonExpandSum += child.getMinimumWidth();
@@ -65,7 +65,7 @@ public class HBoxContainer extends AbstractContainer {
         int offset = rect().x();
         for (AbstractWidget child : kids) {
             int allocW;
-            if (child.hSizeFlags().contains(SizeFlags.EXPAND)) {
+            if (child.hSizeFlags().contains(SizeFlags.Expand)) {
                 int extra = totalRatio > 0 ? (int) (leftover * (child.stretchRatio() / totalRatio)) : 0;
                 allocW = child.getMinimumWidth() + extra;
             } else {

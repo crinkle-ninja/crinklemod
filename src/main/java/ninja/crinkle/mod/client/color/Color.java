@@ -22,6 +22,7 @@ public class Color {
     public static final Color BROWN = new Color(0xFFA52A2A);
     public static final Color WHITE = new Color(0xFFFFFFFF);
     public static final Color BLACK = new Color(0xFF000000);
+    public static final Color LIGHT_GRAY = new Color(0xFF808080);
     // public static final Color TRANSPARENT = new Color(0);
     public static final Color DEFAULT_TEXT = new Color(0xFF404040);
     public static final Color RAINBOW = new Color(-1, Type.RAINBOW);

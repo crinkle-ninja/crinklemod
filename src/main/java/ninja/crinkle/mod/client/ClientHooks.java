@@ -4,7 +4,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.HitResult;
 import net.minecraftforge.common.MinecraftForge;
-import ninja.crinkle.mod.client.gui.addons.PauseScreenAddOn;
 import ninja.crinkle.mod.events.handlers.CrinkleForgeBusClientEvents;
 
 public class ClientHooks {

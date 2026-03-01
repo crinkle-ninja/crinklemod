@@ -2,35 +2,35 @@ package ninja.crinkle.mod.client.gui.addons;
 
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.gui.screens.PauseScreen;
-import net.minecraftforge.client.event.ScreenEvent;
+import ninja.crinkle.mod.client.gui.layouts.SizeFlags;
 import ninja.crinkle.mod.client.gui.screens.TestScreen;
 import ninja.crinkle.mod.client.gui.widgets.Button;
+import ninja.crinkle.mod.client.gui.widgets.CenterContainer;
+import ninja.crinkle.mod.client.gui.widgets.MarginContainer;
+import ninja.crinkle.mod.client.gui.widgets.VBoxContainer;
 import ninja.crinkle.mod.util.ClientUtil;
 import org.slf4j.Logger;
 
 public class PauseScreenAddOn extends AbstractAddOn {
     private static final Logger LOGGER = LogUtils.getLogger();
-    private final Button testButton;
+
     public PauseScreenAddOn() {
         super(PauseScreen.class);
-        this.testButton = Button.builder(root())
-                .text("Test Button")
+        MarginContainer panel = MarginContainer.builder(root())
+                .margins(8)
+                .pushAndReturn();
+        CenterContainer centerContainer = CenterContainer.builder(panel).pushAndReturn();
+        VBoxContainer buttonPanel = VBoxContainer.builder(centerContainer)
+                .pushAndReturn();
+        Button.builder(buttonPanel)
+                .text("Test 1")
                 .widgetTheme("button")
-                .minSize(100, 20)
-                .visible(true)
-                .onClick((e, w) -> ClientUtil.getMinecraft().setScreen(new TestScreen()))
-                .build();
-        this.testButton.setRect(new ninja.crinkle.mod.client.gui.properties.Rect(100, 100, 100, 20));
-        this.root().add(testButton);
-    }
-
-    @Override
-    public void onScreenRenderPost(ScreenEvent.Render.Post event) {
-        super.onScreenRenderPost(event);
-        if (event.isCanceled()) return;
-        if (!root().active() || !root().visible()) return;
-        if (ClientUtil.getMinecraft() == null || ClientUtil.getMinecraft().screen == null) return;
-        LOGGER.info("PauseScreenAddOn rendered dimensions: {}x{}", testButton.rect().width(),
-                testButton.rect().height());
+                .onClick((e, w) -> LOGGER.debug("Click 1!"))
+                .push();
+        Button.builder(buttonPanel)
+                .text("Test 2")
+                .widgetTheme("button")
+                .onClick((e, w) -> LOGGER.debug("Click 2!"))
+                .push();
     }
 }

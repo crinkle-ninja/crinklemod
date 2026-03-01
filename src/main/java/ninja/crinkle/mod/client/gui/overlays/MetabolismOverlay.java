@@ -1,31 +1,50 @@
 package ninja.crinkle.mod.client.gui.overlays;
 
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.event.config.ModConfigEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import java.util.Optional;
+import ninja.crinkle.mod.client.gui.editors.LayoutRegistry;
+import ninja.crinkle.mod.client.gui.managers.GuiManager;
 import ninja.crinkle.mod.client.gui.properties.Rect;
 import ninja.crinkle.mod.client.gui.widgets.MetabolismWidget;
 
 public class MetabolismOverlay extends AbstractOverlay {
+    public static final String WIDGET_ID = "metabolism_overlay";
     public static final MetabolismOverlay HUD = new MetabolismOverlay();
     public final MetabolismWidget widget = new MetabolismWidget(manager().root());
 
     public MetabolismOverlay() {
         manager().root().add(widget);
-        FMLJavaModLoadingContext.get().getModEventBus().register(this);
+
+        LayoutRegistry.register(new LayoutRegistry.Entry(
+                WIDGET_ID,
+                () -> {
+                    GuiManager mgr = GuiManager.create();
+                    MetabolismWidget w = new MetabolismWidget(mgr.root());
+                    w.repositionable(true);
+                    return w;
+                },
+                () -> widget.rect(),
+                rect -> widget.setRect(rect)
+        ));
     }
 
-    @SubscribeEvent
-    public void onConfigLoad(ModConfigEvent configEvent) {
-        if (configEvent instanceof ModConfigEvent.Reloading
-                || configEvent instanceof ModConfigEvent.Loading) {
-            if (configEvent.getConfig().getConfigData().contains("overlay.metabolism")) {
-                int x = configEvent.getConfig().getConfigData().getInt("overlay.metabolism.x");
-                int y = configEvent.getConfig().getConfigData().getInt("overlay.metabolism.y");
-                widget.setRect(new Rect(x, y, widget.getMinimumWidth(), widget.getMinimumHeight()));
-                widget.active(true);
-                widget.visible(true);
-            }
+    @Override
+    protected void onScreenResize(int screenWidth, int screenHeight) {
+        super.onScreenResize(screenWidth, screenHeight);
+        resolveAndApply(screenWidth, screenHeight);
+    }
+
+    private void resolveAndApply(int screenWidth, int screenHeight) {
+        int w = Math.max(widget.getMinimumWidth(), 64);
+        int h = Math.max(widget.getMinimumHeight(), 64);
+        Optional<Rect> saved = LayoutRegistry.resolvePosition(
+                WIDGET_ID, screenWidth, screenHeight, w, h);
+        Rect resolved = saved.orElse(new Rect(0, 0, w, h));
+        widget.setRect(resolved);
+        widget.active(true);
+        widget.visible(true);
+        // Save default position so anchoring works on resize
+        if (saved.isEmpty()) {
+            LayoutRegistry.savePosition(WIDGET_ID, resolved, screenWidth, screenHeight);
         }
     }
 }

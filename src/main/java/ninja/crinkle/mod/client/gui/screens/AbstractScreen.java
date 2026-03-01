@@ -39,7 +39,7 @@ public abstract class AbstractScreen extends Screen implements TabIndexListener,
     private ClickState clickState;
     private final List<GuiEventListener> focusedElements = new ArrayList<>();
     private final AbstractContainer root;
-    private boolean ready = false;
+    protected boolean ready = false;
     private int currentTabIndex = 0;
     private Rect lastScreenRect;
     private Point mouse = ImmutablePoint.ZERO;

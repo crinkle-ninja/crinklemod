@@ -18,9 +18,9 @@ public class Label extends AbstractWidget {
 
     @Override
     public void render(@NotNull ThemeGraphics graphics, Point pMouse, float pPartialTick) {
-        // A label inside a container (e.g. Button) should not render itself independently;
-        // the container renders it via renderContent.
-        if (!(parentOrThrow() instanceof AbstractContainer)) {
+        // A label inside a Button should not render itself independently;
+        // the Button renders it via renderContent.
+        if (!(parentOrThrow() instanceof Button)) {
             super.render(graphics, pMouse, pPartialTick);
         }
     }

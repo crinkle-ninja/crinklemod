@@ -21,18 +21,26 @@ public class AnimatedWidget extends AbstractWidget {
                 .size(builder.textureSize());
     }
 
+    @Override
+    public void setRect(Rect rect) {
+        super.setRect(rect);
+        this.player.position(Point.of(rect.x(), rect.y()));
+    }
+
     public void animation(Animation animation, String spriteId) {
         this.player.play(animation, spriteId);
-        // Update min size based on animation size
-        setMinimumSize(this.player.animationSize().width(), this.player.animationSize().height());
+        // Update min size and rect dimensions based on animation size
+        int aw = this.player.animationSize().width();
+        int ah = this.player.animationSize().height();
+        setMinimumSize(aw, ah);
+        if (!rect().equals(Rect.ZERO)) {
+            setRect(new Rect(rect().x(), rect().y(), aw, ah));
+        }
     }
 
     @Override
     public void onDrag(DragEvent event) {
         if (!visible() || !active()) return;
-        Point mouse = event.position();
-        mouse = mouse.subtract(rect().width() / 2.0, rect().height() / 2.0);
-        player.position(mouse);
         super.onDrag(event);
     }
 

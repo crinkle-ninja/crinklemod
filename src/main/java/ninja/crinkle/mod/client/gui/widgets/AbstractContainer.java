@@ -129,22 +129,22 @@ public abstract class AbstractContainer extends AbstractWidget implements InputS
         int childMinH = child.getMinimumHeight();
 
         // Horizontal axis
-        if (!hFlags.contains(SizeFlags.FILL)) {
+        if (!hFlags.contains(SizeFlags.Fill)) {
             w = childMinW;
-            if (hFlags.contains(SizeFlags.SHRINK_CENTER)) {
+            if (hFlags.contains(SizeFlags.ShrinkCenter)) {
                 x += (allocated.width() - w) / 2;
-            } else if (hFlags.contains(SizeFlags.SHRINK_END)) {
+            } else if (hFlags.contains(SizeFlags.ShrinkEnd)) {
                 x += allocated.width() - w;
             }
             // SHRINK_BEGIN: x stays at allocated.x()
         }
 
         // Vertical axis
-        if (!vFlags.contains(SizeFlags.FILL)) {
+        if (!vFlags.contains(SizeFlags.Fill)) {
             h = childMinH;
-            if (vFlags.contains(SizeFlags.SHRINK_CENTER)) {
+            if (vFlags.contains(SizeFlags.ShrinkCenter)) {
                 y += (allocated.height() - h) / 2;
-            } else if (vFlags.contains(SizeFlags.SHRINK_END)) {
+            } else if (vFlags.contains(SizeFlags.ShrinkEnd)) {
                 y += allocated.height() - h;
             }
             // SHRINK_BEGIN: y stays at allocated.y()
@@ -162,9 +162,10 @@ public abstract class AbstractContainer extends AbstractWidget implements InputS
 
     @Override
     public void onDrag(DragEvent event) {
+        if (!dragged()) return;
+        // super.onDrag calls setRect which calls arrange() — that repositions children
+        // relative to this container's new rect, so no manual child-moving needed.
         super.onDrag(event);
-        // When this container is dragged, move all children too
-        children().forEach(c -> c.onDrag(event));
     }
 
     @Override

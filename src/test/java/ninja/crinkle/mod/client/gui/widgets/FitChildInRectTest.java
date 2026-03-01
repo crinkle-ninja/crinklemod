@@ -35,7 +35,7 @@ class FitChildInRectTest {
             VBoxContainer vbox = VBoxContainer.builder(root).build();
             root.add(vbox);
             TestWidget child = TestWidget.builder(vbox).minSize(30, 10)
-                    .hSizeFlags(SizeFlags.FILL).build();
+                    .hSizeFlags(SizeFlags.Fill).build();
             vbox.add(child);
             vbox.setRect(new Rect(0, 0, 100, 50));
 
@@ -48,7 +48,7 @@ class FitChildInRectTest {
             VBoxContainer vbox = VBoxContainer.builder(root).build();
             root.add(vbox);
             TestWidget child = TestWidget.builder(vbox).minSize(30, 10)
-                    .hSizeFlags(SizeFlags.SHRINK_BEGIN).build();
+                    .hSizeFlags(SizeFlags.ShrinkBegin).build();
             vbox.add(child);
             vbox.setRect(new Rect(10, 0, 100, 50));
 
@@ -62,7 +62,7 @@ class FitChildInRectTest {
             VBoxContainer vbox = VBoxContainer.builder(root).build();
             root.add(vbox);
             TestWidget child = TestWidget.builder(vbox).minSize(30, 10)
-                    .hSizeFlags(SizeFlags.SHRINK_CENTER).build();
+                    .hSizeFlags(SizeFlags.ShrinkCenter).build();
             vbox.add(child);
             vbox.setRect(new Rect(0, 0, 100, 50));
 
@@ -76,7 +76,7 @@ class FitChildInRectTest {
             VBoxContainer vbox = VBoxContainer.builder(root).build();
             root.add(vbox);
             TestWidget child = TestWidget.builder(vbox).minSize(30, 10)
-                    .hSizeFlags(SizeFlags.SHRINK_END).build();
+                    .hSizeFlags(SizeFlags.ShrinkEnd).build();
             vbox.add(child);
             vbox.setRect(new Rect(0, 0, 100, 50));
 
@@ -94,7 +94,7 @@ class FitChildInRectTest {
             HBoxContainer hbox = HBoxContainer.builder(root).build();
             root.add(hbox);
             TestWidget child = TestWidget.builder(hbox).minSize(10, 20)
-                    .vSizeFlags(SizeFlags.FILL).build();
+                    .vSizeFlags(SizeFlags.Fill).build();
             hbox.add(child);
             hbox.setRect(new Rect(0, 0, 100, 80));
 
@@ -107,7 +107,7 @@ class FitChildInRectTest {
             HBoxContainer hbox = HBoxContainer.builder(root).build();
             root.add(hbox);
             TestWidget child = TestWidget.builder(hbox).minSize(10, 20)
-                    .vSizeFlags(SizeFlags.SHRINK_BEGIN).build();
+                    .vSizeFlags(SizeFlags.ShrinkBegin).build();
             hbox.add(child);
             hbox.setRect(new Rect(0, 10, 100, 80));
 
@@ -121,7 +121,7 @@ class FitChildInRectTest {
             HBoxContainer hbox = HBoxContainer.builder(root).build();
             root.add(hbox);
             TestWidget child = TestWidget.builder(hbox).minSize(10, 20)
-                    .vSizeFlags(SizeFlags.SHRINK_CENTER).build();
+                    .vSizeFlags(SizeFlags.ShrinkCenter).build();
             hbox.add(child);
             hbox.setRect(new Rect(0, 0, 100, 80));
 
@@ -135,7 +135,7 @@ class FitChildInRectTest {
             HBoxContainer hbox = HBoxContainer.builder(root).build();
             root.add(hbox);
             TestWidget child = TestWidget.builder(hbox).minSize(10, 20)
-                    .vSizeFlags(SizeFlags.SHRINK_END).build();
+                    .vSizeFlags(SizeFlags.ShrinkEnd).build();
             hbox.add(child);
             hbox.setRect(new Rect(0, 0, 100, 80));
 
@@ -154,8 +154,8 @@ class FitChildInRectTest {
             MarginContainer mc = MarginContainer.builder(root).margins(0).build();
             root.add(mc);
             TestWidget child = TestWidget.builder(mc).minSize(30, 20)
-                    .hSizeFlags(SizeFlags.SHRINK_CENTER)
-                    .vSizeFlags(SizeFlags.SHRINK_CENTER).build();
+                    .hSizeFlags(SizeFlags.ShrinkCenter)
+                    .vSizeFlags(SizeFlags.ShrinkCenter).build();
             mc.add(child);
             mc.setRect(new Rect(0, 0, 100, 80));
 
@@ -168,8 +168,8 @@ class FitChildInRectTest {
             MarginContainer mc = MarginContainer.builder(root).margins(0).build();
             root.add(mc);
             TestWidget child = TestWidget.builder(mc).minSize(30, 20)
-                    .hSizeFlags(SizeFlags.FILL)
-                    .vSizeFlags(SizeFlags.SHRINK_END).build();
+                    .hSizeFlags(SizeFlags.Fill)
+                    .vSizeFlags(SizeFlags.ShrinkEnd).build();
             mc.add(child);
             mc.setRect(new Rect(0, 0, 100, 80));
 

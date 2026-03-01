@@ -3,11 +3,11 @@ package ninja.crinkle.mod.client.gui.layouts;
 import java.util.EnumSet;
 
 public enum SizeFlags {
-    FILL(1),
-    EXPAND(2),
-    SHRINK_BEGIN(0),
-    SHRINK_CENTER(4),
-    SHRINK_END(8);
+    Fill(1),
+    Expand(2),
+    ShrinkBegin(0),
+    ShrinkCenter(4),
+    ShrinkEnd(8);
 
     private final int bit;
 
@@ -27,5 +27,5 @@ public enum SizeFlags {
         return set;
     }
 
-    public static final EnumSet<SizeFlags> DEFAULT = EnumSet.of(FILL);
+    public static final EnumSet<SizeFlags> DEFAULT = EnumSet.of(Fill);
 }

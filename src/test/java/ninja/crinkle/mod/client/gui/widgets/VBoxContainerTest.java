@@ -77,7 +77,7 @@ class VBoxContainerTest {
             root.add(vbox);
             TestWidget fixed = TestWidget.builder(vbox).minSize(10, 50).build();
             TestWidget expanding = TestWidget.builder(vbox).minSize(10, 0)
-                    .vSizeFlags(SizeFlags.EXPAND, SizeFlags.FILL).build();
+                    .vSizeFlags(SizeFlags.Expand, SizeFlags.Fill).build();
             vbox.add(fixed);
             vbox.add(expanding);
 
@@ -93,7 +93,7 @@ class VBoxContainerTest {
             VBoxContainer vbox = VBoxContainer.builder(root).build();
             root.add(vbox);
             TestWidget child = TestWidget.builder(vbox).minSize(30, 20)
-                    .hSizeFlags(SizeFlags.SHRINK_END).build();
+                    .hSizeFlags(SizeFlags.ShrinkEnd).build();
             vbox.add(child);
 
             vbox.setRect(new Rect(0, 0, 100, 200));

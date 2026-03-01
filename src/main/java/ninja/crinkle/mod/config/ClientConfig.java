@@ -7,6 +7,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import ninja.crinkle.mod.CrinkleMod;
 import ninja.crinkle.mod.client.gui.themes.ThemeRegistry;
+import ninja.crinkle.mod.config.sections.client.LayoutSection;
 import ninja.crinkle.mod.config.sections.client.OverlaySection;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -24,6 +25,7 @@ public class ClientConfig {
     }
 
     private final ForgeConfigSpec.ConfigValue<Boolean> debug;
+    private final LayoutSection layout;
     private final OverlaySection overlay;
     private final ForgeConfigSpec.ConfigValue<String> themeId;
 
@@ -39,6 +41,7 @@ public class ClientConfig {
                 .translation("config.crinklemod.debug")
                 .define("debug", false);
         builder.pop();
+        layout = new LayoutSection(builder);
         overlay = new OverlaySection(builder);
     }
 
@@ -64,6 +67,10 @@ public class ClientConfig {
 
     public static void register() {
         ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, CONFIG);
+    }
+
+    public static LayoutSection layout() {
+        return INSTANCE.layout;
     }
 
     public static OverlaySection overlay() {
