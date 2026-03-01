@@ -24,7 +24,7 @@ public class MetabolismWidget extends AnimatedWidget {
     private CrinkleEvent.Type accidentType = CrinkleEvent.Type.NONE;
 
     public MetabolismWidget(AbstractContainer parent) {
-        this(AnimatedWidget.builder(parent));
+        this(new AnimatedWidget.Builder(parent));
     }
 
     public MetabolismWidget(Builder builder) {

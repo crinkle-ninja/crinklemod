@@ -15,10 +15,6 @@ public class CenterContainer extends AbstractContainer {
         super(builder);
     }
 
-    public static Builder builder(AbstractContainer parent) {
-        return new Builder(parent);
-    }
-
     @Override
     public int getMinimumWidth() {
         return Math.max(super.getMinimumWidth(),

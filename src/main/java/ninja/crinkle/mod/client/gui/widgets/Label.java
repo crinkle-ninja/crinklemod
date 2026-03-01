@@ -17,6 +17,20 @@ public class Label extends AbstractWidget {
     }
 
     @Override
+    public int getMinimumWidth() {
+        int explicit = super.getMinimumWidth();
+        if (explicit > 0 || text == null || text.isEmpty()) return explicit;
+        return appearance().font().width(text);
+    }
+
+    @Override
+    public int getMinimumHeight() {
+        int explicit = super.getMinimumHeight();
+        if (explicit > 0 || text == null || text.isEmpty()) return explicit;
+        return appearance().font().lineHeight;
+    }
+
+    @Override
     public void render(@NotNull ThemeGraphics graphics, Point pMouse, float pPartialTick) {
         // A label inside a Button should not render itself independently;
         // the Button renders it via renderContent.
@@ -27,10 +41,6 @@ public class Label extends AbstractWidget {
 
     public void color(Color color) {
         this.color = color;
-    }
-
-    public static Builder builder(AbstractContainer parent) {
-        return new Builder(parent);
     }
 
     @Override

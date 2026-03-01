@@ -35,13 +35,13 @@ class AbstractWidgetTest {
         @BeforeEach
         void setUp() {
             manager = GuiManager.create();
-            parent = Container.builder(manager).build();
+            parent = new Container.Builder(manager).build();
         }
 
         @Test
         @DisplayName("should initialize with default values via builder")
         void builderConstructor_defaultValues() {
-            TestWidget widget = TestWidget.builder(parent).build();
+            TestWidget widget = new TestWidget.Builder(parent).build();
 
             assertNotNull(widget.name(), "Name should not be null");
             assertTrue(widget.name().startsWith("Unnamed_"), "Should have default name pattern");
@@ -61,14 +61,14 @@ class AbstractWidgetTest {
         @BeforeEach
         void setUp() {
             manager = GuiManager.create();
-            parent = Container.builder(manager).build();
+            parent = new Container.Builder(manager).build();
         }
 
         @Test
         @DisplayName("name() should return widget name")
         void name_shouldReturnWidgetName() {
             String widgetName = "test_widget";
-            TestWidget widget = TestWidget.builder(parent).name(widgetName).build();
+            TestWidget widget = new TestWidget.Builder(parent).name(widgetName).build();
 
             assertNotNull(widget.name(), "Name should not be null");
             assertEquals(widgetName, widget.name(), "Name should be " +  widgetName);
@@ -78,7 +78,7 @@ class AbstractWidgetTest {
         @DisplayName("tabIndex() should return tab index")
         void tabIndex_shouldReturnTabIndex() {
             int tabIndex = 42;
-            TestWidget widget = TestWidget.builder(parent).tabIndex(tabIndex).build();
+            TestWidget widget = new TestWidget.Builder(parent).tabIndex(tabIndex).build();
 
             assertEquals(tabIndex, widget.tabIndex(), "Tab index should be " + tabIndex);
         }
@@ -86,7 +86,7 @@ class AbstractWidgetTest {
         @Test
         @DisplayName("manager() should return GUI manager")
         void manager_shouldReturnGuiManager() {
-            TestWidget widget = TestWidget.builder(parent).build();
+            TestWidget widget = new TestWidget.Builder(parent).build();
 
             assertNotNull(widget.manager(), "Manager should not be null");
             assertEquals(manager, widget.manager(), "Manager should match the one used in builder");
@@ -95,7 +95,7 @@ class AbstractWidgetTest {
         @Test
         @DisplayName("parent() should return parent container")
         void parent_shouldReturnParentContainer() {
-            TestWidget widget = TestWidget.builder(parent).build();
+            TestWidget widget = new TestWidget.Builder(parent).build();
 
             assertTrue(widget.parent().isPresent(), "Parent should be present");
             assertEquals(parent, widget.parent().get(), "Parent should match the one used in builder");
@@ -105,7 +105,7 @@ class AbstractWidgetTest {
         @DisplayName("priority() should return priority value")
         void priority_shouldReturnPriorityValue() {
             int priority = 100;
-            TestWidget widget = TestWidget.builder(parent).priority(priority).build();
+            TestWidget widget = new TestWidget.Builder(parent).priority(priority).build();
 
             assertEquals(priority, widget.priority(), "Priority should be " + priority);
         }
@@ -114,7 +114,7 @@ class AbstractWidgetTest {
         @DisplayName("zIndex() should return z-index value")
         void zIndex_shouldReturnZIndexValue() {
             int zIndex = 50;
-            TestWidget widget = TestWidget.builder(parent).zIndex(zIndex).build();
+            TestWidget widget = new TestWidget.Builder(parent).zIndex(zIndex).build();
 
             assertEquals(zIndex, widget.zIndex(), "Z-index should be " + zIndex);
         }
@@ -122,7 +122,7 @@ class AbstractWidgetTest {
         @Test
         @DisplayName("behavior() should return widget behavior")
         void behavior_shouldReturnWidgetBehavior() {
-            TestWidget widget = TestWidget.builder(parent).build();
+            TestWidget widget = new TestWidget.Builder(parent).build();
 
             assertNotNull(widget.behavior(), "Behavior should not be null");
         }
@@ -130,7 +130,7 @@ class AbstractWidgetTest {
         @Test
         @DisplayName("display() should return widget display")
         void display_shouldReturnWidgetDisplay() {
-            TestWidget widget = TestWidget.builder(parent).build();
+            TestWidget widget = new TestWidget.Builder(parent).build();
 
             assertNotNull(widget.display(), "Display should not be null");
         }
@@ -138,17 +138,17 @@ class AbstractWidgetTest {
         @Test
         @DisplayName("rect() should return widget rect")
         void rect_shouldReturnWidgetRect() {
-            TestWidget widget = TestWidget.builder(parent).build();
+            TestWidget widget = new TestWidget.Builder(parent).build();
 
             assertNotNull(widget.rect(), "Rect should not be null");
         }
 
         @Test
-        @DisplayName("widgetTheme() should return widget style")
-        void widgetTheme_shouldReturnWidgetStyle() {
-            TestWidget widget = TestWidget.builder(parent).build();
+        @DisplayName("style() should return widget style")
+        void style_shouldReturnWidgetStyle() {
+            TestWidget widget = new TestWidget.Builder(parent).build();
 
-            assertNotNull(widget.widgetTheme(), "Widget theme should not be null");
+            assertNotNull(widget.style(), "Widget style should not be null");
         }
     }
 
@@ -161,63 +161,63 @@ class AbstractWidgetTest {
         @BeforeEach
         void setUp() {
             manager = GuiManager.create();
-            parent = Container.builder(manager).build();
+            parent = new Container.Builder(manager).build();
         }
 
         @Test
         @DisplayName("active() should return active state")
         void active_shouldReturnActiveState() {
-            TestWidget activeWidget = TestWidget.builder(parent).active(true).build();
+            TestWidget activeWidget = new TestWidget.Builder(parent).active(true).build();
             assertTrue(activeWidget.active(), "Should be active");
 
-            TestWidget inactiveWidget = TestWidget.builder(parent).active(false).build();
+            TestWidget inactiveWidget = new TestWidget.Builder(parent).active(false).build();
             assertFalse(inactiveWidget.active(), "Should not be active");
         }
 
         @Test
         @DisplayName("focusable() should return focusable state")
         void focusable_shouldReturnFocusableState() {
-            TestWidget focusableWidget = TestWidget.builder(parent).focusable(true).build();
+            TestWidget focusableWidget = new TestWidget.Builder(parent).focusable(true).build();
             assertTrue(focusableWidget.focusable(), "Should be focusable");
 
-            TestWidget nonFocusableWidget = TestWidget.builder(parent).focusable(false).build();
+            TestWidget nonFocusableWidget = new TestWidget.Builder(parent).focusable(false).build();
             assertFalse(nonFocusableWidget.focusable(), "Should not be focusable");
         }
 
         @Test
         @DisplayName("draggable() should return draggable state")
         void draggable_shouldReturnDraggableState() {
-            TestWidget draggableWidget = TestWidget.builder(parent).draggable(true).build();
+            TestWidget draggableWidget = new TestWidget.Builder(parent).draggable(true).build();
             assertTrue(draggableWidget.draggable(), "Should be draggable");
 
-            TestWidget nonDraggableWidget = TestWidget.builder(parent).draggable(false).build();
+            TestWidget nonDraggableWidget = new TestWidget.Builder(parent).draggable(false).build();
             assertFalse(nonDraggableWidget.draggable(), "Should not be draggable");
         }
 
         @Test
         @DisplayName("pressable() should return pressable state")
         void pressable_shouldReturnPressableState() {
-            TestWidget pressableWidget = TestWidget.builder(parent).pressable(true).build();
+            TestWidget pressableWidget = new TestWidget.Builder(parent).pressable(true).build();
             assertTrue(pressableWidget.pressable(), "Should be pressable");
 
-            TestWidget nonPressableWidget = TestWidget.builder(parent).pressable(false).build();
+            TestWidget nonPressableWidget = new TestWidget.Builder(parent).pressable(false).build();
             assertFalse(nonPressableWidget.pressable(), "Should not be pressable");
         }
 
         @Test
         @DisplayName("visible() should return visible state")
         void visible_shouldReturnVisibleState() {
-            TestWidget visibleWidget = TestWidget.builder(parent).visible(true).build();
+            TestWidget visibleWidget = new TestWidget.Builder(parent).visible(true).build();
             assertTrue(visibleWidget.visible(), "Should be visible");
 
-            TestWidget invisibleWidget = TestWidget.builder(parent).visible(false).build();
+            TestWidget invisibleWidget = new TestWidget.Builder(parent).visible(false).build();
             assertFalse(invisibleWidget.visible(), "Should not be visible");
         }
 
         @Test
         @DisplayName("alpha() should return alpha value")
         void alpha_shouldReturnAlphaValue() {
-            TestWidget widget = TestWidget.builder(parent).alpha(0.5f).build();
+            TestWidget widget = new TestWidget.Builder(parent).alpha(0.5f).build();
             assertEquals(0.5f, widget.alpha(), 0.001f, "Alpha should be 0.5");
         }
     }
@@ -231,13 +231,13 @@ class AbstractWidgetTest {
         @BeforeEach
         void setUp() {
             manager = GuiManager.create();
-            parent = Container.builder(manager).build();
+            parent = new Container.Builder(manager).build();
         }
 
         @Test
         @DisplayName("active() setter should update active state")
         void active_setterShouldUpdateState() {
-            TestWidget widget = TestWidget.builder(parent).active(false).build();
+            TestWidget widget = new TestWidget.Builder(parent).active(false).build();
 
             widget.active(true);
             assertTrue(widget.active(), "Should be active after setting to true");
@@ -249,7 +249,7 @@ class AbstractWidgetTest {
         @Test
         @DisplayName("visible() setter should update visible state")
         void visible_setterShouldUpdateState() {
-            TestWidget widget = TestWidget.builder(parent).visible(false).build();
+            TestWidget widget = new TestWidget.Builder(parent).visible(false).build();
 
             widget.visible(true);
             assertTrue(widget.visible(), "Should be visible after setting to true");
@@ -261,7 +261,7 @@ class AbstractWidgetTest {
         @Test
         @DisplayName("pressed() setter should update pressed state")
         void pressed_setterShouldUpdateState() {
-            TestWidget widget = TestWidget.builder(parent).build();
+            TestWidget widget = new TestWidget.Builder(parent).build();
 
             widget.pressed(true);
             assertTrue(widget.pressed(), "Should be pressed after setting to true");
@@ -273,7 +273,7 @@ class AbstractWidgetTest {
         @Test
         @DisplayName("dragged() setter should update dragged state")
         void dragged_setterShouldUpdateState() {
-            TestWidget widget = TestWidget.builder(parent).build();
+            TestWidget widget = new TestWidget.Builder(parent).build();
 
             // Must be draggable to set dragged
             widget.draggable(true);
@@ -290,7 +290,7 @@ class AbstractWidgetTest {
         @Test
         @DisplayName("alpha() setter should update alpha value")
         void alpha_setterShouldUpdateValue() {
-            TestWidget widget = TestWidget.builder(parent).build();
+            TestWidget widget = new TestWidget.Builder(parent).build();
 
             widget.alpha(0.75f);
             assertEquals(0.75f, widget.alpha(), 0.001f, "Alpha should be 0.75");
@@ -302,7 +302,7 @@ class AbstractWidgetTest {
         @Test
         @DisplayName("name() setter should update name")
         void name_setterShouldUpdateName() {
-            TestWidget widget = TestWidget.builder(parent).name("initial").build();
+            TestWidget widget = new TestWidget.Builder(parent).name("initial").build();
 
             widget.name("updated");
             assertEquals("updated", widget.name(), "Name should be updated");
@@ -314,7 +314,7 @@ class AbstractWidgetTest {
         @Test
         @DisplayName("zIndex() setter should update z-index")
         void zIndex_setterShouldUpdateZIndex() {
-            TestWidget widget = TestWidget.builder(parent).zIndex(10).build();
+            TestWidget widget = new TestWidget.Builder(parent).zIndex(10).build();
 
             widget.zIndex(100);
             assertEquals(100, widget.zIndex(), "Z-index should be 100");
@@ -326,7 +326,7 @@ class AbstractWidgetTest {
         @Test
         @DisplayName("priority() setter should update priority")
         void priority_setterShouldUpdatePriority() {
-            TestWidget widget = TestWidget.builder(parent).priority(10).build();
+            TestWidget widget = new TestWidget.Builder(parent).priority(10).build();
 
             widget.priority(50);
             assertEquals(50, widget.priority(), "Priority should be 50");
@@ -348,7 +348,7 @@ class AbstractWidgetTest {
         @BeforeEach
         void setUp() {
             manager = GuiManager.create();
-            parent = Container.builder(manager).build();
+            parent = new Container.Builder(manager).build();
             focusEnteredEvents.clear();
             focusLeftEvents.clear();
 
@@ -368,7 +368,7 @@ class AbstractWidgetTest {
         @Test
         @DisplayName("focused(true) should dispatch FocusEnteredEvent")
         void focused_trueShouldDispatchFocusEnteredEvent() {
-            TestWidget widget = TestWidget.builder(parent).focusable(true).build();
+            TestWidget widget = new TestWidget.Builder(parent).focusable(true).build();
 
             // Add listener to capture events
             widget.addListener(new FocusListener() {
@@ -394,7 +394,7 @@ class AbstractWidgetTest {
         @Test
         @DisplayName("focused(false) should dispatch FocusLeftEvent")
         void focused_falseShouldDispatchFocusLeftEvent() {
-            TestWidget widget = TestWidget.builder(parent).focusable(true).build();
+            TestWidget widget = new TestWidget.Builder(parent).focusable(true).build();
 
             // Add listener to capture events
             widget.addListener(new FocusListener() {
@@ -422,7 +422,7 @@ class AbstractWidgetTest {
         @Test
         @DisplayName("focused() should not dispatch event if state unchanged")
         void focused_shouldNotDispatchEventIfStateUnchanged() {
-            TestWidget widget = TestWidget.builder(parent).focusable(true).build();
+            TestWidget widget = new TestWidget.Builder(parent).focusable(true).build();
 
             // Add listener to capture events
             widget.addListener(new FocusListener() {
@@ -448,7 +448,7 @@ class AbstractWidgetTest {
         @Test
         @DisplayName("hovered(true) should dispatch HoverEvent with hovered=true")
         void hovered_trueShouldDispatchHoverEvent() {
-            TestWidget widget = TestWidget.builder(parent).hoverable(true).build();
+            TestWidget widget = new TestWidget.Builder(parent).hoverable(true).build();
             java.util.List<HoverEvent> hoverEvents = new java.util.ArrayList<>();
 
             // Add listener to capture events
@@ -474,7 +474,7 @@ class AbstractWidgetTest {
         @Test
         @DisplayName("hovered(false) should dispatch HoverEvent with hovered=false")
         void hovered_falseShouldDispatchHoverEvent() {
-            TestWidget widget = TestWidget.builder(parent).hoverable(true).build();
+            TestWidget widget = new TestWidget.Builder(parent).hoverable(true).build();
             java.util.List<HoverEvent> hoverEvents = new java.util.ArrayList<>();
 
             // Add listener to capture events
@@ -502,7 +502,7 @@ class AbstractWidgetTest {
         @Test
         @DisplayName("hovered() should not dispatch event if widget not hoverable")
         void hovered_shouldNotDispatchEventIfNotHoverable() {
-            TestWidget widget = TestWidget.builder(parent).hoverable(false).build();
+            TestWidget widget = new TestWidget.Builder(parent).hoverable(false).build();
             java.util.List<HoverEvent> hoverEvents = new java.util.ArrayList<>();
 
             // Add listener to capture events
@@ -526,7 +526,7 @@ class AbstractWidgetTest {
         @Test
         @DisplayName("hovered() should not dispatch event if state unchanged")
         void hovered_shouldNotDispatchEventIfStateUnchanged() {
-            TestWidget widget = TestWidget.builder(parent).hoverable(true).build();
+            TestWidget widget = new TestWidget.Builder(parent).hoverable(true).build();
             java.util.List<HoverEvent> hoverEvents = new java.util.ArrayList<>();
 
             // Add listener to capture events
@@ -553,7 +553,7 @@ class AbstractWidgetTest {
         @Test
         @DisplayName("tabIndex() should dispatch TabIndexEvent when changed")
         void tabIndex_shouldDispatchTabIndexEvent() {
-            TestWidget widget = TestWidget.builder(parent).tabIndex(0).build();
+            TestWidget widget = new TestWidget.Builder(parent).tabIndex(0).build();
             java.util.List<TabIndexEvent> tabIndexEvents = new java.util.ArrayList<>();
 
             // Create a listener that implements both EventListener and TabIndexListener
@@ -583,7 +583,7 @@ class AbstractWidgetTest {
         @Test
         @DisplayName("tabIndex() should not dispatch event if index unchanged")
         void tabIndex_shouldNotDispatchEventIfIndexUnchanged() {
-            TestWidget widget = TestWidget.builder(parent).tabIndex(5).build();
+            TestWidget widget = new TestWidget.Builder(parent).tabIndex(5).build();
             java.util.List<TabIndexEvent> tabIndexEvents = new java.util.ArrayList<>();
 
             // Create a listener that implements both EventListener and TabIndexListener
@@ -616,13 +616,13 @@ class AbstractWidgetTest {
         @BeforeEach
         void setUp() {
             manager = GuiManager.create();
-            parent = Container.builder(manager).build();
+            parent = new Container.Builder(manager).build();
         }
 
         @Test
         @DisplayName("zIndex() should throw exception when value >= Z_MAX")
         void zIndex_shouldThrowExceptionWhenValueTooHigh() {
-            TestWidget widget = TestWidget.builder(parent).build();
+            TestWidget widget = new TestWidget.Builder(parent).build();
 
             IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
@@ -636,7 +636,7 @@ class AbstractWidgetTest {
         @Test
         @DisplayName("zIndex() should throw exception when value > Z_MAX")
         void zIndex_shouldThrowExceptionWhenValueAboveMax() {
-            TestWidget widget = TestWidget.builder(parent).build();
+            TestWidget widget = new TestWidget.Builder(parent).build();
 
             assertThrows(
                 IllegalArgumentException.class,
@@ -648,7 +648,7 @@ class AbstractWidgetTest {
         @Test
         @DisplayName("zIndex() should accept value just below Z_MAX")
         void zIndex_shouldAcceptValueJustBelowMax() {
-            TestWidget widget = TestWidget.builder(parent).build();
+            TestWidget widget = new TestWidget.Builder(parent).build();
 
             assertDoesNotThrow(() -> widget.zIndex(DragManager.Z_MAX - 1),
                 "Should not throw exception when zIndex < Z_MAX"
@@ -660,7 +660,7 @@ class AbstractWidgetTest {
         @Test
         @DisplayName("parentOrThrow() should throw exception when parent is null")
         void parentOrThrow_shouldThrowExceptionWhenParentIsNull() {
-            TestWidget widget = TestWidget.builder(parent).build();
+            TestWidget widget = new TestWidget.Builder(parent).build();
 
             // Remove parent reference by creating a widget without proper parent
             // This test verifies the method exists and throws correctly
@@ -673,7 +673,7 @@ class AbstractWidgetTest {
         void builder_shouldThrowExceptionWhenParentIsNull() {
             assertThrows(
                 IllegalArgumentException.class,
-                () -> TestWidget.builder((AbstractContainer) null).build(),
+                () -> new TestWidget.Builder((AbstractContainer) null).build(),
                 "Should throw exception when parent is null"
             );
         }

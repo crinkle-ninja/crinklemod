@@ -23,7 +23,7 @@ class FitChildInRectTest {
     @BeforeEach
     void setUp() {
         manager = GuiManager.create();
-        root = Container.builder(manager).build();
+        root = new Container.Builder(manager).build();
     }
 
     @Nested
@@ -32,9 +32,9 @@ class FitChildInRectTest {
         @Test
         @DisplayName("FILL uses full allocated width")
         void fillUsesFullWidth() {
-            VBoxContainer vbox = VBoxContainer.builder(root).build();
+            VBoxContainer vbox = new VBoxContainer.Builder(root).build();
             root.add(vbox);
-            TestWidget child = TestWidget.builder(vbox).minSize(30, 10)
+            TestWidget child = new TestWidget.Builder(vbox).minSize(30, 10)
                     .hSizeFlags(SizeFlags.Fill).build();
             vbox.add(child);
             vbox.setRect(new Rect(0, 0, 100, 50));
@@ -45,9 +45,9 @@ class FitChildInRectTest {
         @Test
         @DisplayName("SHRINK_BEGIN uses min width, aligned to start")
         void shrinkBegin() {
-            VBoxContainer vbox = VBoxContainer.builder(root).build();
+            VBoxContainer vbox = new VBoxContainer.Builder(root).build();
             root.add(vbox);
-            TestWidget child = TestWidget.builder(vbox).minSize(30, 10)
+            TestWidget child = new TestWidget.Builder(vbox).minSize(30, 10)
                     .hSizeFlags(SizeFlags.ShrinkBegin).build();
             vbox.add(child);
             vbox.setRect(new Rect(10, 0, 100, 50));
@@ -59,9 +59,9 @@ class FitChildInRectTest {
         @Test
         @DisplayName("SHRINK_CENTER uses min width, centered")
         void shrinkCenter() {
-            VBoxContainer vbox = VBoxContainer.builder(root).build();
+            VBoxContainer vbox = new VBoxContainer.Builder(root).build();
             root.add(vbox);
-            TestWidget child = TestWidget.builder(vbox).minSize(30, 10)
+            TestWidget child = new TestWidget.Builder(vbox).minSize(30, 10)
                     .hSizeFlags(SizeFlags.ShrinkCenter).build();
             vbox.add(child);
             vbox.setRect(new Rect(0, 0, 100, 50));
@@ -73,9 +73,9 @@ class FitChildInRectTest {
         @Test
         @DisplayName("SHRINK_END uses min width, aligned to end")
         void shrinkEnd() {
-            VBoxContainer vbox = VBoxContainer.builder(root).build();
+            VBoxContainer vbox = new VBoxContainer.Builder(root).build();
             root.add(vbox);
-            TestWidget child = TestWidget.builder(vbox).minSize(30, 10)
+            TestWidget child = new TestWidget.Builder(vbox).minSize(30, 10)
                     .hSizeFlags(SizeFlags.ShrinkEnd).build();
             vbox.add(child);
             vbox.setRect(new Rect(0, 0, 100, 50));
@@ -91,9 +91,9 @@ class FitChildInRectTest {
         @Test
         @DisplayName("FILL uses full allocated height")
         void fillUsesFullHeight() {
-            HBoxContainer hbox = HBoxContainer.builder(root).build();
+            HBoxContainer hbox = new HBoxContainer.Builder(root).build();
             root.add(hbox);
-            TestWidget child = TestWidget.builder(hbox).minSize(10, 20)
+            TestWidget child = new TestWidget.Builder(hbox).minSize(10, 20)
                     .vSizeFlags(SizeFlags.Fill).build();
             hbox.add(child);
             hbox.setRect(new Rect(0, 0, 100, 80));
@@ -104,9 +104,9 @@ class FitChildInRectTest {
         @Test
         @DisplayName("SHRINK_BEGIN uses min height, aligned to top")
         void shrinkBegin() {
-            HBoxContainer hbox = HBoxContainer.builder(root).build();
+            HBoxContainer hbox = new HBoxContainer.Builder(root).build();
             root.add(hbox);
-            TestWidget child = TestWidget.builder(hbox).minSize(10, 20)
+            TestWidget child = new TestWidget.Builder(hbox).minSize(10, 20)
                     .vSizeFlags(SizeFlags.ShrinkBegin).build();
             hbox.add(child);
             hbox.setRect(new Rect(0, 10, 100, 80));
@@ -118,9 +118,9 @@ class FitChildInRectTest {
         @Test
         @DisplayName("SHRINK_CENTER uses min height, centered")
         void shrinkCenter() {
-            HBoxContainer hbox = HBoxContainer.builder(root).build();
+            HBoxContainer hbox = new HBoxContainer.Builder(root).build();
             root.add(hbox);
-            TestWidget child = TestWidget.builder(hbox).minSize(10, 20)
+            TestWidget child = new TestWidget.Builder(hbox).minSize(10, 20)
                     .vSizeFlags(SizeFlags.ShrinkCenter).build();
             hbox.add(child);
             hbox.setRect(new Rect(0, 0, 100, 80));
@@ -132,9 +132,9 @@ class FitChildInRectTest {
         @Test
         @DisplayName("SHRINK_END uses min height, aligned to bottom")
         void shrinkEnd() {
-            HBoxContainer hbox = HBoxContainer.builder(root).build();
+            HBoxContainer hbox = new HBoxContainer.Builder(root).build();
             root.add(hbox);
-            TestWidget child = TestWidget.builder(hbox).minSize(10, 20)
+            TestWidget child = new TestWidget.Builder(hbox).minSize(10, 20)
                     .vSizeFlags(SizeFlags.ShrinkEnd).build();
             hbox.add(child);
             hbox.setRect(new Rect(0, 0, 100, 80));
@@ -151,9 +151,9 @@ class FitChildInRectTest {
         @DisplayName("SHRINK_CENTER on both axes centers in both dimensions")
         void shrinkCenterBoth() {
             // Use MarginContainer with 0 margins — it calls fitChildInRect on both axes
-            MarginContainer mc = MarginContainer.builder(root).margins(0).build();
+            MarginContainer mc = new MarginContainer.Builder(root).margins(0).build();
             root.add(mc);
-            TestWidget child = TestWidget.builder(mc).minSize(30, 20)
+            TestWidget child = new TestWidget.Builder(mc).minSize(30, 20)
                     .hSizeFlags(SizeFlags.ShrinkCenter)
                     .vSizeFlags(SizeFlags.ShrinkCenter).build();
             mc.add(child);
@@ -165,9 +165,9 @@ class FitChildInRectTest {
         @Test
         @DisplayName("FILL horizontal, SHRINK_END vertical")
         void fillHShrinkEndV() {
-            MarginContainer mc = MarginContainer.builder(root).margins(0).build();
+            MarginContainer mc = new MarginContainer.Builder(root).margins(0).build();
             root.add(mc);
-            TestWidget child = TestWidget.builder(mc).minSize(30, 20)
+            TestWidget child = new TestWidget.Builder(mc).minSize(30, 20)
                     .hSizeFlags(SizeFlags.Fill)
                     .vSizeFlags(SizeFlags.ShrinkEnd).build();
             mc.add(child);

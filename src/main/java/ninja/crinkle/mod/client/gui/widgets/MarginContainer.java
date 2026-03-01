@@ -15,16 +15,12 @@ public class MarginContainer extends AbstractContainer {
     private int marginBottom;
     private int marginLeft;
 
-    protected MarginContainer(@NotNull Builder builder) {
+    protected MarginContainer(@NotNull BaseBuilder<?> builder) {
         super(builder);
         this.marginTop = builder.marginTop;
         this.marginRight = builder.marginRight;
         this.marginBottom = builder.marginBottom;
         this.marginLeft = builder.marginLeft;
-    }
-
-    public static Builder builder(AbstractContainer parent) {
-        return new Builder(parent);
     }
 
     public void margins(int top, int right, int bottom, int left) {
@@ -61,33 +57,39 @@ public class MarginContainer extends AbstractContainer {
         child.setRect(fitted);
     }
 
-    public static class Builder extends AbstractContainerBuilder<Builder> {
-        private int marginTop = 0;
-        private int marginRight = 0;
-        private int marginBottom = 0;
-        private int marginLeft = 0;
+    protected static abstract class BaseBuilder<T extends BaseBuilder<T>>
+            extends AbstractContainerBuilder<T> {
+        int marginTop = 0;
+        int marginRight = 0;
+        int marginBottom = 0;
+        int marginLeft = 0;
 
-        public Builder(AbstractContainer container) {
+        public BaseBuilder(AbstractContainer container) {
             super(container);
             active(true);
         }
 
-        public Builder(GuiManager manager) {
+        public BaseBuilder(GuiManager manager) {
             super(manager);
             active(true);
         }
 
-        public Builder margins(int all) {
+        public T margins(int all) {
             return margins(all, all, all, all);
         }
 
-        public Builder margins(int top, int right, int bottom, int left) {
+        public T margins(int top, int right, int bottom, int left) {
             this.marginTop = top;
             this.marginRight = right;
             this.marginBottom = bottom;
             this.marginLeft = left;
             return self();
         }
+    }
+
+    public static class Builder extends BaseBuilder<Builder> {
+        public Builder(AbstractContainer container) { super(container); }
+        public Builder(GuiManager manager) { super(manager); }
 
         @Override
         public AbstractContainer push() {

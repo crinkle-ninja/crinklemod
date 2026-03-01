@@ -16,7 +16,7 @@ public class DefaultGuiManager implements GuiManager {
         this.eventManager = new EventManager(Scope.Screen);
         this.dragManager = new DragManager(this.eventManager);
         this.focusManager = new FocusManager();
-        this.root = Container.builder(this)
+        this.root = new Container.Builder(this)
                 .name("root")
                 .minSize(width, height)
                 .build();

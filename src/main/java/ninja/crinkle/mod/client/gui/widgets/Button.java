@@ -5,6 +5,9 @@ import ninja.crinkle.mod.client.gui.managers.EventManager;
 import ninja.crinkle.mod.client.gui.properties.Point;
 import ninja.crinkle.mod.client.gui.properties.Rect;
 import ninja.crinkle.mod.client.gui.renderers.ThemeGraphics;
+import ninja.crinkle.mod.client.gui.textures.Texture;
+import ninja.crinkle.mod.client.gui.textures.Texture.Slice;
+import ninja.crinkle.mod.client.gui.themes.StyleVariant;
 
 import java.util.function.BiConsumer;
 
@@ -24,6 +27,45 @@ public class Button extends AbstractContainer {
     }
 
     @Override
+    public int getMinimumWidth() {
+        int explicit = super.getMinimumWidth();
+        int childMin = children().stream().mapToInt(AbstractWidget::getMinimumWidth).max().orElse(0);
+        return Math.max(explicit, childMin + borderLeft() + borderRight());
+    }
+
+    @Override
+    public int getMinimumHeight() {
+        int explicit = super.getMinimumHeight();
+        int childMin = children().stream().mapToInt(AbstractWidget::getMinimumHeight).max().orElse(0);
+        return Math.max(explicit, childMin + borderTop() + borderBottom());
+    }
+
+    private Texture backgroundTexture() {
+        StyleVariant sv = appearance();
+        return sv != null ? sv.getBackgroundTexture() : null;
+    }
+
+    private int borderLeft() {
+        Texture tex = backgroundTexture();
+        return tex != null ? tex.boundsOf(Slice.Location.topLeft).width() : 0;
+    }
+
+    private int borderRight() {
+        Texture tex = backgroundTexture();
+        return tex != null ? tex.boundsOf(Slice.Location.topRight).width() : 0;
+    }
+
+    private int borderTop() {
+        Texture tex = backgroundTexture();
+        return tex != null ? tex.boundsOf(Slice.Location.topLeft).height() : 0;
+    }
+
+    private int borderBottom() {
+        Texture tex = backgroundTexture();
+        return tex != null ? tex.boundsOf(Slice.Location.bottomLeft).height() : 0;
+    }
+
+    @Override
     public void arrange() {
         if (children().isEmpty() || rect().equals(Rect.ZERO)) return;
         for (AbstractWidget child : children()) {
@@ -38,10 +80,6 @@ public class Button extends AbstractContainer {
         if (text != null) {
             text.renderContent(graphics, pMouse, renderRect, pPartialTick);
         }
-    }
-
-    public static Builder builder(AbstractContainer parent) {
-        return new Builder(parent);
     }
 
     @Override
@@ -78,6 +116,7 @@ public class Button extends AbstractContainer {
             focusable(true);
             active(true);
             pressable(true);
+            style("button");
         }
 
         public Builder onClick(BiConsumer<ClickEvent, AbstractWidget> onClick) {
@@ -112,7 +151,7 @@ public class Button extends AbstractContainer {
         }
 
         public Builder text(String text) {
-            return text(Label.builder(parent()).text(text).focusable(false).build());
+            return text(new Label.Builder(parent()).text(text).focusable(false).build());
         }
 
         public Builder text(Label text) {

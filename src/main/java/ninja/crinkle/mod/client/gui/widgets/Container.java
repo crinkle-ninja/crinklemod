@@ -26,16 +26,8 @@ public class Container extends AbstractContainer {
         }
     }
 
-    public static Builder builder(AbstractContainer parent) {
-        return new Builder(parent);
-    }
-
-    public static Builder builder(GuiManager manager) {
-        return new Builder(manager);
-    }
-
     public TextBox.Builder addTextBox() {
-        return TextBox.builder(this);
+        return new TextBox.Builder(this);
     }
 
     public static class Builder extends AbstractContainerBuilder<Builder> {

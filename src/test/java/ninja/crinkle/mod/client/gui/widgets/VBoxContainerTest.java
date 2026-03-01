@@ -18,7 +18,7 @@ class VBoxContainerTest {
     @BeforeEach
     void setUp() {
         manager = GuiManager.create();
-        root = Container.builder(manager).build();
+        root = new Container.Builder(manager).build();
     }
 
     @Nested
@@ -27,10 +27,10 @@ class VBoxContainerTest {
         @Test
         @DisplayName("height = sum of child min heights + separation gaps")
         void minimumHeight() {
-            VBoxContainer vbox = VBoxContainer.builder(root).separation(5).build();
+            VBoxContainer vbox = new VBoxContainer.Builder(root).separation(5).build();
             root.add(vbox);
-            TestWidget a = TestWidget.builder(vbox).minSize(10, 30).build();
-            TestWidget b = TestWidget.builder(vbox).minSize(10, 40).build();
+            TestWidget a = new TestWidget.Builder(vbox).minSize(10, 30).build();
+            TestWidget b = new TestWidget.Builder(vbox).minSize(10, 40).build();
             vbox.add(a);
             vbox.add(b);
 
@@ -40,10 +40,10 @@ class VBoxContainerTest {
         @Test
         @DisplayName("width = max child min width")
         void minimumWidth() {
-            VBoxContainer vbox = VBoxContainer.builder(root).build();
+            VBoxContainer vbox = new VBoxContainer.Builder(root).build();
             root.add(vbox);
-            TestWidget a = TestWidget.builder(vbox).minSize(30, 10).build();
-            TestWidget b = TestWidget.builder(vbox).minSize(50, 10).build();
+            TestWidget a = new TestWidget.Builder(vbox).minSize(30, 10).build();
+            TestWidget b = new TestWidget.Builder(vbox).minSize(50, 10).build();
             vbox.add(a);
             vbox.add(b);
 
@@ -57,10 +57,10 @@ class VBoxContainerTest {
         @Test
         @DisplayName("non-expanding children get min height, placed top to bottom")
         void nonExpanding() {
-            VBoxContainer vbox = VBoxContainer.builder(root).separation(5).build();
+            VBoxContainer vbox = new VBoxContainer.Builder(root).separation(5).build();
             root.add(vbox);
-            TestWidget a = TestWidget.builder(vbox).minSize(10, 30).build();
-            TestWidget b = TestWidget.builder(vbox).minSize(10, 40).build();
+            TestWidget a = new TestWidget.Builder(vbox).minSize(10, 30).build();
+            TestWidget b = new TestWidget.Builder(vbox).minSize(10, 40).build();
             vbox.add(a);
             vbox.add(b);
 
@@ -73,10 +73,10 @@ class VBoxContainerTest {
         @Test
         @DisplayName("EXPAND children claim leftover space")
         void expanding() {
-            VBoxContainer vbox = VBoxContainer.builder(root).separation(0).build();
+            VBoxContainer vbox = new VBoxContainer.Builder(root).separation(0).build();
             root.add(vbox);
-            TestWidget fixed = TestWidget.builder(vbox).minSize(10, 50).build();
-            TestWidget expanding = TestWidget.builder(vbox).minSize(10, 0)
+            TestWidget fixed = new TestWidget.Builder(vbox).minSize(10, 50).build();
+            TestWidget expanding = new TestWidget.Builder(vbox).minSize(10, 0)
                     .vSizeFlags(SizeFlags.Expand, SizeFlags.Fill).build();
             vbox.add(fixed);
             vbox.add(expanding);
@@ -90,9 +90,9 @@ class VBoxContainerTest {
         @Test
         @DisplayName("cross-axis SHRINK_END aligns child to right")
         void crossAxisEnd() {
-            VBoxContainer vbox = VBoxContainer.builder(root).build();
+            VBoxContainer vbox = new VBoxContainer.Builder(root).build();
             root.add(vbox);
-            TestWidget child = TestWidget.builder(vbox).minSize(30, 20)
+            TestWidget child = new TestWidget.Builder(vbox).minSize(30, 20)
                     .hSizeFlags(SizeFlags.ShrinkEnd).build();
             vbox.add(child);
 

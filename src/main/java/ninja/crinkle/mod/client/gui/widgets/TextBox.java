@@ -64,10 +64,6 @@ public class TextBox extends AbstractWidget implements KeyListener, MouseListene
         this.readOnly = builder.readOnly();
     }
 
-    public static TextBox.Builder builder(AbstractContainer parent) {
-        return new TextBox.Builder(parent);
-    }
-
     @Override
     public void onCharTyped(@NotNull CharTypedEvent event) {
         if (!focused() || !active() || readOnly() || event.consumed()) {

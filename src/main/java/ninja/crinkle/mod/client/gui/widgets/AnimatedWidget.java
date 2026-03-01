@@ -44,10 +44,6 @@ public class AnimatedWidget extends AbstractWidget {
         super.onDrag(event);
     }
 
-    public static Builder builder(AbstractContainer parent) {
-        return new Builder(parent);
-    }
-
     @Override
     public void renderContent(ThemeGraphics graphics, Point pMouse, Rect renderedRect, float pPartialTick) {
         if (!visible() || !active()) return;

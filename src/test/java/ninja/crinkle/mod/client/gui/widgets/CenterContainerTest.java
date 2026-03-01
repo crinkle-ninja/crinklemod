@@ -16,15 +16,15 @@ class CenterContainerTest {
     @BeforeEach
     void setUp() {
         manager = GuiManager.create();
-        root = Container.builder(manager).build();
+        root = new Container.Builder(manager).build();
     }
 
     @Test
     @DisplayName("child is centered at its minimum size")
     void childCentered() {
-        CenterContainer cc = CenterContainer.builder(root).build();
+        CenterContainer cc = new CenterContainer.Builder(root).build();
         root.add(cc);
-        TestWidget child = TestWidget.builder(cc).minSize(40, 20).build();
+        TestWidget child = new TestWidget.Builder(cc).minSize(40, 20).build();
         cc.add(child);
 
         cc.setRect(new Rect(0, 0, 200, 100));
@@ -36,9 +36,9 @@ class CenterContainerTest {
     @Test
     @DisplayName("child centered with container offset")
     void childCenteredWithOffset() {
-        CenterContainer cc = CenterContainer.builder(root).build();
+        CenterContainer cc = new CenterContainer.Builder(root).build();
         root.add(cc);
-        TestWidget child = TestWidget.builder(cc).minSize(40, 20).build();
+        TestWidget child = new TestWidget.Builder(cc).minSize(40, 20).build();
         cc.add(child);
 
         cc.setRect(new Rect(100, 50, 200, 100));
@@ -50,9 +50,9 @@ class CenterContainerTest {
     @Test
     @DisplayName("minimum size matches child minimum size")
     void minimumSize() {
-        CenterContainer cc = CenterContainer.builder(root).build();
+        CenterContainer cc = new CenterContainer.Builder(root).build();
         root.add(cc);
-        TestWidget child = TestWidget.builder(cc).minSize(60, 40).build();
+        TestWidget child = new TestWidget.Builder(cc).minSize(60, 40).build();
         cc.add(child);
 
         assertEquals(60, cc.getMinimumWidth());

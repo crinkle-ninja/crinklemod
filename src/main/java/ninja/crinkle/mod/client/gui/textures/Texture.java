@@ -167,7 +167,7 @@ public record Texture(String id, String location, Map<Slice.Location, Slice> sli
         }
         StyleVariant styleVariant = widget.appearance();
         if (styleVariant == null) {
-            styleVariant = widget.widgetTheme().getAppearance(Style.Variant.active);
+            styleVariant = widget.style().getAppearance(Style.Variant.active);
         }
         Color color = styleVariant.getBackgroundColor() == null ? Color.RAINBOW : styleVariant.getBackgroundColor();
         for (var filter : styleVariant.backgroundColorFilters()) {

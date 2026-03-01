@@ -18,7 +18,7 @@ class HBoxContainerTest {
     @BeforeEach
     void setUp() {
         manager = GuiManager.create();
-        root = Container.builder(manager).build();
+        root = new Container.Builder(manager).build();
     }
 
     @Nested
@@ -27,10 +27,10 @@ class HBoxContainerTest {
         @Test
         @DisplayName("width = sum of child min widths + separation gaps")
         void minimumWidth() {
-            HBoxContainer hbox = HBoxContainer.builder(root).separation(5).build();
+            HBoxContainer hbox = new HBoxContainer.Builder(root).separation(5).build();
             root.add(hbox);
-            TestWidget a = TestWidget.builder(hbox).minSize(30, 10).build();
-            TestWidget b = TestWidget.builder(hbox).minSize(40, 10).build();
+            TestWidget a = new TestWidget.Builder(hbox).minSize(30, 10).build();
+            TestWidget b = new TestWidget.Builder(hbox).minSize(40, 10).build();
             hbox.add(a);
             hbox.add(b);
 
@@ -40,10 +40,10 @@ class HBoxContainerTest {
         @Test
         @DisplayName("height = max child min height")
         void minimumHeight() {
-            HBoxContainer hbox = HBoxContainer.builder(root).build();
+            HBoxContainer hbox = new HBoxContainer.Builder(root).build();
             root.add(hbox);
-            TestWidget a = TestWidget.builder(hbox).minSize(30, 10).build();
-            TestWidget b = TestWidget.builder(hbox).minSize(40, 25).build();
+            TestWidget a = new TestWidget.Builder(hbox).minSize(30, 10).build();
+            TestWidget b = new TestWidget.Builder(hbox).minSize(40, 25).build();
             hbox.add(a);
             hbox.add(b);
 
@@ -53,7 +53,7 @@ class HBoxContainerTest {
         @Test
         @DisplayName("empty container returns 0")
         void emptyContainer() {
-            HBoxContainer hbox = HBoxContainer.builder(root).build();
+            HBoxContainer hbox = new HBoxContainer.Builder(root).build();
             root.add(hbox);
             assertEquals(0, hbox.getMinimumWidth());
             assertEquals(0, hbox.getMinimumHeight());
@@ -66,10 +66,10 @@ class HBoxContainerTest {
         @Test
         @DisplayName("non-expanding children get min width, placed left to right")
         void nonExpanding() {
-            HBoxContainer hbox = HBoxContainer.builder(root).separation(5).build();
+            HBoxContainer hbox = new HBoxContainer.Builder(root).separation(5).build();
             root.add(hbox);
-            TestWidget a = TestWidget.builder(hbox).minSize(30, 10).build();
-            TestWidget b = TestWidget.builder(hbox).minSize(40, 10).build();
+            TestWidget a = new TestWidget.Builder(hbox).minSize(30, 10).build();
+            TestWidget b = new TestWidget.Builder(hbox).minSize(40, 10).build();
             hbox.add(a);
             hbox.add(b);
 
@@ -82,10 +82,10 @@ class HBoxContainerTest {
         @Test
         @DisplayName("EXPAND children claim leftover space")
         void expanding() {
-            HBoxContainer hbox = HBoxContainer.builder(root).separation(0).build();
+            HBoxContainer hbox = new HBoxContainer.Builder(root).separation(0).build();
             root.add(hbox);
-            TestWidget fixed = TestWidget.builder(hbox).minSize(50, 10).build();
-            TestWidget expanding = TestWidget.builder(hbox).minSize(0, 10)
+            TestWidget fixed = new TestWidget.Builder(hbox).minSize(50, 10).build();
+            TestWidget expanding = new TestWidget.Builder(hbox).minSize(0, 10)
                     .hSizeFlags(SizeFlags.Expand, SizeFlags.Fill).build();
             hbox.add(fixed);
             hbox.add(expanding);
@@ -99,11 +99,11 @@ class HBoxContainerTest {
         @Test
         @DisplayName("multiple EXPAND children distribute by stretchRatio")
         void multipleExpanding() {
-            HBoxContainer hbox = HBoxContainer.builder(root).separation(0).build();
+            HBoxContainer hbox = new HBoxContainer.Builder(root).separation(0).build();
             root.add(hbox);
-            TestWidget a = TestWidget.builder(hbox).minSize(0, 10)
+            TestWidget a = new TestWidget.Builder(hbox).minSize(0, 10)
                     .hSizeFlags(SizeFlags.Expand, SizeFlags.Fill).stretchRatio(1.0f).build();
-            TestWidget b = TestWidget.builder(hbox).minSize(0, 10)
+            TestWidget b = new TestWidget.Builder(hbox).minSize(0, 10)
                     .hSizeFlags(SizeFlags.Expand, SizeFlags.Fill).stretchRatio(2.0f).build();
             hbox.add(a);
             hbox.add(b);
@@ -118,11 +118,11 @@ class HBoxContainerTest {
         @Test
         @DisplayName("separation gaps between children")
         void separationGaps() {
-            HBoxContainer hbox = HBoxContainer.builder(root).separation(10).build();
+            HBoxContainer hbox = new HBoxContainer.Builder(root).separation(10).build();
             root.add(hbox);
-            TestWidget a = TestWidget.builder(hbox).minSize(20, 10).build();
-            TestWidget b = TestWidget.builder(hbox).minSize(20, 10).build();
-            TestWidget c = TestWidget.builder(hbox).minSize(20, 10).build();
+            TestWidget a = new TestWidget.Builder(hbox).minSize(20, 10).build();
+            TestWidget b = new TestWidget.Builder(hbox).minSize(20, 10).build();
+            TestWidget c = new TestWidget.Builder(hbox).minSize(20, 10).build();
             hbox.add(a);
             hbox.add(b);
             hbox.add(c);
@@ -137,9 +137,9 @@ class HBoxContainerTest {
         @Test
         @DisplayName("cross-axis SHRINK_CENTER centers child vertically")
         void crossAxisCenter() {
-            HBoxContainer hbox = HBoxContainer.builder(root).build();
+            HBoxContainer hbox = new HBoxContainer.Builder(root).build();
             root.add(hbox);
-            TestWidget child = TestWidget.builder(hbox).minSize(30, 20)
+            TestWidget child = new TestWidget.Builder(hbox).minSize(30, 20)
                     .vSizeFlags(SizeFlags.ShrinkCenter).build();
             hbox.add(child);
 

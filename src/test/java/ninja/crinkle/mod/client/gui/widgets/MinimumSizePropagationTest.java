@@ -15,24 +15,24 @@ class MinimumSizePropagationTest {
     @BeforeEach
     void setUp() {
         manager = GuiManager.create();
-        root = Container.builder(manager).build();
+        root = new Container.Builder(manager).build();
     }
 
     @Test
     @DisplayName("VBox min height = sum of children + gaps, propagates up through nesting")
     void nestedVBoxPropagation() {
-        VBoxContainer outer = VBoxContainer.builder(root).separation(10).build();
+        VBoxContainer outer = new VBoxContainer.Builder(root).separation(10).build();
         root.add(outer);
 
-        VBoxContainer inner = VBoxContainer.builder(outer).separation(5).build();
+        VBoxContainer inner = new VBoxContainer.Builder(outer).separation(5).build();
         outer.add(inner);
 
-        TestWidget a = TestWidget.builder(inner).minSize(20, 30).build();
-        TestWidget b = TestWidget.builder(inner).minSize(20, 40).build();
+        TestWidget a = new TestWidget.Builder(inner).minSize(20, 30).build();
+        TestWidget b = new TestWidget.Builder(inner).minSize(20, 40).build();
         inner.add(a);
         inner.add(b);
 
-        TestWidget c = TestWidget.builder(outer).minSize(20, 50).build();
+        TestWidget c = new TestWidget.Builder(outer).minSize(20, 50).build();
         outer.add(c);
 
         // inner min height = 30 + 40 + 5 = 75
@@ -44,18 +44,18 @@ class MinimumSizePropagationTest {
     @Test
     @DisplayName("HBox min width = sum of children + gaps, propagates up through nesting")
     void nestedHBoxPropagation() {
-        HBoxContainer outer = HBoxContainer.builder(root).separation(10).build();
+        HBoxContainer outer = new HBoxContainer.Builder(root).separation(10).build();
         root.add(outer);
 
-        HBoxContainer inner = HBoxContainer.builder(outer).separation(5).build();
+        HBoxContainer inner = new HBoxContainer.Builder(outer).separation(5).build();
         outer.add(inner);
 
-        TestWidget a = TestWidget.builder(inner).minSize(30, 20).build();
-        TestWidget b = TestWidget.builder(inner).minSize(40, 20).build();
+        TestWidget a = new TestWidget.Builder(inner).minSize(30, 20).build();
+        TestWidget b = new TestWidget.Builder(inner).minSize(40, 20).build();
         inner.add(a);
         inner.add(b);
 
-        TestWidget c = TestWidget.builder(outer).minSize(50, 20).build();
+        TestWidget c = new TestWidget.Builder(outer).minSize(50, 20).build();
         outer.add(c);
 
         // inner min width = 30 + 40 + 5 = 75
@@ -67,13 +67,13 @@ class MinimumSizePropagationTest {
     @Test
     @DisplayName("MarginContainer adds margins to child min size")
     void marginContainerPropagation() {
-        VBoxContainer vbox = VBoxContainer.builder(root).build();
+        VBoxContainer vbox = new VBoxContainer.Builder(root).build();
         root.add(vbox);
 
-        MarginContainer mc = MarginContainer.builder(vbox).margins(10, 20, 30, 40).build();
+        MarginContainer mc = new MarginContainer.Builder(vbox).margins(10, 20, 30, 40).build();
         vbox.add(mc);
 
-        TestWidget child = TestWidget.builder(mc).minSize(50, 50).build();
+        TestWidget child = new TestWidget.Builder(mc).minSize(50, 50).build();
         mc.add(child);
 
         // mc min width = 50 + 40 + 20 = 110, min height = 50 + 10 + 30 = 90

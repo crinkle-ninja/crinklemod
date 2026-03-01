@@ -10,14 +10,6 @@ public class TestWidget extends AbstractWidget {
         super(builder);
     }
 
-    public static Builder builder(GuiManager manager) {
-        return new Builder(manager);
-    }
-
-    public static Builder builder(AbstractContainer parent) {
-        return new Builder(parent);
-    }
-
     @Override
     public void renderContent(ThemeGraphics graphics, Point pMouse, Rect renderedRect, float pPartialTick) {
         // Nothing to render for testing

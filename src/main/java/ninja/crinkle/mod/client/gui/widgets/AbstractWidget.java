@@ -61,7 +61,7 @@ public abstract class AbstractWidget implements Renderable, Widget, MouseSource,
     protected AbstractWidget(@NotNull AbstractBuilder<?> builder) {
         this.activePredicate = builder.activePredicate();
         this.name = builder.name();
-        this.style = builder.widgetTheme();
+        this.style = builder.style();
         this.tabIndex = builder.tabIndex();
         this.manager = builder.manager();
         this.priority = builder.priority();
@@ -353,19 +353,19 @@ public abstract class AbstractWidget implements Renderable, Widget, MouseSource,
 
     // --- Theme ---
 
-    public Style widgetTheme() {
+    public Style style() {
         return style;
     }
 
     @SuppressWarnings("unused")
-    public void widgetTheme(Style style) {
+    public void style(Style style) {
         this.style = style;
     }
 
     public StyleVariant appearance() {
         return Style.Variant.from(this).stream()
                 .sorted(Comparator.comparingInt(Style.Variant::rank))
-                .map(variant -> widgetTheme().getAppearance(variant))
+                .map(variant -> style().getAppearance(variant))
                 .filter(Objects::nonNull)
                 .reduce(StyleVariant::coalesce)
                 .orElse(StyleVariant.EMPTY);
@@ -544,7 +544,7 @@ public abstract class AbstractWidget implements Renderable, Widget, MouseSource,
     @Override
     public void render(@NotNull ThemeGraphics graphics, Point pMouse, float pPartialTick) {
         if (!visible() || rect == null || rect.equals(Rect.ZERO)) return;
-        if (!ClientConfig.debug()) widgetTheme().render(graphics, rect, this);
+        if (!ClientConfig.debug()) style().render(graphics, rect, this);
         renderContent(graphics, pMouse, rect, pPartialTick);
         if (ClientConfig.debug()) {
             renderDebug(graphics);
@@ -603,7 +603,7 @@ public abstract class AbstractWidget implements Renderable, Widget, MouseSource,
         private WidgetDisplay display = new WidgetDisplay();
         private String name = "Unnamed_" + hashCode();
         private int priority = 0;
-        private Style style = Style.getDefault();
+        private Style style = null;
         private int tabIndex = 0;
         private boolean visible = true;
 
@@ -816,15 +816,15 @@ public abstract class AbstractWidget implements Renderable, Widget, MouseSource,
             return self();
         }
 
-        public Style widgetTheme() {
-            return style;
+        public Style style() {
+            return style != null ? style : Style.getDefault();
         }
 
-        public T widgetTheme(String widgetTheme) {
-            return widgetTheme(ThemeRegistry.current().getWidgetTheme(widgetTheme));
+        public T style(String style) {
+            return style(ThemeRegistry.current().getWidgetTheme(style));
         }
 
-        public T widgetTheme(Style style) {
+        public T style(Style style) {
             this.style = style;
             return self();
         }

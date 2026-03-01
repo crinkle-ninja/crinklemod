@@ -24,11 +24,11 @@ public class TestScreen extends AbstractScreen {
 
     @Override
     public void init() {
-        VBoxContainer vPanel = VBoxContainer.builder(root())
+        VBoxContainer vPanel = new VBoxContainer.Builder(root())
                 .name("window0")
                 .minSize(300, 200)
                 .separation(5)
-                .widgetTheme("panel")
+                .style("panel")
                 .draggable(true)
                 .build();
         root().add(vPanel);
@@ -36,7 +36,7 @@ public class TestScreen extends AbstractScreen {
         int height = ClientUtil.getMinecraft().font.lineHeight + 13;
 
         for (int p = 0; p < 4; p++) {
-            HBoxContainer hPanel = HBoxContainer.builder(vPanel)
+            HBoxContainer hPanel = new HBoxContainer.Builder(vPanel)
                     .name("container" + p)
                     .separation(5)
                     .hSizeFlags(SizeFlags.Expand, SizeFlags.Fill)
@@ -48,7 +48,7 @@ public class TestScreen extends AbstractScreen {
             for (int i = 0; i < 3; i++) {
                 hPanel.addButton()
                         .name("button" + i + p)
-                        .widgetTheme(themes[i])
+                        .style(themes[i])
                         .text("Button " + i + p)
                         .onClick((event, widget) -> LOGGER.info("Button {} clicked", widget.name()))
                         .minSize(btnWidth, height)

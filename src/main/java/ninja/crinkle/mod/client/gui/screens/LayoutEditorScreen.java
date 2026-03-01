@@ -50,37 +50,36 @@ public class LayoutEditorScreen extends AbstractScreen {
             editorWidgets.put(entry.id(), widget);
         }
 
-        // Toolbar: MarginContainer(panel) > VBoxContainer > children
-        MarginContainer toolbar = MarginContainer.builder(root())
+        // Toolbar: PanelContainer > VBoxContainer > children
+        PanelContainer toolbar = new PanelContainer.Builder(root())
+                .margins(8)
                 .name("layout_toolbar")
                 .hSizeFlags(SizeFlags.ShrinkCenter)
                 .vSizeFlags(SizeFlags.ShrinkCenter)
                 .draggable(true)
-                .widgetTheme("panel")
-                .margins(8)
                 .build();
 
-        VBoxContainer column = VBoxContainer.builder(toolbar)
+        VBoxContainer column = new VBoxContainer.Builder(toolbar)
                 .separation(4)
                 .pushAndReturn();
 
-        Label.builder(column)
+        new Label.Builder(column)
                 .text("Layout Editor")
                 .color(Color.PURPLE)
                 .name("layout_title")
                 .minSize(92, 12)
                 .push();
 
-        Button.builder(column)
-                .widgetTheme("button_primary")
+        new Button.Builder(column)
+                .style("button_primary")
                 .text("Save")
                 .name("layout_save")
                 .minSize(92, 20)
                 .onClick((event, btn) -> save())
                 .push();
 
-        Button.builder(column)
-                .widgetTheme("button")
+        new Button.Builder(column)
+                .style("button")
                 .text("Cancel")
                 .name("layout_cancel")
                 .minSize(92, 20)

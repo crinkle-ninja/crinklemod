@@ -16,15 +16,15 @@ class MarginContainerTest {
     @BeforeEach
     void setUp() {
         manager = GuiManager.create();
-        root = Container.builder(manager).build();
+        root = new Container.Builder(manager).build();
     }
 
     @Test
     @DisplayName("child rect is shrunk by margins")
     void childShrunkByMargins() {
-        MarginContainer mc = MarginContainer.builder(root).margins(10, 20, 30, 40).build();
+        MarginContainer mc = new MarginContainer.Builder(root).margins(10, 20, 30, 40).build();
         root.add(mc);
-        TestWidget child = TestWidget.builder(mc).minSize(50, 50).build();
+        TestWidget child = new TestWidget.Builder(mc).minSize(50, 50).build();
         mc.add(child);
 
         mc.setRect(new Rect(0, 0, 200, 200));
@@ -37,9 +37,9 @@ class MarginContainerTest {
     @Test
     @DisplayName("uniform margins")
     void uniformMargins() {
-        MarginContainer mc = MarginContainer.builder(root).margins(15).build();
+        MarginContainer mc = new MarginContainer.Builder(root).margins(15).build();
         root.add(mc);
-        TestWidget child = TestWidget.builder(mc).minSize(10, 10).build();
+        TestWidget child = new TestWidget.Builder(mc).minSize(10, 10).build();
         mc.add(child);
 
         mc.setRect(new Rect(0, 0, 100, 100));
@@ -50,9 +50,9 @@ class MarginContainerTest {
     @Test
     @DisplayName("minimum size includes margins")
     void minimumSizeIncludesMargins() {
-        MarginContainer mc = MarginContainer.builder(root).margins(10, 20, 30, 40).build();
+        MarginContainer mc = new MarginContainer.Builder(root).margins(10, 20, 30, 40).build();
         root.add(mc);
-        TestWidget child = TestWidget.builder(mc).minSize(50, 50).build();
+        TestWidget child = new TestWidget.Builder(mc).minSize(50, 50).build();
         mc.add(child);
 
         // min width = 50 + 40 + 20 = 110, min height = 50 + 10 + 30 = 90

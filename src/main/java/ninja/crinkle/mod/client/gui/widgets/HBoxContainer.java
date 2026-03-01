@@ -17,14 +17,6 @@ public class HBoxContainer extends AbstractContainer {
         super(builder);
     }
 
-    public static Builder builder(AbstractContainer parent) {
-        return new Builder(parent);
-    }
-
-    public static Builder builder(GuiManager manager) {
-        return new Builder(manager);
-    }
-
     @Override
     public int getMinimumWidth() {
         int minW = super.getMinimumWidth();

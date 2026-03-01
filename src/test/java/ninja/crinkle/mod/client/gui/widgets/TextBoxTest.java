@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class TextBoxTest {
-    private final TextBox textBox = spy(TextBox.builder(Container.builder(GuiManager.create()).build())
+    private final TextBox textBox = spy(new TextBox.Builder(new Container.Builder(GuiManager.create()).build())
             .text("")
             .build());
 
