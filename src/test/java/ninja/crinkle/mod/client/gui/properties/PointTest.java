@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("Point Properties")
-class ImmutablePointTest {
+class PointTest {
 
     @Nested
     @DisplayName("Accessors")
