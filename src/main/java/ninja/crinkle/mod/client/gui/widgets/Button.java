@@ -27,6 +27,18 @@ public class Button extends AbstractContainer {
     }
 
     @Override
+    public AbstractWidget visualCopy(AbstractContainer newParent) {
+        Button copy = new Button.Builder(newParent).build();
+        copy.copyVisualProperties(this);
+        if (text != null) {
+            Label labelCopy = (Label) text.visualCopy(copy);
+            copy.text = labelCopy;
+            copy.add(labelCopy);
+        }
+        return copy;
+    }
+
+    @Override
     public int getMinimumWidth() {
         int explicit = super.getMinimumWidth();
         int childMin = children().stream().mapToInt(AbstractWidget::getMinimumWidth).max().orElse(0);

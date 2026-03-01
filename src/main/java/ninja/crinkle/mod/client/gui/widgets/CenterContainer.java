@@ -16,6 +16,14 @@ public class CenterContainer extends AbstractContainer {
     }
 
     @Override
+    public AbstractWidget visualCopy(AbstractContainer newParent) {
+        CenterContainer copy = new CenterContainer.Builder(newParent).build();
+        copy.copyVisualProperties(this);
+        visualCopyChildrenInto(copy);
+        return copy;
+    }
+
+    @Override
     public int getMinimumWidth() {
         return Math.max(super.getMinimumWidth(),
                 children().stream().mapToInt(AbstractWidget::getMinimumWidth).max().orElse(0));

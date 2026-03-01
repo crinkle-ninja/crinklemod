@@ -10,6 +10,15 @@ public class PanelContainer extends MarginContainer {
         super(builder);
     }
 
+    @Override
+    public AbstractWidget visualCopy(AbstractContainer newParent) {
+        PanelContainer copy = new PanelContainer.Builder(newParent)
+            .margins(marginTop(), marginRight(), marginBottom(), marginLeft()).build();
+        copy.copyVisualProperties(this);
+        visualCopyChildrenInto(copy);
+        return copy;
+    }
+
     public static class Builder extends MarginContainer.BaseBuilder<Builder> {
         public Builder(AbstractContainer parent) {
             super(parent);

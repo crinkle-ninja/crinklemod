@@ -16,14 +16,14 @@ public class PauseScreenAddOn extends AbstractAddOn {
 
     public PauseScreenAddOn() {
         super(PauseScreen.class);
-        // I want a menu anchored in the top-left with 8 pixel margins around a centered Vbox of two stacked buttons.
         MarginContainer panel = new MarginContainer.Builder(root())
                 .margins(8)
+                .hSizeFlags(SizeFlags.ShrinkBegin)
+                .vSizeFlags(SizeFlags.ShrinkBegin)
                 .pushAndReturn();
         CenterContainer centerContainer = new CenterContainer.Builder(panel).pushAndReturn();
         VBoxContainer buttonPanel = new VBoxContainer.Builder(centerContainer)
                 .pushAndReturn();
-        // Buttons should shrink to fit their children.
         new Button.Builder(buttonPanel)
                 .text("Test 1")
                 .style("button")

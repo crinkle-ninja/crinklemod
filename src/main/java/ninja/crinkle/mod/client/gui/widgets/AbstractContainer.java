@@ -1,10 +1,9 @@
 package ninja.crinkle.mod.client.gui.widgets;
 
 import com.mojang.logging.LogUtils;
-import ninja.crinkle.mod.client.gui.events.DragEvent;
-import ninja.crinkle.mod.client.gui.events.DragStartedEvent;
-import ninja.crinkle.mod.client.gui.events.DroppedEvent;
-import ninja.crinkle.mod.client.gui.events.LayoutChangedEvent;
+import ninja.crinkle.mod.client.ClientSetup;
+import ninja.crinkle.mod.client.gui.events.*;
+import ninja.crinkle.mod.client.gui.events.listeners.KeyListener;
 import ninja.crinkle.mod.client.gui.events.listeners.LayoutListener;
 import ninja.crinkle.mod.client.gui.events.sources.InputSource;
 import ninja.crinkle.mod.client.gui.layouts.SizeFlags;
@@ -13,6 +12,9 @@ import ninja.crinkle.mod.client.gui.managers.GuiManager;
 import ninja.crinkle.mod.client.gui.properties.Point;
 import ninja.crinkle.mod.client.gui.properties.Rect;
 import ninja.crinkle.mod.client.gui.renderers.ThemeGraphics;
+import ninja.crinkle.mod.client.gui.managers.IManagedGUI;
+import ninja.crinkle.mod.client.gui.screens.LayoutEditorScreen;
+import ninja.crinkle.mod.util.ClientUtil;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
@@ -20,7 +22,7 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-public abstract class AbstractContainer extends AbstractWidget implements InputSource, LayoutListener {
+public abstract class AbstractContainer extends AbstractWidget implements InputSource, LayoutListener, KeyListener {
     private static final Logger LOGGER = LogUtils.getLogger();
     private final List<AbstractWidget> children = new ArrayList<>();
     private final EventManager eventManager = EventManager.createLocal();
@@ -81,12 +83,33 @@ public abstract class AbstractContainer extends AbstractWidget implements InputS
         return children.stream().toList();
     }
 
+    @Override
+    public void onKey(KeyEvent event) {
+        if (ClientSetup.LAYOUT_EDITOR_KEY != null
+                && ClientSetup.LAYOUT_EDITOR_KEY.matches(event.keyCode(), event.scanCode())) {
+            if (ClientUtil.getMinecraft().screen instanceof LayoutEditorScreen) return;
+            if (manager() instanceof IManagedGUI gui) {
+                ClientUtil.getMinecraft().setScreen(new LayoutEditorScreen(gui));
+                event.consumed(true);
+            }
+        }
+    }
+
     public void remove(AbstractWidget widget) {
         EventManager.global().removeListener(widget);
         manager().eventManager().ifPresent(m -> m.removeListener(widget));
         eventManager().ifPresent(m -> m.removeListener(widget));
         children.remove(widget);
         widget.parent(null);
+    }
+
+    // --- Visual Copy ---
+
+    protected void visualCopyChildrenInto(AbstractContainer target) {
+        for (AbstractWidget child : children()) {
+            AbstractWidget copied = child.visualCopy(target);
+            target.add(copied);
+        }
     }
 
     // --- Layout ---
@@ -195,6 +218,7 @@ public abstract class AbstractContainer extends AbstractWidget implements InputS
         EventManager.global().addListener(widget);
         eventManager().ifPresent(m -> m.addListener(widget));
     }
+
 
     // --- Rendering ---
 

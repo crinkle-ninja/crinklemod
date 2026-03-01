@@ -6,6 +6,7 @@ import net.minecraft.network.chat.Component;
 import ninja.crinkle.mod.client.color.Color;
 import ninja.crinkle.mod.client.gui.editors.LayoutRegistry;
 import ninja.crinkle.mod.client.gui.layouts.SizeFlags;
+import ninja.crinkle.mod.client.gui.managers.IManagedGUI;
 import ninja.crinkle.mod.client.gui.properties.Rect;
 import ninja.crinkle.mod.client.gui.widgets.*;
 import ninja.crinkle.mod.util.ClientUtil;
@@ -17,16 +18,23 @@ import java.util.Map;
 
 public class LayoutEditorScreen extends AbstractScreen {
     private final Map<String, AbstractWidget> editorWidgets = new LinkedHashMap<>();
+    private final IManagedGUI source;
     private long handCursor;
     private boolean cursorIsHand;
 
-    public LayoutEditorScreen() {
+    public LayoutEditorScreen(IManagedGUI source) {
         super(Component.literal("Layout Editor"), ClientUtil.screenWidth(), ClientUtil.screenHeight());
+        this.source = source;
     }
 
     @Override
     public String name() {
         return "LayoutEditorScreen";
+    }
+
+    @Override
+    protected void registerLayoutEntries() {
+        // LayoutEditorScreen should not re-register its copied widgets into the registry.
     }
 
     @Override
@@ -37,8 +45,8 @@ public class LayoutEditorScreen extends AbstractScreen {
             handCursor = GLFW.glfwCreateStandardCursor(GLFW.GLFW_HAND_CURSOR);
         }
 
-        for (LayoutRegistry.Entry entry : LayoutRegistry.entries()) {
-            AbstractWidget widget = entry.editorWidgetFactory().get();
+        for (LayoutRegistry.Entry entry : LayoutRegistry.entries(source)) {
+            AbstractWidget widget = entry.editorWidgetFactory().apply(root());
             widget.draggable(true);
             widget.active(true);
             widget.visible(true);
@@ -92,7 +100,7 @@ public class LayoutEditorScreen extends AbstractScreen {
 
         // Position widgets AFTER super.init() so arrange() doesn't overwrite them.
         // Use the live widget's rect as the source of truth for dimensions.
-        for (LayoutRegistry.Entry entry : LayoutRegistry.entries()) {
+        for (LayoutRegistry.Entry entry : LayoutRegistry.entries(source)) {
             AbstractWidget widget = editorWidgets.get(entry.id());
             if (widget == null) continue;
 
@@ -133,7 +141,7 @@ public class LayoutEditorScreen extends AbstractScreen {
     }
 
     private void save() {
-        for (LayoutRegistry.Entry entry : LayoutRegistry.entries()) {
+        for (LayoutRegistry.Entry entry : LayoutRegistry.entries(source)) {
             AbstractWidget widget = editorWidgets.get(entry.id());
             if (widget != null) {
                 LayoutRegistry.savePosition(entry.id(), widget.rect(), width, height);

@@ -8,6 +8,8 @@ import net.minecraft.client.gui.navigation.FocusNavigationEvent;
 import net.minecraft.client.gui.navigation.ScreenDirection;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import ninja.crinkle.mod.client.ClientSetup;
+import ninja.crinkle.mod.client.gui.editors.LayoutRegistry;
 import ninja.crinkle.mod.client.gui.events.*;
 import ninja.crinkle.mod.client.gui.events.listeners.EventListener;
 import ninja.crinkle.mod.client.gui.events.listeners.InputListener;
@@ -19,6 +21,8 @@ import ninja.crinkle.mod.client.gui.properties.*;
 import ninja.crinkle.mod.client.gui.widgets.AbstractWidget;
 import ninja.crinkle.mod.client.gui.widgets.AbstractContainer;
 import ninja.crinkle.mod.client.gui.widgets.Container;
+import ninja.crinkle.mod.client.gui.widgets.MetabolismWidget;
+import ninja.crinkle.mod.util.ClientUtil;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
@@ -28,7 +32,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 
-public abstract class AbstractScreen extends Screen implements TabIndexListener, KeySource, MouseSource, GuiManager {
+public abstract class AbstractScreen extends Screen implements TabIndexListener, KeySource, MouseSource, GuiManager,
+        IManagedGUI {
     private static final Logger LOGGER = LogUtils.getLogger();
     private static final int SCAN_OFFSET = 10;
     private static final int DOUBLE_CLICK_TIME = 300;
@@ -99,6 +104,11 @@ public abstract class AbstractScreen extends Screen implements TabIndexListener,
     }
 
     @Override
+    public GuiManager manager() {
+        return this;
+    }
+
+    @Override
     public void tick() {
         Rect currentRect = new Rect(0, 0, width, height);
         if (lastScreenRect != null && !lastScreenRect.equals(currentRect)) {
@@ -114,7 +124,30 @@ public abstract class AbstractScreen extends Screen implements TabIndexListener,
         super.init();
         root().setRect(new Rect(0, 0, width, height));
         root().init();
+        registerLayoutEntries();
+        resolveLayoutPositions();
         ready = true;
+    }
+
+    protected void registerLayoutEntries() {
+        for (AbstractWidget widget : root().children()) {
+            LayoutRegistry.register(new LayoutRegistry.Entry(
+                    widget.name(),
+                    this,
+                    widget::visualCopy,
+                    widget::rect,
+                    widget::setRect
+            ));
+        }
+    }
+
+    protected void resolveLayoutPositions() {
+        for (LayoutRegistry.Entry entry : LayoutRegistry.entries(this)) {
+            Rect current = entry.currentRect().get();
+            if (current == null || current.equals(Rect.ZERO)) continue;
+            LayoutRegistry.resolvePosition(entry.id(), width, height, current.width(), current.height())
+                    .ifPresent(entry.onApply());
+        }
     }
 
     @Override

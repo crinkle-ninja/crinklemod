@@ -8,10 +8,12 @@ import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import com.mojang.logging.LogUtils;
+import ninja.crinkle.mod.client.ClientSetup;
 import ninja.crinkle.mod.client.gui.properties.Point;
 import ninja.crinkle.mod.client.gui.properties.Rect;
 import ninja.crinkle.mod.client.gui.renderers.ThemeGraphics;
 import ninja.crinkle.mod.client.gui.screens.AbstractScreen;
+import ninja.crinkle.mod.client.gui.screens.LayoutEditorScreen;
 import ninja.crinkle.mod.client.gui.textures.ThemeAtlas;
 import ninja.crinkle.mod.client.gui.themes.Theme;
 import ninja.crinkle.mod.client.gui.themes.ThemeRegistry;
@@ -56,6 +58,8 @@ public abstract class AbstractAddOn extends AbstractScreen {
         this.height = ClientUtil.screenHeight();
         root().setRect(new Rect(0, 0, width, height));
         root().init();
+        registerLayoutEntries();
+        resolveLayoutPositions();
         ready = true;
     }
 
@@ -98,11 +102,19 @@ public abstract class AbstractAddOn extends AbstractScreen {
         } else {
             return;
         }
-        LOGGER.debug("[AddOn] action={} mouse=({},{}) handled={} root.rect={} children={}",
-                event.getAction() == InputConstants.PRESS ? "PRESS" : "RELEASE",
-                mouseX, mouseY, handled, root().rect(),
-                root().children().stream().map(w -> w.name() + ":" + w.rect()).toList());
         if (handled) {
+            event.setCanceled(true);
+        }
+    }
+
+    @SubscribeEvent
+    public void onScreenKeyPressed(ScreenEvent.KeyPressed.Pre event) {
+        if (!root().active()) return;
+        if (ClientUtil.getMinecraft() == null || ClientUtil.getMinecraft().screen == null) return;
+        if (screenClass() != ClientUtil.getMinecraft().screen.getClass()) return;
+        if (ClientSetup.LAYOUT_EDITOR_KEY != null
+                && ClientSetup.LAYOUT_EDITOR_KEY.matches(event.getKeyCode(), event.getScanCode())) {
+            ClientUtil.getMinecraft().setScreen(new LayoutEditorScreen(this));
             event.setCanceled(true);
         }
     }

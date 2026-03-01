@@ -5,13 +5,14 @@ import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 import ninja.crinkle.mod.client.gui.editors.LayoutRegistry;
 import ninja.crinkle.mod.client.gui.managers.GuiManager;
+import ninja.crinkle.mod.client.gui.managers.IManagedGUI;
 import ninja.crinkle.mod.client.gui.properties.Point;
 import ninja.crinkle.mod.client.gui.properties.Rect;
 import ninja.crinkle.mod.client.gui.renderers.ThemeGraphics;
 import ninja.crinkle.mod.client.gui.textures.ThemeAtlas;
 import ninja.crinkle.mod.client.gui.widgets.AbstractWidget;
 
-public class AbstractOverlay implements IGuiOverlay {
+public abstract class AbstractOverlay implements IGuiOverlay, IManagedGUI {
     private final GuiManager manager;
     private int lastScreenWidth;
     private int lastScreenHeight;
@@ -48,11 +49,5 @@ public class AbstractOverlay implements IGuiOverlay {
         manager().root().render(themeGraphics, point, partialTick);
     }
 
-    protected void onScreenResize(int screenWidth, int screenHeight) {
-        for (AbstractWidget widget : manager().root().children()) {
-            if (widget.repositionable()) {
-                // Re-resolve positions for repositionable widgets is handled by subclasses
-            }
-        }
-    }
+    protected abstract void onScreenResize(int screenWidth, int screenHeight);
 }

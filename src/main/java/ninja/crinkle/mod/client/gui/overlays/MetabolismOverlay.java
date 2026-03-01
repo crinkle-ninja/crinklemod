@@ -16,20 +16,19 @@ public class MetabolismOverlay extends AbstractOverlay {
 
         LayoutRegistry.register(new LayoutRegistry.Entry(
                 WIDGET_ID,
-                () -> {
-                    GuiManager mgr = GuiManager.create();
-                    MetabolismWidget w = new MetabolismWidget(mgr.root());
+                this,
+                (parent) -> {
+                    MetabolismWidget w = new MetabolismWidget(parent);
                     w.repositionable(true);
                     return w;
                 },
-                () -> widget.rect(),
-                rect -> widget.setRect(rect)
+                widget::rect,
+                widget::setRect
         ));
     }
 
     @Override
     protected void onScreenResize(int screenWidth, int screenHeight) {
-        super.onScreenResize(screenWidth, screenHeight);
         resolveAndApply(screenWidth, screenHeight);
     }
 

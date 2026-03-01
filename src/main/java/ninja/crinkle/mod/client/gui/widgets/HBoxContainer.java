@@ -18,6 +18,15 @@ public class HBoxContainer extends AbstractContainer {
     }
 
     @Override
+    public AbstractWidget visualCopy(AbstractContainer newParent) {
+        HBoxContainer copy = new HBoxContainer.Builder(newParent)
+            .separation(separation()).build();
+        copy.copyVisualProperties(this);
+        visualCopyChildrenInto(copy);
+        return copy;
+    }
+
+    @Override
     public int getMinimumWidth() {
         int minW = super.getMinimumWidth();
         List<AbstractWidget> kids = children();

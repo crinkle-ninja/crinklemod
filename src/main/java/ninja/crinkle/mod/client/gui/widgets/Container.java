@@ -18,6 +18,14 @@ public class Container extends AbstractContainer {
     }
 
     @Override
+    public AbstractWidget visualCopy(AbstractContainer newParent) {
+        Container copy = new Container.Builder(newParent).build();
+        copy.copyVisualProperties(this);
+        visualCopyChildrenInto(copy);
+        return copy;
+    }
+
+    @Override
     public void arrange() {
         if (children().isEmpty() || rect().equals(Rect.ZERO)) return;
         for (AbstractWidget child : children()) {

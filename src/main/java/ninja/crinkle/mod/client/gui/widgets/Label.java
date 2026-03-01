@@ -17,6 +17,14 @@ public class Label extends AbstractWidget {
     }
 
     @Override
+    public AbstractWidget visualCopy(AbstractContainer newParent) {
+        Label copy = new Label.Builder(newParent)
+            .text(text).color(color).build();
+        copy.copyVisualProperties(this);
+        return copy;
+    }
+
+    @Override
     public int getMinimumWidth() {
         int explicit = super.getMinimumWidth();
         if (explicit > 0 || text == null || text.isEmpty()) return explicit;

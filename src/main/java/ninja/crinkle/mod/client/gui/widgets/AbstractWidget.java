@@ -560,6 +560,29 @@ public abstract class AbstractWidget implements Renderable, Widget, MouseSource,
         pGuiGraphics.drawRect(rect, Color.GREEN, zIndex());
     }
 
+    // --- Visual Copy ---
+
+    public AbstractWidget visualCopy(AbstractContainer newParent) {
+        throw new UnsupportedOperationException(
+            getClass().getSimpleName() + " does not support visualCopy");
+    }
+
+    protected void copyVisualProperties(AbstractWidget source) {
+        this.name = source.name;
+        this.style = source.style;
+        this.minWidth = source.minWidth;
+        this.minHeight = source.minHeight;
+        this.hSizeFlags = EnumSet.copyOf(source.hSizeFlags);
+        this.vSizeFlags = EnumSet.copyOf(source.vSizeFlags);
+        this.stretchRatio = source.stretchRatio;
+        this.display = source.display;
+        this.behavior = new WidgetBehavior(
+            source.behavior.draggable(), false, false, false, false,
+            source.behavior.active(), source.behavior.focusable(),
+            source.behavior.hoverable(), source.behavior.pressable(),
+            source.behavior.repositionable());
+    }
+
     // --- Lifecycle ---
 
     protected void init() {

@@ -30,6 +30,20 @@ public class MarginContainer extends AbstractContainer {
         this.marginLeft = left;
     }
 
+    protected int marginTop() { return marginTop; }
+    protected int marginRight() { return marginRight; }
+    protected int marginBottom() { return marginBottom; }
+    protected int marginLeft() { return marginLeft; }
+
+    @Override
+    public AbstractWidget visualCopy(AbstractContainer newParent) {
+        MarginContainer copy = new MarginContainer.Builder(newParent)
+            .margins(marginTop, marginRight, marginBottom, marginLeft).build();
+        copy.copyVisualProperties(this);
+        visualCopyChildrenInto(copy);
+        return copy;
+    }
+
     public void margins(int all) {
         margins(all, all, all, all);
     }

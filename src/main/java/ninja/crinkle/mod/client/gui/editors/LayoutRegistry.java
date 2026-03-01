@@ -1,18 +1,24 @@
 package ninja.crinkle.mod.client.gui.editors;
 
+import ninja.crinkle.mod.client.gui.managers.IManagedGUI;
 import ninja.crinkle.mod.client.gui.properties.Rect;
 import ninja.crinkle.mod.client.gui.properties.ScreenRegion;
+import ninja.crinkle.mod.client.gui.screens.AbstractScreen;
 import ninja.crinkle.mod.client.gui.widgets.AbstractWidget;
 import ninja.crinkle.mod.config.ClientConfig;
 
+import ninja.crinkle.mod.client.gui.widgets.AbstractContainer;
+
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class LayoutRegistry {
 
     public record Entry(String id,
-                        Supplier<AbstractWidget> editorWidgetFactory,
+                        IManagedGUI gui,
+                        Function<AbstractContainer, AbstractWidget> editorWidgetFactory,
                         Supplier<Rect> currentRect,
                         Consumer<Rect> onApply) {}
 
@@ -24,6 +30,10 @@ public class LayoutRegistry {
 
     public static Collection<Entry> entries() {
         return Collections.unmodifiableCollection(entries.values());
+    }
+
+    public static Collection<Entry> entries(IManagedGUI gui) {
+        return entries.values().stream().filter(entry -> entry.gui() == gui).toList();
     }
 
     public static Optional<Rect> resolvePosition(String id, int screenW, int screenH, int widgetW, int widgetH) {

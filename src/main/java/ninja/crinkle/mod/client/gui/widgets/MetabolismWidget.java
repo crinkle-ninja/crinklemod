@@ -27,12 +27,19 @@ public class MetabolismWidget extends AnimatedWidget {
         this(new AnimatedWidget.Builder(parent));
     }
 
+    @Override
+    public AbstractWidget visualCopy(AbstractContainer newParent) {
+        MetabolismWidget copy = new MetabolismWidget(newParent);
+        copy.copyVisualProperties(this);
+        return copy;
+    }
+
     public MetabolismWidget(Builder builder) {
         super(builder);
         CrinkleMod.EVENT_BUS.register(this);
         if (ClientUtil.getPlayer() instanceof LocalPlayer player) {
             numberOne = Metabolism.of(player).getNumberOneDesperationLevel();
-            numberTwo = ninja.crinkle.mod.metabolism.Metabolism.of(player).getNumberTwoDesperationLevel();
+            numberTwo = Metabolism.of(player).getNumberTwoDesperationLevel();
         }
     }
 

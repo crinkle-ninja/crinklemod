@@ -18,6 +18,15 @@ public class VBoxContainer extends AbstractContainer {
     }
 
     @Override
+    public AbstractWidget visualCopy(AbstractContainer newParent) {
+        VBoxContainer copy = new VBoxContainer.Builder(newParent)
+            .separation(separation()).build();
+        copy.copyVisualProperties(this);
+        visualCopyChildrenInto(copy);
+        return copy;
+    }
+
+    @Override
     public int getMinimumWidth() {
         int minW = super.getMinimumWidth();
         return Math.max(minW, children().stream().mapToInt(AbstractWidget::getMinimumWidth).max().orElse(0));
