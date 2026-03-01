@@ -10,7 +10,7 @@ import ninja.crinkle.mod.client.gui.events.listeners.MouseListener;
 import ninja.crinkle.mod.client.gui.events.listeners.TabIndexListener;
 import ninja.crinkle.mod.client.gui.managers.DragManager;
 import ninja.crinkle.mod.client.gui.managers.GuiManager;
-import ninja.crinkle.mod.client.gui.properties.ImmutablePoint;
+import ninja.crinkle.mod.client.gui.properties.Point;
 import ninja.crinkle.mod.util.ClientUtil;
 import ninja.crinkle.mod.util.TestUtil;
 import org.junit.jupiter.api.AfterEach;
@@ -355,7 +355,7 @@ class AbstractWidgetTest {
             // Mock ClientUtil for hover tests (includes mouseHandler mocking)
             clientUtilMock = TestUtil.mockClientUtil();
             // Explicitly stub getMousePosition() since hovered() calls it directly
-            clientUtilMock.when(ClientUtil::getMousePosition).thenReturn(new ImmutablePoint(0, 0));
+            clientUtilMock.when(ClientUtil::getMousePosition).thenReturn(new Point(0, 0));
         }
 
         @AfterEach

@@ -6,7 +6,7 @@ import ninja.crinkle.mod.client.gui.events.*;
 import ninja.crinkle.mod.client.gui.events.listeners.KeyListener;
 import ninja.crinkle.mod.client.gui.events.listeners.LayoutListener;
 import ninja.crinkle.mod.client.gui.events.sources.InputSource;
-import ninja.crinkle.mod.client.gui.layouts.SizeFlags;
+import ninja.crinkle.mod.client.gui.properties.Sizing;
 import ninja.crinkle.mod.client.gui.managers.EventManager;
 import ninja.crinkle.mod.client.gui.managers.GuiManager;
 import ninja.crinkle.mod.client.gui.properties.Point;
@@ -137,7 +137,7 @@ public abstract class AbstractContainer extends AbstractWidget implements InputS
     }
 
     /**
-     * Applies a child's size flags to an allocated rectangle.
+     * Applies a child's sizing to an allocated rectangle.
      * Per-axis: if FILL → use allocated size; if SHRINK_* → use min size + align within allocated rect.
      */
     protected static Rect fitChildInRect(AbstractWidget child, Rect allocated) {
@@ -146,28 +146,28 @@ public abstract class AbstractContainer extends AbstractWidget implements InputS
         int w = allocated.width();
         int h = allocated.height();
 
-        EnumSet<SizeFlags> hFlags = child.hSizeFlags();
-        EnumSet<SizeFlags> vFlags = child.vSizeFlags();
-        int childMinW = child.getMinimumWidth();
-        int childMinH = child.getMinimumHeight();
+        EnumSet<Sizing> hFlags = child.horizontalSizing();
+        EnumSet<Sizing> vFlags = child.verticalSizing();
+        int childMinW = child.minimumWidth();
+        int childMinH = child.minimumHeight();
 
         // Horizontal axis
-        if (!hFlags.contains(SizeFlags.Fill)) {
+        if (!hFlags.contains(Sizing.Fill)) {
             w = childMinW;
-            if (hFlags.contains(SizeFlags.ShrinkCenter)) {
+            if (hFlags.contains(Sizing.ShrinkCenter)) {
                 x += (allocated.width() - w) / 2;
-            } else if (hFlags.contains(SizeFlags.ShrinkEnd)) {
+            } else if (hFlags.contains(Sizing.ShrinkEnd)) {
                 x += allocated.width() - w;
             }
             // SHRINK_BEGIN: x stays at allocated.x()
         }
 
         // Vertical axis
-        if (!vFlags.contains(SizeFlags.Fill)) {
+        if (!vFlags.contains(Sizing.Fill)) {
             h = childMinH;
-            if (vFlags.contains(SizeFlags.ShrinkCenter)) {
+            if (vFlags.contains(Sizing.ShrinkCenter)) {
                 y += (allocated.height() - h) / 2;
-            } else if (vFlags.contains(SizeFlags.ShrinkEnd)) {
+            } else if (vFlags.contains(Sizing.ShrinkEnd)) {
                 y += allocated.height() - h;
             }
             // SHRINK_BEGIN: y stays at allocated.y()

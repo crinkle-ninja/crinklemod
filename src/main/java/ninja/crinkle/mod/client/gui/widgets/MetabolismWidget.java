@@ -77,14 +77,14 @@ public class MetabolismWidget extends AnimatedWidget {
         Theme theme = ThemeRegistry.current();
         if (theme == null) return false;
 
-        Animation character = theme.getAnimation("character").orElse(null);
-        Animation bubble = theme.getAnimation("bubble").orElse(null);
+        Animation character = theme.animation("character").orElse(null);
+        Animation bubble = theme.animation("bubble").orElse(null);
         if (character == null) {
-            LOGGER.error("character is null for theme {}", theme.getId());
+            LOGGER.error("character is null for theme {}", theme.id());
             return false;
         }
         if (bubble == null) {
-            LOGGER.error("bubble is null for theme {}", theme.getId());
+            LOGGER.error("bubble is null for theme {}", theme.id());
             return false;
         }
         clearPlayer();

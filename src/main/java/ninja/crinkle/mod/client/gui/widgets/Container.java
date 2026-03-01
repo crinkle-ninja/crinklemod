@@ -6,7 +6,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * A stack container — all children overlap, each receiving the full rect
- * with their size flags applied via fitChildInRect.
+ * with their sizing applied via fitChildInRect.
  */
 public class Container extends AbstractContainer {
     public Container() {

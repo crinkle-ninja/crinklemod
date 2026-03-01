@@ -47,7 +47,7 @@ public abstract class AbstractScreen extends Screen implements TabIndexListener,
     protected boolean ready = false;
     private int currentTabIndex = 0;
     private Rect lastScreenRect;
-    private Point mouse = ImmutablePoint.ZERO;
+    private Point mouse = Point.ZERO;
 
     protected AbstractScreen(Component pTitle, int screenWidth, int screenHeight) {
         super(pTitle);
@@ -122,6 +122,8 @@ public abstract class AbstractScreen extends Screen implements TabIndexListener,
     @Override
     public void init() {
         super.init();
+        // Re-add root as a renderable — clearWidgets() removes it on resize
+        addRenderableOnly(root());
         root().setRect(new Rect(0, 0, width, height));
         root().init();
         registerLayoutEntries();
@@ -179,7 +181,7 @@ public abstract class AbstractScreen extends Screen implements TabIndexListener,
                     .orElse(List.of());
             Event event = new DoubleClickEvent(Scope.Screen, this, pMouseX, pMouseY, pButton, listeners);
             eventManager().ifPresent(m -> m.dispatchEvent(event, l -> state.listeners().contains(l)));
-            clickState = new ClickState(ImmutablePoint.ZERO, -1, 0, List.of());
+            clickState = new ClickState(Point.ZERO, -1, 0, List.of());
             return event.success() || super.mouseClicked(pMouseX, pMouseY, pButton);
         }
         List<EventListener> listeners = eventManager()
@@ -191,9 +193,13 @@ public abstract class AbstractScreen extends Screen implements TabIndexListener,
                 .filter(c -> !c.equals(root()))
                 .reduce((a, b) -> a.zIndex() > b.zIndex() ? a : b)
                 .orElse(null);
-        clickState = new ClickState(new ImmutablePoint(pMouseX, pMouseY), pButton, System.currentTimeMillis(), listeners);
-        if (topMost != null && topMost.draggable()) {
-            dragManager().current(topMost);
+        clickState = new ClickState(new Point(pMouseX, pMouseY), pButton, System.currentTimeMillis(), listeners);
+        AbstractWidget dragTarget = topMost;
+        while (dragTarget != null && !dragTarget.draggable()) {
+            dragTarget = dragTarget.parent().filter(p -> !p.equals(root())).orElse(null);
+        }
+        if (dragTarget != null) {
+            dragManager().current(dragTarget);
             dragManager().dragging(false);
         }
         AbstractWidget topFocusable = listeners.stream()
@@ -346,7 +352,7 @@ public abstract class AbstractScreen extends Screen implements TabIndexListener,
             eventManager().ifPresent(m ->
                     m.dispatchEvent(new MoveEvent(Scope.Screen, this, pMouseX, pMouseY, listeners),
                     onlyHovered(pMouseX, pMouseY, SCAN_OFFSET)));
-            mouse = new ImmutablePoint(pMouseX, pMouseY);
+            mouse = new Point(pMouseX, pMouseY);
         }
 
     }

@@ -1,6 +1,6 @@
 package ninja.crinkle.mod.client.gui.widgets;
 
-import ninja.crinkle.mod.client.gui.layouts.SizeFlags;
+import ninja.crinkle.mod.client.gui.properties.Sizing;
 import ninja.crinkle.mod.client.gui.managers.GuiManager;
 import ninja.crinkle.mod.client.gui.properties.Rect;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,7 +34,7 @@ class HBoxContainerTest {
             hbox.add(a);
             hbox.add(b);
 
-            assertEquals(75, hbox.getMinimumWidth(), "30 + 40 + 5 gap");
+            assertEquals(75, hbox.minimumWidth(), "30 + 40 + 5 gap");
         }
 
         @Test
@@ -47,7 +47,7 @@ class HBoxContainerTest {
             hbox.add(a);
             hbox.add(b);
 
-            assertEquals(25, hbox.getMinimumHeight());
+            assertEquals(25, hbox.minimumHeight());
         }
 
         @Test
@@ -55,8 +55,8 @@ class HBoxContainerTest {
         void emptyContainer() {
             HBoxContainer hbox = new HBoxContainer.Builder(root).build();
             root.add(hbox);
-            assertEquals(0, hbox.getMinimumWidth());
-            assertEquals(0, hbox.getMinimumHeight());
+            assertEquals(0, hbox.minimumWidth());
+            assertEquals(0, hbox.minimumHeight());
         }
     }
 
@@ -86,7 +86,7 @@ class HBoxContainerTest {
             root.add(hbox);
             TestWidget fixed = new TestWidget.Builder(hbox).minSize(50, 10).build();
             TestWidget expanding = new TestWidget.Builder(hbox).minSize(0, 10)
-                    .hSizeFlags(SizeFlags.Expand, SizeFlags.Fill).build();
+                    .horizontalSizing(Sizing.Expand, Sizing.Fill).build();
             hbox.add(fixed);
             hbox.add(expanding);
 
@@ -102,9 +102,9 @@ class HBoxContainerTest {
             HBoxContainer hbox = new HBoxContainer.Builder(root).separation(0).build();
             root.add(hbox);
             TestWidget a = new TestWidget.Builder(hbox).minSize(0, 10)
-                    .hSizeFlags(SizeFlags.Expand, SizeFlags.Fill).stretchRatio(1.0f).build();
+                    .horizontalSizing(Sizing.Expand, Sizing.Fill).stretchRatio(1.0f).build();
             TestWidget b = new TestWidget.Builder(hbox).minSize(0, 10)
-                    .hSizeFlags(SizeFlags.Expand, SizeFlags.Fill).stretchRatio(2.0f).build();
+                    .horizontalSizing(Sizing.Expand, Sizing.Fill).stretchRatio(2.0f).build();
             hbox.add(a);
             hbox.add(b);
 
@@ -140,7 +140,7 @@ class HBoxContainerTest {
             HBoxContainer hbox = new HBoxContainer.Builder(root).build();
             root.add(hbox);
             TestWidget child = new TestWidget.Builder(hbox).minSize(30, 20)
-                    .vSizeFlags(SizeFlags.ShrinkCenter).build();
+                    .verticalSizing(Sizing.ShrinkCenter).build();
             hbox.add(child);
 
             hbox.setRect(new Rect(0, 0, 200, 100));

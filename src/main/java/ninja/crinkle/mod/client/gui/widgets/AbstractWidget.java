@@ -14,7 +14,7 @@ import ninja.crinkle.mod.client.gui.events.sources.FocusSource;
 import ninja.crinkle.mod.client.gui.events.sources.LayoutSource;
 import ninja.crinkle.mod.client.gui.events.sources.MouseSource;
 import ninja.crinkle.mod.client.gui.events.sources.TabIndexSource;
-import ninja.crinkle.mod.client.gui.layouts.SizeFlags;
+import ninja.crinkle.mod.client.gui.properties.Sizing;
 import ninja.crinkle.mod.client.gui.managers.DragManager;
 import ninja.crinkle.mod.client.gui.managers.EventManager;
 import ninja.crinkle.mod.client.gui.managers.GuiManager;
@@ -52,8 +52,8 @@ public abstract class AbstractWidget implements Renderable, Widget, MouseSource,
     private Rect rect = Rect.ZERO;
     private int minWidth;
     private int minHeight;
-    private EnumSet<SizeFlags> hSizeFlags;
-    private EnumSet<SizeFlags> vSizeFlags;
+    private EnumSet<Sizing> horizontalSizing;
+    private EnumSet<Sizing> verticalSizing;
     private float stretchRatio;
     private double dragAccumX;
     private double dragAccumY;
@@ -70,8 +70,8 @@ public abstract class AbstractWidget implements Renderable, Widget, MouseSource,
         this.behavior = builder.behavior();
         this.minWidth = builder.minWidth();
         this.minHeight = builder.minHeight();
-        this.hSizeFlags = builder.hSizeFlags();
-        this.vSizeFlags = builder.vSizeFlags();
+        this.horizontalSizing = builder.horizontalSizing();
+        this.verticalSizing = builder.verticalSizing();
         this.stretchRatio = builder.stretchRatio();
 
         if (builder.zIndex() == DragManager.Z_MIN) {
@@ -86,7 +86,7 @@ public abstract class AbstractWidget implements Renderable, Widget, MouseSource,
     public AbstractWidget() {
         this.activePredicate = null;
         this.name = "Unnamed_" + hashCode();
-        this.style = Style.getDefault();
+        this.style = Style.defaultStyle();
         this.tabIndex = 0;
         this.manager = GuiManager.create();
         this.priority = 1;
@@ -95,8 +95,8 @@ public abstract class AbstractWidget implements Renderable, Widget, MouseSource,
         this.behavior = new WidgetBehavior();
         this.minWidth = 0;
         this.minHeight = 0;
-        this.hSizeFlags = EnumSet.of(SizeFlags.Fill);
-        this.vSizeFlags = EnumSet.of(SizeFlags.Fill);
+        this.horizontalSizing = EnumSet.of(Sizing.Fill);
+        this.verticalSizing = EnumSet.of(Sizing.Fill);
         this.stretchRatio = 1.0f;
     }
 
@@ -111,33 +111,33 @@ public abstract class AbstractWidget implements Renderable, Widget, MouseSource,
         this.rect = rect;
     }
 
-    public int getMinimumWidth() {
+    public int minimumWidth() {
         return minWidth;
     }
 
-    public int getMinimumHeight() {
+    public int minimumHeight() {
         return minHeight;
     }
 
-    public void setMinimumSize(int width, int height) {
+    public void minimumSize(int width, int height) {
         this.minWidth = width;
         this.minHeight = height;
     }
 
-    public EnumSet<SizeFlags> hSizeFlags() {
-        return hSizeFlags;
+    public EnumSet<Sizing> horizontalSizing() {
+        return horizontalSizing;
     }
 
-    public void hSizeFlags(SizeFlags... flags) {
-        this.hSizeFlags = SizeFlags.of(flags);
+    public void horizontalSizing(Sizing... flags) {
+        this.horizontalSizing = Sizing.of(flags);
     }
 
-    public EnumSet<SizeFlags> vSizeFlags() {
-        return vSizeFlags;
+    public EnumSet<Sizing> verticalSizing() {
+        return verticalSizing;
     }
 
-    public void vSizeFlags(SizeFlags... flags) {
-        this.vSizeFlags = SizeFlags.of(flags);
+    public void verticalSizing(Sizing... flags) {
+        this.verticalSizing = Sizing.of(flags);
     }
 
     public float stretchRatio() {
@@ -365,7 +365,7 @@ public abstract class AbstractWidget implements Renderable, Widget, MouseSource,
     public StyleVariant appearance() {
         return Style.Variant.from(this).stream()
                 .sorted(Comparator.comparingInt(Style.Variant::rank))
-                .map(variant -> style().getAppearance(variant))
+                .map(variant -> style().appearance(variant))
                 .filter(Objects::nonNull)
                 .reduce(StyleVariant::coalesce)
                 .orElse(StyleVariant.EMPTY);
@@ -538,7 +538,7 @@ public abstract class AbstractWidget implements Renderable, Widget, MouseSource,
      */
     @Override
     public void render(@NotNull GuiGraphics graphics, int pMouseX, int pMouseY, float pPartialTick) {
-        render(new ThemeGraphics(graphics, ThemeAtlas.getAtlas()), new ImmutablePoint(pMouseX, pMouseY), pPartialTick);
+        render(new ThemeGraphics(graphics, ThemeAtlas.getAtlas()), new Point(pMouseX, pMouseY), pPartialTick);
     }
 
     @Override
@@ -572,8 +572,8 @@ public abstract class AbstractWidget implements Renderable, Widget, MouseSource,
         this.style = source.style;
         this.minWidth = source.minWidth;
         this.minHeight = source.minHeight;
-        this.hSizeFlags = EnumSet.copyOf(source.hSizeFlags);
-        this.vSizeFlags = EnumSet.copyOf(source.vSizeFlags);
+        this.horizontalSizing = EnumSet.copyOf(source.horizontalSizing);
+        this.verticalSizing = EnumSet.copyOf(source.verticalSizing);
         this.stretchRatio = source.stretchRatio;
         this.display = source.display;
         this.behavior = new WidgetBehavior(
@@ -633,8 +633,8 @@ public abstract class AbstractWidget implements Renderable, Widget, MouseSource,
         // New layout fields
         private int minWidth = 0;
         private int minHeight = 0;
-        private EnumSet<SizeFlags> hSizeFlags = EnumSet.of(SizeFlags.Fill);
-        private EnumSet<SizeFlags> vSizeFlags = EnumSet.of(SizeFlags.Fill);
+        private EnumSet<Sizing> horizontalSizing = EnumSet.of(Sizing.Fill);
+        private EnumSet<Sizing> verticalSizing = EnumSet.of(Sizing.Fill);
         private float stretchRatio = 1.0f;
 
         protected AbstractBuilder(GuiManager manager) {
@@ -671,22 +671,22 @@ public abstract class AbstractWidget implements Renderable, Widget, MouseSource,
             return minHeight;
         }
 
-        public T hSizeFlags(SizeFlags... flags) {
-            this.hSizeFlags = SizeFlags.of(flags);
+        public T horizontalSizing(Sizing... flags) {
+            this.horizontalSizing = Sizing.of(flags);
             return self();
         }
 
-        public EnumSet<SizeFlags> hSizeFlags() {
-            return hSizeFlags;
+        public EnumSet<Sizing> horizontalSizing() {
+            return horizontalSizing;
         }
 
-        public T vSizeFlags(SizeFlags... flags) {
-            this.vSizeFlags = SizeFlags.of(flags);
+        public T verticalSizing(Sizing... flags) {
+            this.verticalSizing = Sizing.of(flags);
             return self();
         }
 
-        public EnumSet<SizeFlags> vSizeFlags() {
-            return vSizeFlags;
+        public EnumSet<Sizing> verticalSizing() {
+            return verticalSizing;
         }
 
         public T stretchRatio(float ratio) {
@@ -840,11 +840,11 @@ public abstract class AbstractWidget implements Renderable, Widget, MouseSource,
         }
 
         public Style style() {
-            return style != null ? style : Style.getDefault();
+            return style != null ? style : Style.defaultStyle();
         }
 
         public T style(String style) {
-            return style(ThemeRegistry.current().getWidgetTheme(style));
+            return style(ThemeRegistry.current().widgetTheme(style));
         }
 
         public T style(Style style) {

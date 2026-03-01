@@ -24,15 +24,15 @@ public class CenterContainer extends AbstractContainer {
     }
 
     @Override
-    public int getMinimumWidth() {
-        return Math.max(super.getMinimumWidth(),
-                children().stream().mapToInt(AbstractWidget::getMinimumWidth).max().orElse(0));
+    public int minimumWidth() {
+        return Math.max(super.minimumWidth(),
+                children().stream().mapToInt(AbstractWidget::minimumWidth).max().orElse(0));
     }
 
     @Override
-    public int getMinimumHeight() {
-        return Math.max(super.getMinimumHeight(),
-                children().stream().mapToInt(AbstractWidget::getMinimumHeight).max().orElse(0));
+    public int minimumHeight() {
+        return Math.max(super.minimumHeight(),
+                children().stream().mapToInt(AbstractWidget::minimumHeight).max().orElse(0));
     }
 
     @Override
@@ -41,8 +41,8 @@ public class CenterContainer extends AbstractContainer {
         if (kids.isEmpty() || rect().equals(Rect.ZERO)) return;
         // Only the first child is arranged
         AbstractWidget child = kids.get(0);
-        int childW = child.getMinimumWidth();
-        int childH = child.getMinimumHeight();
+        int childW = child.minimumWidth();
+        int childH = child.minimumHeight();
         int x = rect().x() + (rect().width() - childW) / 2;
         int y = rect().y() + (rect().height() - childH) / 2;
         child.setRect(new Rect(x, y, childW, childH));

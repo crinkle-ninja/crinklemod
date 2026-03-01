@@ -1,6 +1,7 @@
 package ninja.crinkle.mod.client.gui.widgets;
 
 import ninja.crinkle.mod.client.color.Color;
+import ninja.crinkle.mod.client.gui.events.ClickEvent;
 import ninja.crinkle.mod.client.gui.properties.Point;
 import ninja.crinkle.mod.client.gui.properties.Rect;
 import ninja.crinkle.mod.client.gui.renderers.ThemeGraphics;
@@ -25,15 +26,15 @@ public class Label extends AbstractWidget {
     }
 
     @Override
-    public int getMinimumWidth() {
-        int explicit = super.getMinimumWidth();
+    public int minimumWidth() {
+        int explicit = super.minimumWidth();
         if (explicit > 0 || text == null || text.isEmpty()) return explicit;
         return appearance().font().width(text);
     }
 
     @Override
-    public int getMinimumHeight() {
-        int explicit = super.getMinimumHeight();
+    public int minimumHeight() {
+        int explicit = super.minimumHeight();
         if (explicit > 0 || text == null || text.isEmpty()) return explicit;
         return appearance().font().lineHeight;
     }

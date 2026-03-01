@@ -1,7 +1,6 @@
 package ninja.crinkle.mod.client.gui.events;
 
 import ninja.crinkle.mod.client.gui.events.sources.EventSource;
-import ninja.crinkle.mod.client.gui.properties.ImmutablePoint;
 import ninja.crinkle.mod.client.gui.properties.Point;
 import ninja.crinkle.mod.client.gui.properties.Scope;
 
@@ -34,7 +33,7 @@ public abstract class MouseEvent extends InputEvent {
     }
 
     public Point position() {
-        return new ImmutablePoint(x, y);
+        return new Point(x, y);
     }
 
     @Override

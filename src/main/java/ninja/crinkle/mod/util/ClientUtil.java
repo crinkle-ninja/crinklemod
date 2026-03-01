@@ -34,7 +34,7 @@ public class ClientUtil {
     }
 
     public static Point getMousePosition() {
-        return new ImmutablePoint(getMinecraft().mouseHandler.xpos(), getMinecraft().mouseHandler.ypos());
+        return new Point(getMinecraft().mouseHandler.xpos(), getMinecraft().mouseHandler.ypos());
     }
 
     public static void setClipboard(String text) {

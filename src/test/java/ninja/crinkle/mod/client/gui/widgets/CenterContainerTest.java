@@ -55,7 +55,7 @@ class CenterContainerTest {
         TestWidget child = new TestWidget.Builder(cc).minSize(60, 40).build();
         cc.add(child);
 
-        assertEquals(60, cc.getMinimumWidth());
-        assertEquals(40, cc.getMinimumHeight());
+        assertEquals(60, cc.minimumWidth());
+        assertEquals(40, cc.minimumHeight());
     }
 }

@@ -435,19 +435,19 @@ public class TextBox extends AbstractWidget implements KeyListener, MouseListene
     public void renderContent(ThemeGraphics graphics, Point pMouse, Rect renderedRect, float pPartialTick) {
         Point renderPos = Point.of(renderedRect.x(), renderedRect.y());
         if (text().isEmpty() && !focused()) {
-            graphics.text(placeholder().getString(), renderPos, zIndex(), appearance().getForegroundColor().halftone(),
+            graphics.text(placeholder().getString(), renderPos, zIndex(), appearance().foregroundColor().halftone(),
                     appearance().hasShadow());
         } else {
-            graphics.text(visibleText(), renderPos, zIndex(), appearance().getForegroundColor(), appearance().hasShadow());
+            graphics.text(visibleText(), renderPos, zIndex(), appearance().foregroundColor(), appearance().hasShadow());
             if (selection() != null) {
                 int start = Math.max(0, selection().min() - visibleStart());
                 int end = Math.min(Math.max(0, selection().max() - visibleStart()), visibleText().length());
                 int xStart = renderPos.xInt() + graphics.textWidth(visibleText().substring(0, start));
                 int xEnd = renderPos.xInt() + graphics.textWidth(visibleText().substring(0, end));
                 graphics.fill(xStart, renderPos.yInt(), xEnd, renderPos.yInt() + graphics.textHeight(), zIndex(),
-                        appearance().getForegroundColor().color());
+                        appearance().foregroundColor().color());
                 graphics.text(selection().text(visibleText()), Point.of(xStart, renderPos.yInt()), zIndex(),
-                        Optional.ofNullable(appearance().getBackgroundColor()).orElse(Color.RAINBOW),
+                        Optional.ofNullable(appearance().backgroundColor()).orElse(Color.RAINBOW),
                         appearance().hasShadow());
             }
             renderCursor(graphics, renderPos);
@@ -477,9 +477,9 @@ public class TextBox extends AbstractWidget implements KeyListener, MouseListene
         }
 
         if (insertMode()) {
-            Color foregroundColor = Optional.ofNullable(appearance().getForegroundColor()).orElse(Color.RAINBOW);
+            Color foregroundColor = Optional.ofNullable(appearance().foregroundColor()).orElse(Color.RAINBOW);
             if (selection() != null && selection().contains(cursorPos())) {
-                foregroundColor = Optional.ofNullable(appearance().getBackgroundColor()).orElse(Color.RAINBOW);
+                foregroundColor = Optional.ofNullable(appearance().backgroundColor()).orElse(Color.RAINBOW);
             }
             if (cursorPos() == text().length()) {
                 graphics.text(character, Point.of(cursorX, cursorY), zIndex(), foregroundColor,
@@ -489,9 +489,9 @@ public class TextBox extends AbstractWidget implements KeyListener, MouseListene
                         foregroundColor.color());
             }
         } else {
-            Color cursorColor = Optional.ofNullable(appearance().getForegroundColor()).orElse(Color.RAINBOW);
+            Color cursorColor = Optional.ofNullable(appearance().foregroundColor()).orElse(Color.RAINBOW);
             if (selection() != null && selection().contains(cursorPos())) {
-                cursorColor = Optional.ofNullable(appearance().getBackgroundColor()).orElse(Color.RAINBOW);
+                cursorColor = Optional.ofNullable(appearance().backgroundColor()).orElse(Color.RAINBOW);
             }
             if (cursorPos() < text().length()) {
                 cursorX += 1;
@@ -501,7 +501,7 @@ public class TextBox extends AbstractWidget implements KeyListener, MouseListene
             graphics.fill(cursorX, cursorY, cursorXEnd, cursorY + graphics.textHeight(), zIndex(),
                     cursorColor.inverted().color());
             graphics.text(character, Point.of(cursorX, cursorY), zIndex(),
-                    Objects.requireNonNull(appearance().getBackgroundColor()), appearance().hasShadow());
+                    Objects.requireNonNull(appearance().backgroundColor()), appearance().hasShadow());
         }
     }
 

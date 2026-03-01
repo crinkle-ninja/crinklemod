@@ -13,6 +13,6 @@ public record ClickState(Point position, int button, long clickTime, List<EventL
     }
 
     public ClickState() {
-        this(ImmutablePoint.ZERO, 0, 0, List.of());
+        this(Point.ZERO, 0, 0, List.of());
     }
 }

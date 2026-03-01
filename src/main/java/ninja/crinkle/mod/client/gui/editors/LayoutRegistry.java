@@ -28,6 +28,16 @@ public class LayoutRegistry {
         entries.put(entry.id(), entry);
     }
 
+    public static void register(IManagedGUI gui, AbstractWidget widget) {
+        LayoutRegistry.register(new LayoutRegistry.Entry(
+                widget.name(),
+                gui,
+                widget::visualCopy,
+                widget::rect,
+                widget::setRect
+        ));
+    }
+
     public static Collection<Entry> entries() {
         return Collections.unmodifiableCollection(entries.values());
     }

@@ -13,9 +13,9 @@ public record Frame(String namespace, String animationId, String frameId) {
     public ResourceLocation resourceLocation(int size) {
         String textureId = animationId() + "/" + size + "/" + frameId();
         Optional<ResourceLocation> resourceLocation =
-                ThemeAtlas.getTextureLocation(ThemeRegistry.current().getId(), "animations", textureId);
+                ThemeAtlas.getTextureLocation(ThemeRegistry.current().id(), "animations", textureId);
         if (resourceLocation.isEmpty()) {
-            LOGGER.error("Failed to find textureId '{}' in theme '{}'", textureId, ThemeRegistry.current().getId());
+            LOGGER.error("Failed to find textureId '{}' in theme '{}'", textureId, ThemeRegistry.current().id());
             return new ResourceLocation(namespace, "missingno");
         }
         return resourceLocation.get();

@@ -48,7 +48,7 @@ public class StyleVariant {
     }
 
     public static StyleVariant getDefault(String widgetTheme) {
-        return Optional.of(ThemeRegistry.getDefault().getWidgetTheme(widgetTheme)).map(wt -> wt.getAppearance(Style.Variant.active)).orElse(StyleVariant.EMPTY);
+        return Optional.of(ThemeRegistry.defaultTheme().widgetTheme(widgetTheme)).map(wt -> wt.appearance(Style.Variant.active)).orElse(StyleVariant.EMPTY);
     }
 
     public List<ColorFilters> backgroundColorFilters() {
@@ -63,23 +63,23 @@ public class StyleVariant {
         return foregroundColorFilters;
     }
 
-    public @Nullable Color getBackgroundColor() {
+    public @Nullable Color backgroundColor() {
         return backgroundColor;
     }
 
-    public Texture getBackgroundTexture() {
+    public Texture backgroundTexture() {
         return backgroundTexture;
     }
 
-    public List<IntUnaryOperator> getColorFilters() {
+    public List<IntUnaryOperator> colorFilters() {
         return List.of();
     }
 
-    public Color getForegroundColor() {
+    public Color foregroundColor() {
         return foregroundColor;
     }
 
-    public Texture getForegroundTexture() {
+    public Texture foregroundTexture() {
         return foregroundTexture;
     }
 
@@ -111,10 +111,10 @@ public class StyleVariant {
         StyleVariant a = parent() != null && parent() != other ? parent().coalesceWith(this) : this;
 
         return new StyleVariant(
-                Optional.ofNullable(b.getBackgroundTexture()).orElse(a.getBackgroundTexture()),
-                Optional.ofNullable(b.getForegroundTexture()).orElse(a.getForegroundTexture()),
-                Optional.ofNullable(b.getBackgroundColor()).orElse(a.getBackgroundColor()),
-                Optional.ofNullable(b.getForegroundColor()).orElse(a.getForegroundColor()),
+                Optional.ofNullable(b.backgroundTexture()).orElse(a.backgroundTexture()),
+                Optional.ofNullable(b.foregroundTexture()).orElse(a.foregroundTexture()),
+                Optional.ofNullable(b.backgroundColor()).orElse(a.backgroundColor()),
+                Optional.ofNullable(b.foregroundColor()).orElse(a.foregroundColor()),
                 b.hasShadow() || a.shadow,
                 b.foregroundColorFilters.isEmpty() ? a.foregroundColorFilters : b.foregroundColorFilters,
                 b.backgroundColorFilters.isEmpty() ? a.backgroundColorFilters : b.backgroundColorFilters,
@@ -217,19 +217,19 @@ public class StyleVariant {
             return self();
         }
 
-        public Color getBackgroundColor() {
+        public Color backgroundColor() {
             return backgroundColor;
         }
 
-        public Texture getBackgroundTexture() {
+        public Texture backgroundTexture() {
             return backgroundTexture;
         }
 
-        public Color getForegroundColor() {
+        public Color foregroundColor() {
             return foregroundColor;
         }
 
-        public Texture getForegroundTexture() {
+        public Texture foregroundTexture() {
             return foregroundTexture;
         }
 

@@ -36,9 +36,9 @@ class MinimumSizePropagationTest {
         outer.add(c);
 
         // inner min height = 30 + 40 + 5 = 75
-        assertEquals(75, inner.getMinimumHeight());
+        assertEquals(75, inner.minimumHeight());
         // outer min height = 75 + 50 + 10 = 135
-        assertEquals(135, outer.getMinimumHeight());
+        assertEquals(135, outer.minimumHeight());
     }
 
     @Test
@@ -59,9 +59,9 @@ class MinimumSizePropagationTest {
         outer.add(c);
 
         // inner min width = 30 + 40 + 5 = 75
-        assertEquals(75, inner.getMinimumWidth());
+        assertEquals(75, inner.minimumWidth());
         // outer min width = 75 + 50 + 10 = 135
-        assertEquals(135, outer.getMinimumWidth());
+        assertEquals(135, outer.minimumWidth());
     }
 
     @Test
@@ -77,10 +77,10 @@ class MinimumSizePropagationTest {
         mc.add(child);
 
         // mc min width = 50 + 40 + 20 = 110, min height = 50 + 10 + 30 = 90
-        assertEquals(110, mc.getMinimumWidth());
-        assertEquals(90, mc.getMinimumHeight());
+        assertEquals(110, mc.minimumWidth());
+        assertEquals(90, mc.minimumHeight());
         // vbox passes through the max child min
-        assertEquals(110, vbox.getMinimumWidth());
-        assertEquals(90, vbox.getMinimumHeight());
+        assertEquals(110, vbox.minimumWidth());
+        assertEquals(90, vbox.minimumHeight());
     }
 }

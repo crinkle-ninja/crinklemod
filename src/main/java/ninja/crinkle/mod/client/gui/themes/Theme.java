@@ -56,7 +56,7 @@ public class Theme {
 
         if (config.textures() != null) {
             config.textures().forEach(texture -> theme.textures.put(texture.id(),
-                            ThemeAtlas.getTextureLocation(theme.getId(), texture.location())
+                            ThemeAtlas.getTextureLocation(theme.id(), texture.location())
                                 .map(location -> new Texture(texture.id(), texture.location(), texture.slices(), theme))
                                 .orElse(Texture.EMPTY)));
         }
@@ -72,7 +72,7 @@ public class Theme {
         return theme;
     }
 
-    public String getId() {
+    public String id() {
         return id;
     }
 
@@ -95,7 +95,7 @@ public class Theme {
                 continue;
             filters.append(filter.toString()).append("_");
         }
-        String key = String.format("%s%s_%s_%dx%d", filters, getId(), texture.id(), size.width(), size.height());
+        String key = String.format("%s%s_%s_%dx%d", filters, id(), texture.id(), size.width(), size.height());
         if (generatedTextures.containsKey(key)
                 && generatedTextures.get(key).getPath().equals(Texture.EMPTY.location())) {
             generatedTextures.remove(key);
@@ -106,45 +106,45 @@ public class Theme {
         return generatedTextures.computeIfAbsent(key, k -> texture.generate(k, size, this, colorFilters));
     }
 
-    public List<String> getAuthors() {
+    public List<String> authors() {
         return authors;
     }
 
-    public Color getColor(String key) {
+    public Color color(String key) {
         return getOrDefault(colors, key, Color.RAINBOW);
     }
 
-    public String getDescription() {
+    public String description() {
         return description;
     }
 
-    public String getName() {
+    public String name() {
         return name;
     }
 
     private <T> T getOrDefault(Map<String, T> map, String key, T defaultValue) {
         if (map.containsKey(key)) {
             return map.get(key);
-        } else if (this == ThemeRegistry.getDefault() || this == EMPTY) {
-            LOGGER.warn("Missing key '{}' from '{}' in theme '{}'", key, defaultValue.getClass().getSimpleName(), getId());
+        } else if (this == ThemeRegistry.defaultTheme() || this == EMPTY) {
+            LOGGER.warn("Missing key '{}' from '{}' in theme '{}'", key, defaultValue.getClass().getSimpleName(), id());
             return defaultValue;
         }
-        return ThemeRegistry.getDefault().getOrDefault(map, key, defaultValue);
+        return ThemeRegistry.defaultTheme().getOrDefault(map, key, defaultValue);
     }
 
-    public Texture getTexture(String key) {
+    public Texture texture(String key) {
         return getOrDefault(textures, key, Texture.EMPTY);
     }
 
-    public String getVersion() {
+    public String version() {
         return version;
     }
 
-    public Style getWidgetTheme(String id) {
+    public Style widgetTheme(String id) {
         return getOrDefault(widgetThemes, id, Style.EMPTY);
     }
 
-    public Optional<Animation> getAnimation(String id) {
+    public Optional<Animation> animation(String id) {
         return Optional.ofNullable(animations.get(id));
     }
 

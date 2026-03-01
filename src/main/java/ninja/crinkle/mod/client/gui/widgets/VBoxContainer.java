@@ -1,6 +1,6 @@
 package ninja.crinkle.mod.client.gui.widgets;
 
-import ninja.crinkle.mod.client.gui.layouts.SizeFlags;
+import ninja.crinkle.mod.client.gui.properties.Sizing;
 import ninja.crinkle.mod.client.gui.managers.GuiManager;
 import ninja.crinkle.mod.client.gui.properties.Rect;
 import org.jetbrains.annotations.NotNull;
@@ -9,7 +9,7 @@ import java.util.List;
 
 /**
  * Vertical box container. Arranges children top-to-bottom along the primary (vertical) axis.
- * Cross axis is horizontal (applies hSizeFlags).
+ * Cross axis is horizontal (applies horizontalSizing).
  */
 public class VBoxContainer extends AbstractContainer {
 
@@ -27,17 +27,17 @@ public class VBoxContainer extends AbstractContainer {
     }
 
     @Override
-    public int getMinimumWidth() {
-        int minW = super.getMinimumWidth();
-        return Math.max(minW, children().stream().mapToInt(AbstractWidget::getMinimumWidth).max().orElse(0));
+    public int minimumWidth() {
+        int minW = super.minimumWidth();
+        return Math.max(minW, children().stream().mapToInt(AbstractWidget::minimumWidth).max().orElse(0));
     }
 
     @Override
-    public int getMinimumHeight() {
-        int minH = super.getMinimumHeight();
+    public int minimumHeight() {
+        int minH = super.minimumHeight();
         List<AbstractWidget> kids = children();
         if (kids.isEmpty()) return minH;
-        int childSum = kids.stream().mapToInt(AbstractWidget::getMinimumHeight).sum();
+        int childSum = kids.stream().mapToInt(AbstractWidget::minimumHeight).sum();
         int gaps = separation() * (kids.size() - 1);
         return Math.max(minH, childSum + gaps);
     }
@@ -53,10 +53,10 @@ public class VBoxContainer extends AbstractContainer {
         int nonExpandSum = 0;
         float totalRatio = 0;
         for (AbstractWidget child : kids) {
-            if (child.vSizeFlags().contains(SizeFlags.Expand)) {
+            if (child.verticalSizing().contains(Sizing.Expand)) {
                 totalRatio += child.stretchRatio();
             } else {
-                nonExpandSum += child.getMinimumHeight();
+                nonExpandSum += child.minimumHeight();
             }
         }
 
@@ -66,11 +66,11 @@ public class VBoxContainer extends AbstractContainer {
         int offset = rect().y();
         for (AbstractWidget child : kids) {
             int allocH;
-            if (child.vSizeFlags().contains(SizeFlags.Expand)) {
+            if (child.verticalSizing().contains(Sizing.Expand)) {
                 int extra = totalRatio > 0 ? (int) (leftover * (child.stretchRatio() / totalRatio)) : 0;
-                allocH = child.getMinimumHeight() + extra;
+                allocH = child.minimumHeight() + extra;
             } else {
-                allocH = child.getMinimumHeight();
+                allocH = child.minimumHeight();
             }
 
             Rect allocated = new Rect(rect().x(), offset, rect().width(), allocH);

@@ -2,29 +2,38 @@ package ninja.crinkle.mod.client.gui.screens;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import ninja.crinkle.mod.client.color.Color;
 import ninja.crinkle.mod.client.gui.editors.LayoutRegistry;
-import ninja.crinkle.mod.client.gui.layouts.SizeFlags;
+import ninja.crinkle.mod.client.gui.managers.EventManager;
 import ninja.crinkle.mod.client.gui.managers.IManagedGUI;
 import ninja.crinkle.mod.client.gui.properties.Rect;
+import ninja.crinkle.mod.client.gui.properties.Sizing;
 import ninja.crinkle.mod.client.gui.widgets.*;
 import ninja.crinkle.mod.util.ClientUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class LayoutEditorScreen extends AbstractScreen {
+    private static final String TOOLBAR_ID = "layout_toolbar";
+    private static final int DIM_COLOR = 0xA0000000; // semi-transparent black
     private final Map<String, AbstractWidget> editorWidgets = new LinkedHashMap<>();
     private final IManagedGUI source;
+    private final @Nullable Screen parentScreen;
+    private PanelContainer toolbar;
     private long handCursor;
     private boolean cursorIsHand;
 
     public LayoutEditorScreen(IManagedGUI source) {
         super(Component.literal("Layout Editor"), ClientUtil.screenWidth(), ClientUtil.screenHeight());
         this.source = source;
+        this.parentScreen = Minecraft.getInstance().screen;
     }
 
     @Override
@@ -40,6 +49,7 @@ public class LayoutEditorScreen extends AbstractScreen {
     @Override
     public void init() {
         editorWidgets.clear();
+        new ArrayList<>(root().children()).forEach(root()::remove);
 
         if (handCursor == 0) {
             handCursor = GLFW.glfwCreateStandardCursor(GLFW.GLFW_HAND_CURSOR);
@@ -51,19 +61,19 @@ public class LayoutEditorScreen extends AbstractScreen {
             widget.active(true);
             widget.visible(true);
             // Prevent arrange() from expanding this widget to fill the root
-            widget.hSizeFlags(SizeFlags.ShrinkBegin);
-            widget.vSizeFlags(SizeFlags.ShrinkBegin);
+            widget.horizontalSizing(Sizing.ShrinkBegin);
+            widget.verticalSizing(Sizing.ShrinkBegin);
 
             root().add(widget);
             editorWidgets.put(entry.id(), widget);
         }
 
         // Toolbar: PanelContainer > VBoxContainer > children
-        PanelContainer toolbar = new PanelContainer.Builder(root())
+        toolbar = new PanelContainer.Builder(root())
                 .margins(8)
                 .name("layout_toolbar")
-                .hSizeFlags(SizeFlags.ShrinkCenter)
-                .vSizeFlags(SizeFlags.ShrinkCenter)
+                .horizontalSizing(Sizing.ShrinkCenter)
+                .verticalSizing(Sizing.ShrinkCenter)
                 .draggable(true)
                 .build();
 
@@ -98,28 +108,34 @@ public class LayoutEditorScreen extends AbstractScreen {
 
         super.init();
 
+        // Position toolbar — resolve saved position or default to top-center
+        int tw = toolbar.minimumWidth();
+        int th = toolbar.minimumHeight();
+        Rect defaultToolbar = new Rect(width / 2 - tw / 2, 10, tw, th);
+        toolbar.setRect(LayoutRegistry.resolvePosition(TOOLBAR_ID, width, height, tw, th)
+                .orElse(defaultToolbar));
+
         // Position widgets AFTER super.init() so arrange() doesn't overwrite them.
         // Use the live widget's rect as the source of truth for dimensions.
         for (LayoutRegistry.Entry entry : LayoutRegistry.entries(source)) {
-            AbstractWidget widget = editorWidgets.get(entry.id());
-            if (widget == null) continue;
-
-            Rect liveRect = entry.currentRect().get();
-            int w = liveRect != null && !liveRect.equals(Rect.ZERO) ? liveRect.width() : 64;
-            int h = liveRect != null && !liveRect.equals(Rect.ZERO) ? liveRect.height() : 64;
-
-            Rect resolved = LayoutRegistry.resolvePosition(entry.id(), width, height, w, h)
-                    .orElse(liveRect != null && !liveRect.equals(Rect.ZERO)
-                            ? new Rect(liveRect.x(), liveRect.y(), w, h)
-                            : new Rect(10, 10, w, h));
-
-            widget.setRect(resolved);
+            positionWidget(entry);
         }
+    }
 
-        // Position toolbar at top-center
-        int tw = toolbar.getMinimumWidth();
-        int th = toolbar.getMinimumHeight();
-        toolbar.setRect(new Rect(width / 2 - tw / 2, 10, tw, th));
+    private void positionWidget(LayoutRegistry.Entry entry) {
+        AbstractWidget widget = editorWidgets.get(entry.id());
+        if (widget == null) return;
+
+        Rect liveRect = entry.currentRect().get();
+        int w = liveRect != null && !liveRect.equals(Rect.ZERO) ? liveRect.width() : 64;
+        int h = liveRect != null && !liveRect.equals(Rect.ZERO) ? liveRect.height() : 64;
+
+        Rect resolved = LayoutRegistry.resolvePosition(entry.id(), width, height, w, h)
+                .orElse(liveRect != null && !liveRect.equals(Rect.ZERO)
+                        ? new Rect(liveRect.x(), liveRect.y(), w, h)
+                        : new Rect(10, 10, w, h));
+
+        widget.setRect(resolved);
     }
 
     @Override
@@ -148,6 +164,7 @@ public class LayoutEditorScreen extends AbstractScreen {
                 entry.onApply().accept(widget.rect());
             }
         }
+        LayoutRegistry.savePosition(TOOLBAR_ID, toolbar.rect(), width, height);
         onClose();
     }
 
@@ -164,12 +181,25 @@ public class LayoutEditorScreen extends AbstractScreen {
             GLFW.glfwDestroyCursor(handCursor);
             handCursor = 0;
         }
-        super.onClose();
+        // Restore the parent screen instead of closing to null
+        if (parentScreen != null) {
+            eventManager().ifPresent(EventManager::clear);
+            Minecraft.getInstance().setScreen(parentScreen);
+        } else {
+            super.onClose();
+        }
     }
 
     @Override
     public void render(@NotNull GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
-        renderBackground(pGuiGraphics);
+        if (parentScreen != null) {
+            // Render parent screen as read-only backdrop (mouse at -1,-1 to avoid hover effects)
+            parentScreen.render(pGuiGraphics, -1, -1, pPartialTick);
+            // Dim overlay so editor widgets stand out
+            pGuiGraphics.fill(0, 0, width, height, DIM_COLOR);
+        } else {
+            renderBackground(pGuiGraphics);
+        }
         super.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         // Draw outlines around draggable widgets
         for (AbstractWidget widget : editorWidgets.values()) {

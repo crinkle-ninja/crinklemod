@@ -33,7 +33,7 @@ public record Style(String id, Map<Variant, StyleVariant> appearances, Theme the
     public static Style fromConfig(StyleData styleData, Theme theme) {
         Map<Variant, StyleVariant> appearances = new HashMap<>();
         Style parent = Optional.ofNullable(styleData.parent())
-                .map(theme::getWidgetTheme)
+                .map(theme::widgetTheme)
                 .orElse(null);
         if (parent != null) {
             LOGGER.info("Loading style '{}' with parent '{}'", styleData.id(), parent.id());
@@ -45,29 +45,29 @@ public record Style(String id, Map<Variant, StyleVariant> appearances, Theme the
             Variant variant = entry.getKey();
             StyleData.Variant appearance = entry.getValue();
             StyleVariant parentAppearance = Optional.ofNullable(parent)
-                    .map(p -> p.getAppearance(variant))
+                    .map(p -> p.appearance(variant))
                     .orElse(null);
             Texture background = Optional.ofNullable(appearance.background())
                     .filter(data -> data.texture() != null)
-                    .map(data -> theme.getTexture(data.texture()))
+                    .map(data -> theme.texture(data.texture()))
                     .orElse(null);
             Texture foreground = Optional.ofNullable(appearance.foreground())
                     .filter(data -> data.texture() != null)
-                    .map(data -> theme.getTexture(data.texture()))
+                    .map(data -> theme.texture(data.texture()))
                     .orElse(null);
             Color backgroundColor = Optional.ofNullable(appearance.background())
                     .filter(data -> data.color() != null)
-                    .map(data -> theme.getColor(data.color()))
+                    .map(data -> theme.color(data.color()))
                     .orElse(null);
             Color foregroundColor = Optional.ofNullable(appearance.foreground())
                     .filter(data -> data.color() != null)
-                    .map(data -> theme.getColor(data.color()))
+                    .map(data -> theme.color(data.color()))
                     .orElse(null);
             List<ColorFilters> foregroundColorFilters = Optional.ofNullable(appearance.foreground())
-                    .map(StyleData.Variant.Data::getFilters)
+                    .map(StyleData.Variant.Data::colorFilters)
                     .orElse(List.of());
             List<ColorFilters> backgroundColorFilters = Optional.ofNullable(appearance.background())
-                    .map(StyleData.Variant.Data::getFilters)
+                    .map(StyleData.Variant.Data::colorFilters)
                     .orElse(List.of());
             StyleVariant styleVariant = new StyleVariant(background, foreground, backgroundColor,
                     foregroundColor, appearance.foreground() != null && appearance.foreground().shadow(),
@@ -78,11 +78,11 @@ public record Style(String id, Map<Variant, StyleVariant> appearances, Theme the
         return new Style(styleData.id(), appearances, theme, parent);
     }
 
-    public static Style getDefault() {
-        return ThemeRegistry.getDefault().getWidgetTheme("default");
+    public static Style defaultStyle() {
+        return ThemeRegistry.defaultTheme().widgetTheme("default");
     }
 
-    public StyleVariant getAppearance(Variant variant) {
+    public StyleVariant appearance(Variant variant) {
         return appearances.get(variant);
     }
 

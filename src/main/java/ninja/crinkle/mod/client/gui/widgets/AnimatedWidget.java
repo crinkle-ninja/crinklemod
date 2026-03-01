@@ -5,7 +5,6 @@ import ninja.crinkle.mod.client.gui.animations.Player;
 import ninja.crinkle.mod.client.gui.events.DragEvent;
 import ninja.crinkle.mod.client.gui.events.DragStoppedEvent;
 import ninja.crinkle.mod.client.gui.events.MoveEvent;
-import ninja.crinkle.mod.client.gui.properties.ImmutablePoint;
 import ninja.crinkle.mod.client.gui.properties.Point;
 import ninja.crinkle.mod.client.gui.properties.Rect;
 import ninja.crinkle.mod.client.gui.renderers.ThemeGraphics;
@@ -32,7 +31,7 @@ public class AnimatedWidget extends AbstractWidget {
         // Update min size and rect dimensions based on animation size
         int aw = this.player.animationSize().width();
         int ah = this.player.animationSize().height();
-        setMinimumSize(aw, ah);
+        minimumSize(aw, ah);
         if (!rect().equals(Rect.ZERO)) {
             setRect(new Rect(rect().x(), rect().y(), aw, ah));
         }

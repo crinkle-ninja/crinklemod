@@ -1,6 +1,6 @@
 package ninja.crinkle.mod.client.gui.widgets;
 
-import ninja.crinkle.mod.client.gui.layouts.SizeFlags;
+import ninja.crinkle.mod.client.gui.properties.Sizing;
 import ninja.crinkle.mod.client.gui.managers.GuiManager;
 import ninja.crinkle.mod.client.gui.properties.Rect;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,7 +34,7 @@ class VBoxContainerTest {
             vbox.add(a);
             vbox.add(b);
 
-            assertEquals(75, vbox.getMinimumHeight(), "30 + 40 + 5 gap");
+            assertEquals(75, vbox.minimumHeight(), "30 + 40 + 5 gap");
         }
 
         @Test
@@ -47,7 +47,7 @@ class VBoxContainerTest {
             vbox.add(a);
             vbox.add(b);
 
-            assertEquals(50, vbox.getMinimumWidth());
+            assertEquals(50, vbox.minimumWidth());
         }
     }
 
@@ -77,7 +77,7 @@ class VBoxContainerTest {
             root.add(vbox);
             TestWidget fixed = new TestWidget.Builder(vbox).minSize(10, 50).build();
             TestWidget expanding = new TestWidget.Builder(vbox).minSize(10, 0)
-                    .vSizeFlags(SizeFlags.Expand, SizeFlags.Fill).build();
+                    .verticalSizing(Sizing.Expand, Sizing.Fill).build();
             vbox.add(fixed);
             vbox.add(expanding);
 
@@ -93,7 +93,7 @@ class VBoxContainerTest {
             VBoxContainer vbox = new VBoxContainer.Builder(root).build();
             root.add(vbox);
             TestWidget child = new TestWidget.Builder(vbox).minSize(30, 20)
-                    .hSizeFlags(SizeFlags.ShrinkEnd).build();
+                    .horizontalSizing(Sizing.ShrinkEnd).build();
             vbox.add(child);
 
             vbox.setRect(new Rect(0, 0, 100, 200));

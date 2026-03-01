@@ -56,7 +56,7 @@ class MarginContainerTest {
         mc.add(child);
 
         // min width = 50 + 40 + 20 = 110, min height = 50 + 10 + 30 = 90
-        assertEquals(110, mc.getMinimumWidth());
-        assertEquals(90, mc.getMinimumHeight());
+        assertEquals(110, mc.minimumWidth());
+        assertEquals(90, mc.minimumHeight());
     }
 }

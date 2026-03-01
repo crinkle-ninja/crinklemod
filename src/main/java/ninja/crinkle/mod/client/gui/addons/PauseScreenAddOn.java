@@ -2,13 +2,11 @@ package ninja.crinkle.mod.client.gui.addons;
 
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.gui.screens.PauseScreen;
-import ninja.crinkle.mod.client.gui.layouts.SizeFlags;
-import ninja.crinkle.mod.client.gui.screens.TestScreen;
+import ninja.crinkle.mod.client.gui.properties.Sizing;
 import ninja.crinkle.mod.client.gui.widgets.Button;
 import ninja.crinkle.mod.client.gui.widgets.CenterContainer;
 import ninja.crinkle.mod.client.gui.widgets.MarginContainer;
 import ninja.crinkle.mod.client.gui.widgets.VBoxContainer;
-import ninja.crinkle.mod.util.ClientUtil;
 import org.slf4j.Logger;
 
 public class PauseScreenAddOn extends AbstractAddOn {
@@ -17,9 +15,10 @@ public class PauseScreenAddOn extends AbstractAddOn {
     public PauseScreenAddOn() {
         super(PauseScreen.class);
         MarginContainer panel = new MarginContainer.Builder(root())
+                .name("test_buttons")
                 .margins(8)
-                .hSizeFlags(SizeFlags.ShrinkBegin)
-                .vSizeFlags(SizeFlags.ShrinkBegin)
+                .horizontalSizing(Sizing.ShrinkBegin)
+                .verticalSizing(Sizing.ShrinkBegin)
                 .pushAndReturn();
         CenterContainer centerContainer = new CenterContainer.Builder(panel).pushAndReturn();
         VBoxContainer buttonPanel = new VBoxContainer.Builder(centerContainer)

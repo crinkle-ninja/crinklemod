@@ -33,8 +33,8 @@ public class MetabolismOverlay extends AbstractOverlay {
     }
 
     private void resolveAndApply(int screenWidth, int screenHeight) {
-        int w = Math.max(widget.getMinimumWidth(), 64);
-        int h = Math.max(widget.getMinimumHeight(), 64);
+        int w = Math.max(widget.minimumWidth(), 64);
+        int h = Math.max(widget.minimumHeight(), 64);
         Optional<Rect> saved = LayoutRegistry.resolvePosition(
                 WIDGET_ID, screenWidth, screenHeight, w, h);
         Rect resolved = saved.orElse(new Rect(0, 0, w, h));

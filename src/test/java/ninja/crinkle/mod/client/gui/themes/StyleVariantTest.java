@@ -37,9 +37,9 @@ class StyleVariantTest {
                     .foregroundColor(overridenColor)
                     .build();
             StyleVariant result = base.coalesceWith(variant);
-            assertEquals(testTexture, result.getBackgroundTexture(), "Background texture check");
-            assertEquals(backgroundColor, result.getBackgroundColor(), "Background color check");
-            assertEquals(overridenColor, result.getForegroundColor(), "Foreground color check");
+            assertEquals(testTexture, result.backgroundTexture(), "Background texture check");
+            assertEquals(backgroundColor, result.backgroundColor(), "Background color check");
+            assertEquals(overridenColor, result.foregroundColor(), "Foreground color check");
         }
     }
 }

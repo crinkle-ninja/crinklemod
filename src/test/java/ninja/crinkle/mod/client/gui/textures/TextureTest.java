@@ -38,7 +38,7 @@ class TextureTest {
             theme = TestUtil.spyTheme();
             ThemeRegistry.INSTANCE.register(theme);
             ThemeLoader.loadConfigs(minecraft.getResourceManager());
-            Texture texture = theme.getWidgetTheme("panel").getAppearance(Style.Variant.active).getBackgroundTexture();
+            Texture texture = theme.widgetTheme("panel").appearance(Style.Variant.active).backgroundTexture();
             assertNotNull(texture, "Texture is null");
             assertEquals(TestUtil.FULL_TEXTURE_PATH, texture.resourceLocation().getPath(), "Resource location path is incorrect");
         }

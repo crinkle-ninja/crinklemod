@@ -39,22 +39,22 @@ public class Button extends AbstractContainer {
     }
 
     @Override
-    public int getMinimumWidth() {
-        int explicit = super.getMinimumWidth();
-        int childMin = children().stream().mapToInt(AbstractWidget::getMinimumWidth).max().orElse(0);
+    public int minimumWidth() {
+        int explicit = super.minimumWidth();
+        int childMin = children().stream().mapToInt(AbstractWidget::minimumWidth).max().orElse(0);
         return Math.max(explicit, childMin + borderLeft() + borderRight());
     }
 
     @Override
-    public int getMinimumHeight() {
-        int explicit = super.getMinimumHeight();
-        int childMin = children().stream().mapToInt(AbstractWidget::getMinimumHeight).max().orElse(0);
+    public int minimumHeight() {
+        int explicit = super.minimumHeight();
+        int childMin = children().stream().mapToInt(AbstractWidget::minimumHeight).max().orElse(0);
         return Math.max(explicit, childMin + borderTop() + borderBottom());
     }
 
     private Texture backgroundTexture() {
         StyleVariant sv = appearance();
-        return sv != null ? sv.getBackgroundTexture() : null;
+        return sv != null ? sv.backgroundTexture() : null;
     }
 
     private int borderLeft() {

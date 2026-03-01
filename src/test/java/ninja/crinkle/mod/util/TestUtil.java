@@ -66,7 +66,7 @@ public class TestUtil {
 
     public static StyleVariant spyAppearance(Theme theme) {
         StyleVariant.Builder b = StyleVariant.builder();
-        b.backgroundTexture(theme.getTexture("panel_background"));
+        b.backgroundTexture(theme.texture("panel_background"));
         b.foregroundColor(Color.of("#333333"));
         return b.build();
     }

@@ -49,15 +49,15 @@ public class MarginContainer extends AbstractContainer {
     }
 
     @Override
-    public int getMinimumWidth() {
-        int childMin = children().stream().mapToInt(AbstractWidget::getMinimumWidth).max().orElse(0);
-        return Math.max(super.getMinimumWidth(), childMin + marginLeft + marginRight);
+    public int minimumWidth() {
+        int childMin = children().stream().mapToInt(AbstractWidget::minimumWidth).max().orElse(0);
+        return Math.max(super.minimumWidth(), childMin + marginLeft + marginRight);
     }
 
     @Override
-    public int getMinimumHeight() {
-        int childMin = children().stream().mapToInt(AbstractWidget::getMinimumHeight).max().orElse(0);
-        return Math.max(super.getMinimumHeight(), childMin + marginTop + marginBottom);
+    public int minimumHeight() {
+        int childMin = children().stream().mapToInt(AbstractWidget::minimumHeight).max().orElse(0);
+        return Math.max(super.minimumHeight(), childMin + marginTop + marginBottom);
     }
 
     @Override

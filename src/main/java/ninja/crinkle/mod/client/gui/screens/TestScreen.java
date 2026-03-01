@@ -3,7 +3,7 @@ package ninja.crinkle.mod.client.gui.screens;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
-import ninja.crinkle.mod.client.gui.layouts.SizeFlags;
+import ninja.crinkle.mod.client.gui.properties.Sizing;
 import ninja.crinkle.mod.client.gui.widgets.HBoxContainer;
 import ninja.crinkle.mod.client.gui.widgets.VBoxContainer;
 import ninja.crinkle.mod.util.ClientUtil;
@@ -39,7 +39,7 @@ public class TestScreen extends AbstractScreen {
             HBoxContainer hPanel = new HBoxContainer.Builder(vPanel)
                     .name("container" + p)
                     .separation(5)
-                    .hSizeFlags(SizeFlags.Expand, SizeFlags.Fill)
+                    .horizontalSizing(Sizing.Expand, Sizing.Fill)
                     .build();
             vPanel.add(hPanel);
 
@@ -52,7 +52,7 @@ public class TestScreen extends AbstractScreen {
                         .text("Button " + i + p)
                         .onClick((event, widget) -> LOGGER.info("Button {} clicked", widget.name()))
                         .minSize(btnWidth, height)
-                        .hSizeFlags(SizeFlags.Expand, SizeFlags.Fill)
+                        .horizontalSizing(Sizing.Expand, Sizing.Fill)
                         .pushAndReturn();
             }
         }
