@@ -21,7 +21,6 @@ import ninja.crinkle.mod.client.gui.properties.*;
 import ninja.crinkle.mod.client.gui.widgets.AbstractWidget;
 import ninja.crinkle.mod.client.gui.widgets.AbstractContainer;
 import ninja.crinkle.mod.client.gui.widgets.Container;
-import ninja.crinkle.mod.client.gui.widgets.MetabolismWidget;
 import ninja.crinkle.mod.util.ClientUtil;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -71,6 +70,18 @@ public abstract class AbstractScreen extends Screen implements TabIndexListener,
         eventManager().ifPresent(m -> m.addListener(inputListener));
     }
 
+    public IManagedGUI gui() {
+        return this;
+    }
+
+    public int width() {
+        return width;
+    }
+
+    public int height() {
+        return height;
+    }
+
     @Override
     public DragManager dragManager() {
         return dragManager;
@@ -112,7 +123,8 @@ public abstract class AbstractScreen extends Screen implements TabIndexListener,
     public void tick() {
         Rect currentRect = new Rect(0, 0, width, height);
         if (lastScreenRect != null && !lastScreenRect.equals(currentRect)) {
-            LOGGER.debug("Screen size changed: {} -> {}", lastScreenRect, currentRect);
+            // we've resized the screen
+            resolveLayoutPositions();
         }
         lastScreenRect = currentRect;
         super.tick();
@@ -129,27 +141,6 @@ public abstract class AbstractScreen extends Screen implements TabIndexListener,
         registerLayoutEntries();
         resolveLayoutPositions();
         ready = true;
-    }
-
-    protected void registerLayoutEntries() {
-        for (AbstractWidget widget : root().children()) {
-            LayoutRegistry.register(new LayoutRegistry.Entry(
-                    widget.name(),
-                    this,
-                    widget::visualCopy,
-                    widget::rect,
-                    widget::setRect
-            ));
-        }
-    }
-
-    protected void resolveLayoutPositions() {
-        for (LayoutRegistry.Entry entry : LayoutRegistry.entries(this)) {
-            Rect current = entry.currentRect().get();
-            if (current == null || current.equals(Rect.ZERO)) continue;
-            LayoutRegistry.resolvePosition(entry.id(), width, height, current.width(), current.height())
-                    .ifPresent(entry.onApply());
-        }
     }
 
     @Override

@@ -9,7 +9,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import ninja.crinkle.mod.client.gui.overlays.MetabolismOverlay;
+import ninja.crinkle.mod.client.gui.overlays.CrinkleOverlay;
 import net.minecraft.client.KeyMapping;
 import org.lwjgl.glfw.GLFW;
 
@@ -40,6 +40,6 @@ public class ClientSetup {
 
     @SubscribeEvent
     public static void registerGuiOverlays(RegisterGuiOverlaysEvent event) {
-        event.registerAboveAll("metabolism-hud", MetabolismOverlay.HUD);
+        event.registerAboveAll("crinkle_overlay", CrinkleOverlay.HUD);
     }
 }

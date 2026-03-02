@@ -25,6 +25,7 @@ public class MetabolismWidget extends AnimatedWidget {
 
     public MetabolismWidget(AbstractContainer parent) {
         this(new AnimatedWidget.Builder(parent));
+        name("metabolism_widget");
     }
 
     @Override

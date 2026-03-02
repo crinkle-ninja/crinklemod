@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class LayoutEditorScreen extends AbstractScreen {
+public class LayoutEditorScreen extends AbstractScreen implements IManagedGUI {
     private static final String TOOLBAR_ID = "layout_toolbar";
     private static final int DIM_COLOR = 0xA0000000; // semi-transparent black
     private final Map<String, AbstractWidget> editorWidgets = new LinkedHashMap<>();
@@ -42,8 +42,14 @@ public class LayoutEditorScreen extends AbstractScreen {
     }
 
     @Override
-    protected void registerLayoutEntries() {
-        // LayoutEditorScreen should not re-register its copied widgets into the registry.
+    public void registerLayoutEntries() {
+        // No-op: the editor manages its own widget positioning and must not
+        // overwrite the source GUI's entries in the LayoutRegistry.
+    }
+
+    @Override
+    public void resolveLayoutPositions() {
+        // No-op: the editor positions widgets manually in init().
     }
 
     @Override
@@ -150,6 +156,16 @@ public class LayoutEditorScreen extends AbstractScreen {
             GLFW.glfwSetCursor(windowHandle(), 0);
             cursorIsHand = false;
         }
+    }
+
+    @Override
+    public int width() {
+        return width;
+    }
+
+    @Override
+    public int height() {
+        return height;
     }
 
     private long windowHandle() {

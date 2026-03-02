@@ -4,13 +4,11 @@ import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
-import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.client.event.sound.PlaySoundEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import ninja.crinkle.mod.client.ClientSetup;
-import ninja.crinkle.mod.client.gui.overlays.MetabolismOverlay;
+import ninja.crinkle.mod.client.gui.overlays.CrinkleOverlay;
 import ninja.crinkle.mod.client.gui.screens.LayoutEditorScreen;
 import ninja.crinkle.mod.sounds.CrinkleSounds;
 import ninja.crinkle.mod.undergarment.Undergarment;
@@ -30,7 +28,7 @@ public class CrinkleForgeBusClientEvents {
         if (ClientSetup.LAYOUT_EDITOR_KEY != null
                 && ClientSetup.LAYOUT_EDITOR_KEY.consumeClick()
                 && minecraft.screen == null) {
-            minecraft.setScreen(new LayoutEditorScreen(MetabolismOverlay.HUD));
+            minecraft.setScreen(new LayoutEditorScreen(CrinkleOverlay.HUD));
         }
     }
 

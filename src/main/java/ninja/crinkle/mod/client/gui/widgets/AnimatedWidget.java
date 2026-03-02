@@ -1,5 +1,6 @@
 package ninja.crinkle.mod.client.gui.widgets;
 
+import com.mojang.logging.LogUtils;
 import ninja.crinkle.mod.client.gui.animations.Animation;
 import ninja.crinkle.mod.client.gui.animations.Player;
 import ninja.crinkle.mod.client.gui.events.DragEvent;
@@ -8,8 +9,12 @@ import ninja.crinkle.mod.client.gui.events.MoveEvent;
 import ninja.crinkle.mod.client.gui.properties.Point;
 import ninja.crinkle.mod.client.gui.properties.Rect;
 import ninja.crinkle.mod.client.gui.renderers.ThemeGraphics;
+import ninja.crinkle.mod.client.gui.themes.Theme;
+import ninja.crinkle.mod.client.gui.themes.ThemeRegistry;
+import org.slf4j.Logger;
 
 public class AnimatedWidget extends AbstractWidget {
+    private static final Logger LOGGER = LogUtils.getLogger();
     private final Player player;
 
     public AnimatedWidget(Builder builder) {
@@ -75,6 +80,26 @@ public class AnimatedWidget extends AbstractWidget {
     public void onMove(MoveEvent event) {
         super.onMove(event);
         this.player.position(Point.of(rect().x(), rect().y()));
+    }
+
+    protected boolean trySetAnimations(double speed, String animationId, String ...sprites) {
+        Theme theme = ThemeRegistry.current();
+        if (theme == null) return false;
+        boolean shouldClearPlayer = true;
+        for (String spriteId : sprites) {
+            Animation ani = theme.animation(animationId).orElse(null);
+            if (ani == null) {
+                LOGGER.error("animation is null for animationId {} of theme {}", animationId, theme.id());
+                return false;
+            }
+            if (shouldClearPlayer) {
+                clearPlayer();
+                shouldClearPlayer = false;
+            }
+            fps(speed);
+            animation(ani, spriteId);
+        }
+        return true;
     }
 
     public static class Builder extends AbstractWidget.AbstractBuilder<Builder> {
