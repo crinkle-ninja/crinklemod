@@ -9,8 +9,11 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import com.mojang.logging.LogUtils;
 import ninja.crinkle.mod.client.ClientSetup;
+import ninja.crinkle.mod.client.gui.events.FocusLeftEvent;
+import ninja.crinkle.mod.client.gui.events.MoveEvent;
 import ninja.crinkle.mod.client.gui.properties.Point;
 import ninja.crinkle.mod.client.gui.properties.Rect;
+import ninja.crinkle.mod.client.gui.properties.Scope;
 import ninja.crinkle.mod.client.gui.renderers.ThemeGraphics;
 import ninja.crinkle.mod.client.gui.screens.AbstractScreen;
 import ninja.crinkle.mod.client.gui.screens.LayoutEditorScreen;
@@ -70,6 +73,8 @@ public abstract class AbstractAddOn extends AbstractScreen {
         if (screenClass() != event.getScreen().getClass()) return;
         root().visible(false);
         root().active(false);
+        // Feels hacky, but clears hovered states
+        mouseMoved(-1, -1);
     }
 
     @SubscribeEvent

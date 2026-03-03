@@ -9,14 +9,15 @@
     "colors": {
       "background": "#B3D8E3",
       "primary": "#89AEBF",
-      "secondary": "rainbow",
+      "secondary": "#95614f",
       "inactive": "#A0BDC7",
       "highlight": "#FFCC88",
       "accent": "#6A9EB0",
       "text": "#333333",
       "inactiveText": "#C8DDE1",
       "highlightText": "#F5F5F5",
-      "white": "#FFFFFF"
+      "white": "#FFFFFF",
+      "rainbow": "rainbow"
     },
     "textures": [
       {
@@ -638,7 +639,7 @@
               "color": "background"
             },
             "foreground": {
-              "color": "white"
+              "color": "text"
             }
           },
           "active": {
@@ -676,6 +677,46 @@
             "foreground": {
               "color": "text",
               "shadow": true
+            }
+          }
+        }
+      },
+      {
+        "id": "tab_active",
+        "parent": "button",
+        "variants": {
+          "active": {
+            "background": {
+              "color": "primary"
+            },
+            "foreground": {
+              "color": "highlightText",
+              "shadow": true
+            }
+          }
+        }
+      },
+      {
+        "id": "tab_inactive",
+        "parent": "button",
+        "variants": {
+          "active": {
+            "background": {
+              "color": "background"
+            },
+            "foreground": {
+              "color": "text"
+            }
+          }
+        }
+      },
+      {
+        "id": "tab_rail",
+        "parent": "panel",
+        "variants": {
+          "active": {
+            "background": {
+              "color": "accent"
             }
           }
         }

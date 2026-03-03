@@ -10,8 +10,8 @@ import ninja.crinkle.mod.util.ClientUtil;
 import org.jetbrains.annotations.NotNull;
 
 public class UndergarmentWidget extends AnimatedWidget {
-    private static final double VISIBLY_WET_PERCENT = 0.25d;
-    private static final double VISIBLY_MESSY_PERCENT = 0.5d;
+    private static final double VISIBLY_WET_PERCENT = 0.1d;
+    private static final double VISIBLY_MESSY_PERCENT = 0.1d;
 
     public UndergarmentWidget(AbstractContainer parent) {
         this(new AnimatedWidget.Builder(parent));

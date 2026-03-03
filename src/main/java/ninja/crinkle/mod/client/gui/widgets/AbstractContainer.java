@@ -75,6 +75,10 @@ public abstract class AbstractContainer extends AbstractWidget implements InputS
         return new Container.Builder(this);
     }
 
+    public TextBox.Builder addTextBox() {
+        return new TextBox.Builder(this);
+    }
+
     public List<AbstractWidget> children(Predicate<? super AbstractWidget> predicate) {
         return children().stream().filter(predicate).toList();
     }
@@ -88,7 +92,7 @@ public abstract class AbstractContainer extends AbstractWidget implements InputS
         if (ClientSetup.LAYOUT_EDITOR_KEY != null
                 && ClientSetup.LAYOUT_EDITOR_KEY.matches(event.keyCode(), event.scanCode())) {
             if (ClientUtil.getMinecraft().screen instanceof LayoutEditorScreen) return;
-            if (manager() instanceof IManagedGUI gui) {
+            if (manager() instanceof IManagedGUI gui && gui.layoutEditorEnabled()) {
                 ClientUtil.getMinecraft().setScreen(new LayoutEditorScreen(gui));
                 event.consumed(true);
             }

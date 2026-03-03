@@ -1,8 +1,11 @@
 package ninja.crinkle.mod.client.gui.addons;
 
 import com.mojang.logging.LogUtils;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.PauseScreen;
+import net.minecraft.network.chat.Component;
 import ninja.crinkle.mod.client.gui.properties.Sizing;
+import ninja.crinkle.mod.client.gui.screens.CrinkleModConfigScreen;
 import ninja.crinkle.mod.client.gui.widgets.Button;
 import ninja.crinkle.mod.client.gui.widgets.CenterContainer;
 import ninja.crinkle.mod.client.gui.widgets.MarginContainer;
@@ -24,14 +27,9 @@ public class PauseScreenAddOn extends AbstractAddOn {
         VBoxContainer buttonPanel = new VBoxContainer.Builder(centerContainer)
                 .pushAndReturn();
         new Button.Builder(buttonPanel)
-                .text("Test 1")
+                .text(Component.translatable("gui.crinklemod.screen.config.title").getString())
                 .style("button")
-                .onClick((e, w) -> LOGGER.debug("Click 1!"))
-                .push();
-        new Button.Builder(buttonPanel)
-                .text("Test 2")
-                .style("button")
-                .onClick((e, w) -> LOGGER.debug("Click 2!"))
+                .onClick((e, w) -> Minecraft.getInstance().setScreen(new CrinkleModConfigScreen()))
                 .push();
     }
 }

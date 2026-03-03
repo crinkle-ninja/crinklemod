@@ -12,6 +12,10 @@ public interface IManagedGUI {
     int height();
     IManagedGUI gui();
 
+    default boolean layoutEditorEnabled() {
+        return true;
+    }
+
     default void registerLayoutEntries() {
         for (AbstractWidget widget : manager().root().children()) {
             LayoutRegistry.register(new LayoutRegistry.Entry(

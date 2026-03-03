@@ -49,18 +49,20 @@ public class VBoxContainer extends AbstractContainer {
 
         int available = rect().height() - (separation() * Math.max(0, kids.size() - 1));
 
-        // Measure non-expanding children
+        // Measure children
         int nonExpandSum = 0;
+        int expandMinSum = 0;
         float totalRatio = 0;
         for (AbstractWidget child : kids) {
             if (child.verticalSizing().contains(Sizing.Expand)) {
                 totalRatio += child.stretchRatio();
+                expandMinSum += child.minimumHeight();
             } else {
                 nonExpandSum += child.minimumHeight();
             }
         }
 
-        int leftover = Math.max(0, available - nonExpandSum);
+        int leftover = Math.max(0, available - nonExpandSum - expandMinSum);
 
         // Place children
         int offset = rect().y();

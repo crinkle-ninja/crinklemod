@@ -49,18 +49,20 @@ public class HBoxContainer extends AbstractContainer {
 
         int available = rect().width() - (separation() * Math.max(0, kids.size() - 1));
 
-        // Measure non-expanding children
+        // Measure children
         int nonExpandSum = 0;
+        int expandMinSum = 0;
         float totalRatio = 0;
         for (AbstractWidget child : kids) {
             if (child.horizontalSizing().contains(Sizing.Expand)) {
                 totalRatio += child.stretchRatio();
+                expandMinSum += child.minimumWidth();
             } else {
                 nonExpandSum += child.minimumWidth();
             }
         }
 
-        int leftover = Math.max(0, available - nonExpandSum);
+        int leftover = Math.max(0, available - nonExpandSum - expandMinSum);
 
         // Place children
         int offset = rect().x();
