@@ -13,6 +13,9 @@ import ninja.crinkle.mod.client.gui.events.listeners.MouseListener;
 import ninja.crinkle.mod.client.gui.properties.Point;
 import ninja.crinkle.mod.client.gui.properties.Rect;
 import ninja.crinkle.mod.client.gui.renderers.ThemeGraphics;
+import ninja.crinkle.mod.client.gui.textures.Texture;
+import ninja.crinkle.mod.client.gui.textures.TextureSize;
+import ninja.crinkle.mod.client.gui.themes.Style;
 import ninja.crinkle.mod.util.ClientUtil;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -433,7 +436,9 @@ public class TextBox extends AbstractWidget implements KeyListener, MouseListene
 
     @Override
     public void renderContent(ThemeGraphics graphics, Point pMouse, Rect renderedRect, float pPartialTick) {
-        Point renderPos = Point.of(renderedRect.x(), renderedRect.y());
+        TextureSize background = appearance().backgroundTexture().boundsOf(Texture.Slice.Location.topLeft);
+        int offset = (renderedRect.height() / 2) - (graphics.textHeight() / 2);
+        Point renderPos = Point.of(renderedRect.x() + background.width(), renderedRect.y() + offset);
         if (text().isEmpty() && !focused()) {
             graphics.text(placeholder().getString(), renderPos, zIndex(), appearance().foregroundColor().halftone(),
                     appearance().hasShadow());

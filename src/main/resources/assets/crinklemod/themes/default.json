@@ -8,13 +8,17 @@
     "author": "Galen & Vahn",
     "colors": {
       "background": "#B3D8E3",
-      "primary": "#89AEBF",
-      "secondary": "#95614f",
+      "primary": "#BF6B7B",
+      "secondary": "#C47A6A",
+      "button": "#89AEBF",
       "inactive": "#A0BDC7",
+      "focused": "#8B6B8A",
+      "hovered": "#98E5FF",
       "highlight": "#FFCC88",
       "accent": "#6A9EB0",
       "text": "#333333",
       "inactiveText": "#C8DDE1",
+      "hoveredText": "#333333",
       "highlightText": "#F5F5F5",
       "white": "#FFFFFF",
       "rainbow": "rainbow"
@@ -117,8 +121,8 @@
         }
       },
       {
-        "id": "button_background_focused",
-        "location": "widgets/button_background_focused",
+        "id": "button_background_inactive",
+        "location": "widgets/button_background_inactive",
         "slices": {
           "topLeft": {
             "start": {
@@ -562,7 +566,7 @@
           "base": {
             "background": {
               "texture": "button_background",
-              "color": "background"
+              "color": "button"
             },
             "foreground": {
               "color": "text"
@@ -570,7 +574,7 @@
           },
           "active": {
             "background": {
-              "color": "background"
+              "color": "button"
             },
             "foreground": {
               "color": "text"
@@ -578,15 +582,16 @@
           },
           "hover": {
             "background": {
-              "color": "highlight"
+              "color": "hovered"
             },
             "foreground": {
-              "color": "highlightText",
+              "color": "hoveredText",
               "shadow": true
             }
           },
           "inactive": {
             "background": {
+              "texture": "button_background_inactive",
               "color": "inactive"
             },
             "foreground": {
@@ -603,7 +608,8 @@
           },
           "focused": {
             "background": {
-              "texture": "button_background_focused"
+              "texture": "button_background",
+              "color": "focused"
             }
           }
         }
@@ -657,7 +663,8 @@
           },
           "focused": {
             "background": {
-              "texture": "textbox_background_focused"
+              "texture": "textbox_background",
+              "color": "focused"
             }
           }
         }
@@ -716,6 +723,7 @@
         "variants": {
           "active": {
             "background": {
+              "texture": "textbox_background",
               "color": "accent"
             }
           }

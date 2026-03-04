@@ -5,6 +5,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import ninja.crinkle.mod.api.ServerUpdater;
 import ninja.crinkle.mod.client.color.Color;
+import ninja.crinkle.mod.client.gui.events.KeyEvent;
+import ninja.crinkle.mod.client.gui.events.listeners.KeyListener;
 import ninja.crinkle.mod.client.gui.properties.Sizing;
 import ninja.crinkle.mod.client.gui.widgets.*;
 import ninja.crinkle.mod.metabolism.MetabolismSettings;
@@ -12,7 +14,7 @@ import ninja.crinkle.mod.settings.Setting;
 import ninja.crinkle.mod.util.ClientUtil;
 import org.jetbrains.annotations.NotNull;
 
-public class CrinkleModConfigScreen extends AbstractScreen {
+public class CrinkleModConfigScreen extends AbstractScreen implements KeyListener {
 
     // Pending values
     private int pendingTimer;
@@ -34,6 +36,16 @@ public class CrinkleModConfigScreen extends AbstractScreen {
     private Label dirtyLabel;
     private Button saveButton;
 
+    // modifier key states
+    private boolean isShiftDown;
+    private boolean isAltDown;
+    private boolean isCtrlDown;
+
+    // increment/decrement amounts
+    private int shiftAmount = 10;
+    private int ctrlAmount = 5;
+    private int altAmount = 100;
+
     // Number One/Two dependent widgets (for dimming)
     private Button n1ChanceMinus, n1ChancePlus, n1SafeRollsMinus, n1SafeRollsPlus;
     private Button n2ChanceMinus, n2ChancePlus, n2SafeRollsMinus, n2SafeRollsPlus;
@@ -52,6 +64,15 @@ public class CrinkleModConfigScreen extends AbstractScreen {
     @Override
     public boolean layoutEditorEnabled() {
         return false;
+    }
+
+    @Override
+    public void onKey(KeyEvent event) {
+        isAltDown = event.isAltDown();
+        isCtrlDown = event.isControlDown();
+        isShiftDown = event.isShiftDown();
+        //if (isShiftDown || isCtrlDown || isAltDown) return;
+        KeyListener.super.onKey(event);
     }
 
     @Override
@@ -112,6 +133,7 @@ public class CrinkleModConfigScreen extends AbstractScreen {
                 .name("tabs")
                 .tabWidth(90)
                 .tabMargin(4)
+                .contentMargin(4)
                 .horizontalSizing(Sizing.Fill)
                 .verticalSizing(Sizing.Expand, Sizing.Fill)
                 .build();
@@ -200,14 +222,21 @@ public class CrinkleModConfigScreen extends AbstractScreen {
                 .horizontalSizing(Sizing.Expand, Sizing.Fill)
                 .push();
 
-        new Button.Builder(row)
+        HBoxContainer controls = new HBoxContainer.Builder(row)
+                .name("timer_controls")
+                .separation(1)
+                .horizontalSizing(Sizing.ShrinkEnd)
+                .verticalSizing(Sizing.Fill)
+                .pushAndReturn();
+
+        new Button.Builder(controls)
                 .name("timer_minus")
                 .text("-")
                 .minSize(20, rowHeight)
                 .onClick((e, w) -> { pendingTimer = Math.max(10, pendingTimer - 5); refreshTimerDisplay(); })
                 .push();
 
-        timerTextBox = row.addTextBox()
+        timerTextBox = controls.addTextBox()
                 .name("timer_value")
                 .text(String.valueOf(pendingTimer))
                 .minSize(45, rowHeight)
@@ -215,7 +244,7 @@ public class CrinkleModConfigScreen extends AbstractScreen {
                 .readOnly(true)
                 .pushAndReturn();
 
-        new Button.Builder(row)
+        new Button.Builder(controls)
                 .name("timer_plus")
                 .text("+")
                 .minSize(20, rowHeight)
@@ -261,14 +290,24 @@ public class CrinkleModConfigScreen extends AbstractScreen {
                 .horizontalSizing(Sizing.Expand, Sizing.Fill)
                 .push();
 
-        n1ChanceMinus = new Button.Builder(chanceRow)
+        HBoxContainer chanceControls = new HBoxContainer.Builder(chanceRow)
+                .name("n1_chance_controls")
+                .separation(1)
+                .horizontalSizing(Sizing.ShrinkEnd)
+                .verticalSizing(Sizing.Fill)
+                .pushAndReturn();
+
+        n1ChanceMinus = new Button.Builder(chanceControls)
                 .name("n1_chance_minus")
                 .text("-")
                 .minSize(20, rowHeight)
-                .onClick((e, w) -> { pendingN1Chance = Math.max(0.0, pendingN1Chance - 0.05); refreshN1Display(); })
+                .onClick((e, w) -> {
+                    pendingN1Chance = Math.max(0.0, pendingN1Chance - 0.01);
+                    refreshN1Display();
+                })
                 .pushAndReturn();
 
-        n1ChanceTextBox = chanceRow.addTextBox()
+        n1ChanceTextBox = chanceControls.addTextBox()
                 .name("n1_chance_value")
                 .text(formatPercent(pendingN1Chance))
                 .minSize(45, rowHeight)
@@ -276,7 +315,7 @@ public class CrinkleModConfigScreen extends AbstractScreen {
                 .readOnly(true)
                 .pushAndReturn();
 
-        n1ChancePlus = new Button.Builder(chanceRow)
+        n1ChancePlus = new Button.Builder(chanceControls)
                 .name("n1_chance_plus")
                 .text("+")
                 .minSize(20, rowHeight)
@@ -298,14 +337,21 @@ public class CrinkleModConfigScreen extends AbstractScreen {
                 .horizontalSizing(Sizing.Expand, Sizing.Fill)
                 .push();
 
-        n1SafeRollsMinus = new Button.Builder(safeRollsRow)
+        HBoxContainer safeRollsControls = new HBoxContainer.Builder(safeRollsRow)
+                .name("n1_safe_rolls_controls")
+                .separation(1)
+                .horizontalSizing(Sizing.ShrinkEnd)
+                .verticalSizing(Sizing.Fill)
+                .pushAndReturn();
+
+        n1SafeRollsMinus = new Button.Builder(safeRollsControls)
                 .name("n1_safe_rolls_minus")
                 .text("-")
                 .minSize(20, rowHeight)
                 .onClick((e, w) -> { pendingN1SafeRolls = Math.max(0, pendingN1SafeRolls - 1); refreshN1Display(); })
                 .pushAndReturn();
 
-        n1SafeRollsTextBox = safeRollsRow.addTextBox()
+        n1SafeRollsTextBox = safeRollsControls.addTextBox()
                 .name("n1_safe_rolls_value")
                 .text(String.valueOf(pendingN1SafeRolls))
                 .minSize(45, rowHeight)
@@ -313,7 +359,7 @@ public class CrinkleModConfigScreen extends AbstractScreen {
                 .readOnly(true)
                 .pushAndReturn();
 
-        n1SafeRollsPlus = new Button.Builder(safeRollsRow)
+        n1SafeRollsPlus = new Button.Builder(safeRollsControls)
                 .name("n1_safe_rolls_plus")
                 .text("+")
                 .minSize(20, rowHeight)
@@ -359,14 +405,21 @@ public class CrinkleModConfigScreen extends AbstractScreen {
                 .horizontalSizing(Sizing.Expand, Sizing.Fill)
                 .push();
 
-        n2ChanceMinus = new Button.Builder(chanceRow)
+        HBoxContainer chanceControls = new HBoxContainer.Builder(chanceRow)
+                .name("n2_chance_controls")
+                .separation(1)
+                .horizontalSizing(Sizing.ShrinkEnd)
+                .verticalSizing(Sizing.Fill)
+                .pushAndReturn();
+
+        n2ChanceMinus = new Button.Builder(chanceControls)
                 .name("n2_chance_minus")
                 .text("-")
                 .minSize(20, rowHeight)
                 .onClick((e, w) -> { pendingN2Chance = Math.max(0.0, pendingN2Chance - 0.05); refreshN2Display(); })
                 .pushAndReturn();
 
-        n2ChanceTextBox = chanceRow.addTextBox()
+        n2ChanceTextBox = chanceControls.addTextBox()
                 .name("n2_chance_value")
                 .text(formatPercent(pendingN2Chance))
                 .minSize(45, rowHeight)
@@ -374,7 +427,7 @@ public class CrinkleModConfigScreen extends AbstractScreen {
                 .readOnly(true)
                 .pushAndReturn();
 
-        n2ChancePlus = new Button.Builder(chanceRow)
+        n2ChancePlus = new Button.Builder(chanceControls)
                 .name("n2_chance_plus")
                 .text("+")
                 .minSize(20, rowHeight)
@@ -396,14 +449,21 @@ public class CrinkleModConfigScreen extends AbstractScreen {
                 .horizontalSizing(Sizing.Expand, Sizing.Fill)
                 .push();
 
-        n2SafeRollsMinus = new Button.Builder(safeRollsRow)
+        HBoxContainer safeRollsControls = new HBoxContainer.Builder(safeRollsRow)
+                .name("n2_safe_rolls_controls")
+                .separation(1)
+                .horizontalSizing(Sizing.ShrinkEnd)
+                .verticalSizing(Sizing.Fill)
+                .pushAndReturn();
+
+        n2SafeRollsMinus = new Button.Builder(safeRollsControls)
                 .name("n2_safe_rolls_minus")
                 .text("-")
                 .minSize(20, rowHeight)
                 .onClick((e, w) -> { pendingN2SafeRolls = Math.max(0, pendingN2SafeRolls - 1); refreshN2Display(); })
                 .pushAndReturn();
 
-        n2SafeRollsTextBox = safeRollsRow.addTextBox()
+        n2SafeRollsTextBox = safeRollsControls.addTextBox()
                 .name("n2_safe_rolls_value")
                 .text(String.valueOf(pendingN2SafeRolls))
                 .minSize(45, rowHeight)
@@ -411,7 +471,7 @@ public class CrinkleModConfigScreen extends AbstractScreen {
                 .readOnly(true)
                 .pushAndReturn();
 
-        n2SafeRollsPlus = new Button.Builder(safeRollsRow)
+        n2SafeRollsPlus = new Button.Builder(safeRollsControls)
                 .name("n2_safe_rolls_plus")
                 .text("+")
                 .minSize(20, rowHeight)

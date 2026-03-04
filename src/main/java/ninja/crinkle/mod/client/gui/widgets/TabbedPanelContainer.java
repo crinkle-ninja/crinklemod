@@ -3,7 +3,6 @@ package ninja.crinkle.mod.client.gui.widgets;
 import ninja.crinkle.mod.client.gui.managers.GuiManager;
 import ninja.crinkle.mod.client.gui.properties.Rect;
 import ninja.crinkle.mod.client.gui.properties.Sizing;
-import ninja.crinkle.mod.client.gui.themes.ThemeRegistry;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -134,7 +133,7 @@ public class TabbedPanelContainer extends AbstractContainer {
             Entry entry = tabs.get(i);
             boolean isSelected = (i == index);
             entry.content().visible(isSelected);
-            entry.tabButton().style(ThemeRegistry.current().widgetTheme(isSelected ? "tab_active" : "tab_inactive"));
+            entry.tabButton().style(isSelected ? "tab_active" : "tab_inactive");
         }
         selectedIndex = index;
     }

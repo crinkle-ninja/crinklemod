@@ -45,6 +45,7 @@ public abstract class AbstractWidget implements Renderable, Widget, MouseSource,
     private String name;
     private AbstractContainer parent;
     private int priority;
+    private String styleId;
     private Style style;
     private int tabIndex;
 
@@ -61,7 +62,8 @@ public abstract class AbstractWidget implements Renderable, Widget, MouseSource,
     protected AbstractWidget(@NotNull AbstractBuilder<?> builder) {
         this.activePredicate = builder.activePredicate();
         this.name = builder.name();
-        this.style = builder.style();
+        this.styleId = builder.styleId();
+        this.style = builder.resolvedStyle();
         this.tabIndex = builder.tabIndex();
         this.manager = builder.manager();
         this.priority = builder.priority();
@@ -354,12 +356,20 @@ public abstract class AbstractWidget implements Renderable, Widget, MouseSource,
     // --- Theme ---
 
     public Style style() {
-        return style;
+        if (styleId != null) {
+            return ThemeRegistry.current().widgetTheme(styleId);
+        }
+        return style != null ? style : Style.defaultStyle();
     }
 
-    @SuppressWarnings("unused")
+    public void style(String styleId) {
+        this.styleId = styleId;
+        this.style = null;
+    }
+
     public void style(Style style) {
         this.style = style;
+        this.styleId = null;
     }
 
     public StyleVariant appearance() {
@@ -626,6 +636,7 @@ public abstract class AbstractWidget implements Renderable, Widget, MouseSource,
         private WidgetDisplay display = new WidgetDisplay();
         private String name = "Unnamed_" + hashCode();
         private int priority = 0;
+        private String styleId = null;
         private Style style = null;
         private int tabIndex = 0;
         private boolean visible = true;
@@ -839,16 +850,26 @@ public abstract class AbstractWidget implements Renderable, Widget, MouseSource,
             return self();
         }
 
-        public Style style() {
+        public String styleId() {
+            return styleId;
+        }
+
+        public Style resolvedStyle() {
+            if (styleId != null) {
+                return ThemeRegistry.current().widgetTheme(styleId);
+            }
             return style != null ? style : Style.defaultStyle();
         }
 
-        public T style(String style) {
-            return style(ThemeRegistry.current().widgetTheme(style));
+        public T style(String styleId) {
+            this.styleId = styleId;
+            this.style = null;
+            return self();
         }
 
         public T style(Style style) {
             this.style = style;
+            this.styleId = null;
             return self();
         }
 

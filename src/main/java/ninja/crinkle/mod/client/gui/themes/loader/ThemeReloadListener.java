@@ -16,6 +16,7 @@ import java.util.Map;
 
 public class ThemeReloadListener extends SimplePreparableReloadListener<Map<ResourceLocation, ThemeLoader.Config>> {
     private static final Logger LOGGER = LogUtils.getLogger();
+    private static boolean addOnsRegistered = false;
     @Override
     protected @NotNull Map<ResourceLocation, ThemeLoader.Config> prepare(@NotNull ResourceManager pResourceManager,
                                                             @NotNull ProfilerFiller pProfiler) {
@@ -40,7 +41,10 @@ public class ThemeReloadListener extends SimplePreparableReloadListener<Map<Reso
                 errors.forEach(error -> LOGGER.error("{}: {}", location, error.message()));
             }
         });
-        MinecraftForge.EVENT_BUS.register(new PauseScreenAddOn());
+        if (!addOnsRegistered) {
+            MinecraftForge.EVENT_BUS.register(new PauseScreenAddOn());
+            addOnsRegistered = true;
+        }
         pProfiler.pop();
     }
 }
