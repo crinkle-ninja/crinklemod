@@ -10,6 +10,8 @@ import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import ninja.crinkle.mod.client.gui.overlays.CrinkleOverlay;
+import ninja.crinkle.mod.client.gui.screens.binding.SettingRegistry;
+import ninja.crinkle.mod.metabolism.MetabolismSettings;
 import net.minecraft.client.KeyMapping;
 import org.lwjgl.glfw.GLFW;
 
@@ -23,7 +25,18 @@ public class ClientSetup {
     public static void init(FMLClientSetupEvent event) {
         event.enqueueWork(() -> {
             DistExecutor.safeRunWhenOn(Dist.CLIENT, () -> ClientHooks::registerEvents);
+            registerSettings();
         });
+    }
+
+    private static void registerSettings() {
+        SettingRegistry.register("metabolism.timer", MetabolismSettings.TIMER);
+        SettingRegistry.register("metabolism.numberOneEnabled", MetabolismSettings.NUMBER_ONE_ENABLED);
+        SettingRegistry.register("metabolism.numberOneChance", MetabolismSettings.NUMBER_ONE_CHANCE);
+        SettingRegistry.register("metabolism.numberOneSafeRolls", MetabolismSettings.NUMBER_ONE_SAFE_ROLLS);
+        SettingRegistry.register("metabolism.numberTwoEnabled", MetabolismSettings.NUMBER_TWO_ENABLED);
+        SettingRegistry.register("metabolism.numberTwoChance", MetabolismSettings.NUMBER_TWO_CHANCE);
+        SettingRegistry.register("metabolism.numberTwoSafeRolls", MetabolismSettings.NUMBER_TWO_SAFE_ROLLS);
     }
 
     @SubscribeEvent

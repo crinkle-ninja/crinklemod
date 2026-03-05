@@ -9,7 +9,12 @@ import ninja.crinkle.mod.CrinkleMod;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.util.profiling.ProfilerFiller;
+
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 public class Atlas extends TextureAtlasHolder {
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -22,6 +27,20 @@ public class Atlas extends TextureAtlasHolder {
 
     public List<ResourceLocation> getSprites() {
         return this.textureAtlas.getTextureLocations().stream().toList();
+    }
+
+    @Override
+    public @NotNull CompletableFuture<Void> reload(@NotNull PreparationBarrier pPreparationBarrier,
+            @NotNull ResourceManager pResourceManager, @NotNull ProfilerFiller pPreparationProfiler,
+            @NotNull ProfilerFiller pApplyProfiler, @NotNull Executor pPreparationExecutor,
+            @NotNull Executor pApplyExecutor) {
+        return super.reload(pPreparationBarrier, pResourceManager, pPreparationProfiler, pApplyProfiler,
+                pPreparationExecutor, pApplyExecutor)
+                .thenRun(() -> {
+                    ThemeAtlas.clearTextures();
+                    getSprites().forEach(ThemeAtlas::register);
+                    LOGGER.debug("Re-registered {} theme textures after atlas reload", getSprites().size());
+                });
     }
 
     @Override

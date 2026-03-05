@@ -1,0 +1,150 @@
+{
+  "version": 1,
+  "screen": {
+    "id": "config",
+    "title": "gui.crinklemod.screen.config.title",
+    "root": {
+      "type": "vbox",
+      "name": "config_window",
+      "style": "panel",
+      "minSize": [300, 220],
+      "separation": 2,
+      "draggable": true,
+      "horizontalSizing": ["ShrinkCenter"],
+      "verticalSizing": ["ShrinkCenter"],
+      "children": [
+        {
+          "type": "label",
+          "name": "title",
+          "text": "gui.crinklemod.screen.config.title",
+          "color": "PURPLE",
+          "minSize": [0, 22],
+          "horizontalSizing": ["Fill"],
+          "verticalSizing": ["ShrinkBegin"]
+        },
+        {
+          "type": "tabbed_panel",
+          "name": "tabs",
+          "tabWidth": 90,
+          "tabMargin": 4,
+          "contentMargin": 4,
+          "horizontalSizing": ["Fill"],
+          "verticalSizing": ["Expand", "Fill"],
+          "tabs": [
+            {
+              "id": "general",
+              "label": "gui.crinklemod.config.tab.general",
+              "children": [
+                {
+                  "type": "setting_stepper",
+                  "setting": "metabolism.timer",
+                  "step": 5,
+                  "format": "integer"
+                }
+              ]
+            },
+            {
+              "id": "number_one",
+              "label": "gui.crinklemod.config.tab.number_one",
+              "children": [
+                {
+                  "type": "setting_toggle",
+                  "setting": "metabolism.numberOneEnabled",
+                  "dependsOn": ["metabolism.numberOneChance", "metabolism.numberOneSafeRolls"]
+                },
+                {
+                  "type": "setting_stepper",
+                  "setting": "metabolism.numberOneChance",
+                  "step": 0.05,
+                  "format": "percent"
+                },
+                {
+                  "type": "setting_stepper",
+                  "setting": "metabolism.numberOneSafeRolls",
+                  "step": 1,
+                  "format": "integer"
+                }
+              ]
+            },
+            {
+              "id": "number_two",
+              "label": "gui.crinklemod.config.tab.number_two",
+              "children": [
+                {
+                  "type": "setting_toggle",
+                  "setting": "metabolism.numberTwoEnabled",
+                  "dependsOn": ["metabolism.numberTwoChance", "metabolism.numberTwoSafeRolls"]
+                },
+                {
+                  "type": "setting_stepper",
+                  "setting": "metabolism.numberTwoChance",
+                  "step": 0.05,
+                  "format": "percent"
+                },
+                {
+                  "type": "setting_stepper",
+                  "setting": "metabolism.numberTwoSafeRolls",
+                  "step": 1,
+                  "format": "integer"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "name": "dirty_label",
+          "role": "dirty_indicator",
+          "text": "gui.crinklemod.shared.unsaved_changes.label",
+          "minSize": [0, 15],
+          "horizontalSizing": ["Fill"],
+          "verticalSizing": ["ShrinkBegin"],
+          "visible": false
+        },
+        {
+          "type": "margin",
+          "margins": 4,
+          "children": [
+            {
+              "type": "hbox",
+              "name": "footer",
+              "separation": 6,
+              "minSize": [0, 22],
+              "horizontalSizing": ["Fill"],
+              "verticalSizing": ["ShrinkEnd"],
+              "children": [
+                {
+                  "type": "button",
+                  "name": "save_btn",
+                  "text": "gui.crinklemod.shared.save_button.title",
+                  "role": "save",
+                  "style": "button_primary",
+                  "minSize": [60, 22],
+                  "horizontalSizing": ["Expand", "Fill"]
+                },
+                {
+                  "type": "button",
+                  "name": "reset_btn",
+                  "text": "gui.crinklemod.shared.reset_button.title",
+                  "role": "reset",
+                  "style": "button_secondary",
+                  "minSize": [60, 22],
+                  "horizontalSizing": ["Expand", "Fill"]
+                },
+                {
+                  "type": "button",
+                  "name": "back_btn",
+                  "text": "gui.crinklemod.shared.back_button.title",
+                  "role": "close",
+                  "style": "button",
+                  "minSize": [60, 22],
+                  "horizontalSizing": ["Expand", "Fill"]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -32,6 +32,10 @@ public enum ThemeAtlas {
         return INSTANCE;
     }
 
+    public static void clearTextures() {
+        INSTANCE.textures.clear();
+    }
+
     public static Atlas getAtlas() {
         if (INSTANCE.atlas == null) {
             INSTANCE.atlas = new Atlas(ClientUtil.getMinecraft().getTextureManager());

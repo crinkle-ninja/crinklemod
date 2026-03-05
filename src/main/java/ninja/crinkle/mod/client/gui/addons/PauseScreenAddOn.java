@@ -5,7 +5,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.PauseScreen;
 import net.minecraft.network.chat.Component;
 import ninja.crinkle.mod.client.gui.properties.Sizing;
-import ninja.crinkle.mod.client.gui.screens.CrinkleModConfigScreen;
+import ninja.crinkle.mod.client.gui.screens.DataDrivenScreen;
+import ninja.crinkle.mod.client.gui.screens.ScreenRegistry;
 import ninja.crinkle.mod.client.gui.widgets.Button;
 import ninja.crinkle.mod.client.gui.widgets.CenterContainer;
 import ninja.crinkle.mod.client.gui.widgets.MarginContainer;
@@ -29,7 +30,8 @@ public class PauseScreenAddOn extends AbstractAddOn {
         new Button.Builder(buttonPanel)
                 .text(Component.translatable("gui.crinklemod.screen.config.title").getString())
                 .style("button")
-                .onClick((e, w) -> Minecraft.getInstance().setScreen(new CrinkleModConfigScreen()))
+                .onClick((e, w) -> ScreenRegistry.INSTANCE.get("config").ifPresent(
+                        def -> Minecraft.getInstance().setScreen(new DataDrivenScreen(def))))
                 .push();
     }
 }
