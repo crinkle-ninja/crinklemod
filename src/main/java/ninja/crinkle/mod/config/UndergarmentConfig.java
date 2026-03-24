@@ -1,72 +1,44 @@
 package ninja.crinkle.mod.config;
 
-import com.electronwill.nightconfig.core.Config;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.Item;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.config.ModConfigEvent;
-import net.minecraftforge.registries.ForgeRegistries;
 import ninja.crinkle.mod.CrinkleMod;
-import ninja.crinkle.mod.util.ConfigUtil;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Mod.EventBusSubscriber(modid = CrinkleMod.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class UndergarmentConfig {
     private static final String CONFIG_FILE_NAME = String.format("%s-undergarments.toml", CrinkleMod.MODID);
-
-    public static class UndergarmentData {
-        public final String name;
-        public final int maxSolids;
-        public final int maxLiquids;
-
-        public UndergarmentData(String name, int maxSolids, int maxLiquids) {
-            this.name = name;
-            this.maxSolids = maxSolids;
-            this.maxLiquids = maxLiquids;
-        }
-
-        public Config toConfig() {
-            Config config = Config.inMemory();
-            config.set("name", name);
-            config.set("maxSolids", maxSolids);
-            config.set("maxLiquids", maxLiquids);
-            return config;
-        }
-    }
-
     private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
-    private static final ForgeConfigSpec.ConfigValue<List<? extends Config>> UNDERGARMENTS = BUILDER
-            .comment("A list of undergarments and their associated data.")
-            .defineList("undergarment",
-                    List.of(
-                            new UndergarmentData(CrinkleMod.MODID + ":diaper", 3, 5).toConfig(),
-                            new UndergarmentData(CrinkleMod.MODID + ":diaper_little_pawz", 3, 5).toConfig()
-                    ),
-                    ConfigUtil.getItemNameValidator("name")
-            );
+    private static final ForgeConfigSpec.IntValue DEFAULT_MAX_LIQUIDS = BUILDER
+            .comment("Default maximum liquids capacity for undergarments (used when a design does not specify stats).")
+            .defineInRange("defaultMaxLiquids", 5, 1, Integer.MAX_VALUE);
+    private static final ForgeConfigSpec.IntValue DEFAULT_MAX_SOLIDS = BUILDER
+            .comment("Default maximum solids capacity for undergarments (used when a design does not specify stats).")
+            .defineInRange("defaultMaxSolids", 3, 1, Integer.MAX_VALUE);
     private static final ForgeConfigSpec SPEC = BUILDER.build();
 
-    public static Map<Item, UndergarmentData> undergarments = new HashMap<>();
-
-    public static void register() {
-        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, SPEC, CONFIG_FILE_NAME);
-    }
+    private static int defaultMaxLiquids = 5;
+    private static int defaultMaxSolids = 3;
 
     @SubscribeEvent
     static void onLoad(final ModConfigEvent event) {
         if (!event.getConfig().getFileName().equals(CONFIG_FILE_NAME)) return;
-        undergarments = UNDERGARMENTS.get().stream()
-                .collect(Collectors.toMap(
-                        data -> ForgeRegistries.ITEMS.getValue(new ResourceLocation(data.get("name"))),
-                        data -> new UndergarmentData(data.get("name"), data.get("maxSolids"), data.get("maxLiquids"))
-                ));
+        defaultMaxLiquids = DEFAULT_MAX_LIQUIDS.get();
+        defaultMaxSolids = DEFAULT_MAX_SOLIDS.get();
+    }
+
+    public static int getDefaultMaxLiquids() {
+        return defaultMaxLiquids;
+    }
+
+    public static int getDefaultMaxSolids() {
+        return defaultMaxSolids;
+    }
+
+    public static void register() {
+        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, SPEC, CONFIG_FILE_NAME);
     }
 }

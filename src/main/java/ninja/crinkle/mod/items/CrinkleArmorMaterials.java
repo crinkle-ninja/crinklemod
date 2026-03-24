@@ -20,22 +20,24 @@ public enum CrinkleArmorMaterials implements StringRepresentable, ArmorMaterial 
             8.0F, 0.5F, () -> Ingredient.of(Items.WHITE_WOOL));
 
     @SuppressWarnings("deprecation")
-    public static final StringRepresentable.EnumCodec<ArmorMaterials> CODEC = StringRepresentable.fromEnum(ArmorMaterials::values);
-    private static final EnumMap<ArmorItem.Type, Integer> HEALTH_FUNCTION_FOR_TYPE = Util.make(new EnumMap<>(ArmorItem.Type.class), (map) -> {
-        map.put(ArmorItem.Type.BOOTS, 13);
-        map.put(ArmorItem.Type.LEGGINGS, 15);
-        map.put(ArmorItem.Type.CHESTPLATE, 16);
-        map.put(ArmorItem.Type.HELMET, 11);
-    });
-    private final String name;
+    public static final StringRepresentable.EnumCodec<ArmorMaterials> CODEC =
+            StringRepresentable.fromEnum(ArmorMaterials::values);
+    private static final EnumMap<ArmorItem.Type, Integer> HEALTH_FUNCTION_FOR_TYPE =
+            Util.make(new EnumMap<>(ArmorItem.Type.class), (map) -> {
+                map.put(ArmorItem.Type.BOOTS, 13);
+                map.put(ArmorItem.Type.LEGGINGS, 15);
+                map.put(ArmorItem.Type.CHESTPLATE, 16);
+                map.put(ArmorItem.Type.HELMET, 11);
+            });
     private final int durabilityMultiplier;
-    private final EnumMap<ArmorItem.Type, Integer> protectionFunctionForType;
     private final int enchantmentValue;
-    private final SoundEvent sound;
-    private final float toughness;
     private final float knockbackResistance;
+    private final String name;
+    private final EnumMap<ArmorItem.Type, Integer> protectionFunctionForType;
     @SuppressWarnings("deprecation")
     private final LazyLoadedValue<Ingredient> repairIngredient;
+    private final SoundEvent sound;
+    private final float toughness;
 
     CrinkleArmorMaterials(String pName, int pDurabilityMultiplier,
                           EnumMap<ArmorItem.Type, Integer> pProtectionFunctionForType, int pEnchantmentValue,

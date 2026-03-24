@@ -2,12 +2,12 @@ package ninja.crinkle.mod.datagen;
 
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.Item;
 import net.minecraftforge.client.model.generators.ItemModelProvider;
 import net.minecraftforge.common.data.ExistingFileHelper;
-import net.minecraftforge.registries.RegistryObject;
 import ninja.crinkle.mod.CrinkleMod;
 import ninja.crinkle.mod.items.CrinkleItems;
+
+import java.util.Objects;
 
 public class CrinkleItemModelProvider extends ItemModelProvider {
     public CrinkleItemModelProvider(PackOutput output, ExistingFileHelper existingFileHelper) {
@@ -16,12 +16,13 @@ public class CrinkleItemModelProvider extends ItemModelProvider {
 
     @Override
     protected void registerModels() {
-        simpleArmorItem(CrinkleItems.DIAPER_PLAIN);
-        simpleArmorItem(CrinkleItems.DIAPER_LITTLE_PAWZ);
+        simpleArmorItem();
     }
 
-    private void simpleArmorItem(RegistryObject<Item> armor) {
-        withExistingParent(armor.getId().getPath(), new ResourceLocation("item/generated"))
-                .texture("layer0", new ResourceLocation(CrinkleMod.MODID, "item/" + armor.getId().getPath()));
+    private void simpleArmorItem() {
+        withExistingParent(Objects.requireNonNull(CrinkleItems.DIAPER.getId()).getPath(), new ResourceLocation("item" +
+                "/generated"))
+                .texture("layer0", new ResourceLocation(CrinkleMod.MODID,
+                        "item/" + CrinkleItems.DIAPER.getId().getPath()));
     }
 }

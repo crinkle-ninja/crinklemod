@@ -9,10 +9,6 @@ public interface IUndergarment extends INBTSerializable<CompoundTag> {
 
     void setLiquids(int value);
 
-    int getSolids();
-
-    void setSolids(int value);
-
     int getMaxLiquids();
 
     void setMaxLiquids(int value);
@@ -20,6 +16,10 @@ public interface IUndergarment extends INBTSerializable<CompoundTag> {
     int getMaxSolids();
 
     void setMaxSolids(int value);
+
+    int getSolids();
+
+    void setSolids(int value);
 
     void save(ItemStack stack);
 }

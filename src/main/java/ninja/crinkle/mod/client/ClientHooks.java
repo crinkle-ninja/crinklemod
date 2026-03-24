@@ -7,16 +7,16 @@ import net.minecraftforge.common.MinecraftForge;
 import ninja.crinkle.mod.events.handlers.CrinkleForgeBusClientEvents;
 
 public class ClientHooks {
-    public static Minecraft getMinecraft() {
-        return Minecraft.getInstance();
+    public static HitResult getHitResult() {
+        return getMinecraft().hitResult;
     }
 
     public static Player getPlayer() {
         return getMinecraft().player;
     }
 
-    public static HitResult getHitResult() {
-        return getMinecraft().hitResult;
+    public static Minecraft getMinecraft() {
+        return Minecraft.getInstance();
     }
 
     public static void registerEvents() {

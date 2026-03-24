@@ -26,15 +26,28 @@ import org.slf4j.Logger;
  * @see net.minecraftforge.common.util.INBTSerializable
  */
 public class MetabolismProvider implements ICapabilityProvider, INBTSerializable<CompoundTag> {
-    private static final Logger LOGGER = LogUtils.getLogger();
     public static final String NAME = "metabolism";
     public static final ResourceLocation IDENTIFIER = new ResourceLocation(CrinkleMod.MODID, NAME);
+    private static final Logger LOGGER = LogUtils.getLogger();
     private final Player player;
     private final IMetabolism storage = new MetabolismImpl();
     private final LazyOptional<IMetabolism> instance = LazyOptional.of(() -> storage);
 
     public MetabolismProvider(Player player) {
         this.player = player;
+    }
+
+    /**
+     * Attach the metabolism capability to an entity.
+     *
+     * @param event The event that is fired when an entity is created and ready for attachment.
+     * @see net.minecraftforge.event.AttachCapabilitiesEvent
+     */
+    public static void attach(final @NotNull AttachCapabilitiesEvent<Entity> event) {
+        if (event.getObject() instanceof Player player) {
+            LOGGER.debug("Attaching metabolism capability to player");
+            event.addCapability(IDENTIFIER, new MetabolismProvider(player));
+        }
     }
 
     /**
@@ -70,18 +83,5 @@ public class MetabolismProvider implements ICapabilityProvider, INBTSerializable
     @Override
     public void deserializeNBT(CompoundTag nbt) {
         storage.deserializeNBT(MetabolismVersions.performUpgrades(this.player, nbt));
-    }
-
-    /**
-     * Attach the metabolism capability to an entity.
-     *
-     * @param event The event that is fired when an entity is created and ready for attachment.
-     * @see net.minecraftforge.event.AttachCapabilitiesEvent
-     */
-    public static void attach(final @NotNull AttachCapabilitiesEvent<Entity> event) {
-        if (event.getObject() instanceof Player player) {
-            LOGGER.debug("Attaching metabolism capability to player");
-            event.addCapability(IDENTIFIER, new MetabolismProvider(player));
-        }
     }
 }

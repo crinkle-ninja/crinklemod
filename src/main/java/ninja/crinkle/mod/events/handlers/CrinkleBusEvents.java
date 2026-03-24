@@ -1,10 +1,9 @@
 package ninja.crinkle.mod.events.handlers;
 
 import com.mojang.logging.LogUtils;
-import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Style;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -18,7 +17,6 @@ import ninja.crinkle.mod.metabolism.Metabolism;
 import ninja.crinkle.mod.network.CrinkleChannel;
 import ninja.crinkle.mod.network.messages.AccidentEventMessage;
 import ninja.crinkle.mod.undergarment.Undergarment;
-import ninja.crinkle.mod.util.MathUtil;
 import org.slf4j.Logger;
 
 
@@ -26,7 +24,88 @@ public class CrinkleBusEvents {
     private static final Logger LOGGER = LogUtils.getLogger();
 
     @SubscribeEvent
-    public void propagateBladderAccident(AccidentEvent.Bladder event) {
+    public void onClientAccident(AccidentEvent event) {
+        if (event.getPlayer() instanceof ServerPlayer) return;
+        SoundEvent soundEvent = switch (event.getType()) {
+            case BLADDER -> SoundEvents.BOTTLE_EMPTY;
+            case BOWEL -> SoundEvents.CHICKEN_EGG;
+            case BOTH -> SoundEvents.BUCKET_EMPTY;
+            default -> throw new IllegalStateException("Unexpected value: " + event.getType());
+        };
+        event.getPlayer().playSound(soundEvent, 0.5F, (float) (0.5 + Math.random()));
+    }
+
+    @SubscribeEvent
+    public void onDesperation(DesperationEvent event) {
+        if (event.getPlayer() instanceof ServerPlayer) {
+            event.getPlayer().sendSystemMessage(Component.translatable("event.crinklemod.undergarment."
+                            + event.getType() + ".desperation.text." + event.getLevel().getLevel())
+                    .withStyle(event.getType().getStyle()));
+        }
+    }
+
+    @SubscribeEvent
+    public void onLeak(LeakEvent event) {
+        event.getPlayer().sendSystemMessage(Component.translatable("event.crinklemod.undergarment."
+                        + event.getType() + ".leak.text")
+                .withStyle(event.getType().getStyle()));
+    }
+
+    @SubscribeEvent
+    public void onServerAccident(AccidentEvent event) {
+        if (!(event.getPlayer() instanceof ServerPlayer)) return;
+        ItemStack itemStack = Undergarment.getWornUndergarment(event.getPlayer());
+        if (itemStack.isEmpty()) return; //TODO: handle accidents without undergarments
+        event.getPlayer().sendSystemMessage(Component.translatable("event.crinklemod.undergarment."
+                        + event.getType() + ".accident.text")
+                .withStyle(event.getType().getStyle()));
+        Undergarment undergarment = Undergarment.of(itemStack);
+        LOGGER.debug("Player {} had a {} accident with {} amount", event.getPlayer().getName().getString(),
+                event.getType(), event.getAmount());
+        switch (event.getType()) {
+            case BLADDER -> handleBladderServerAccident(event, undergarment);
+            case BOWEL -> handleBowelsServerAccident(event, undergarment);
+            case BOTH -> {
+                handleBladderServerAccident(event, undergarment);
+                handleBowelsServerAccident(event, undergarment);
+            }
+        }
+        if (undergarment.isLeaking())
+            handleServerLeak(event, undergarment);
+    }
+
+    private void handleBladderServerAccident(AccidentEvent event, Undergarment undergarment) {
+
+        if (event.getAmount() + undergarment.getLiquids() > undergarment.getMaxLiquids()) {
+            undergarment.setLiquids(undergarment.getMaxLiquids());
+        } else {
+            undergarment.modifyLiquids(event.getAmount());
+        }
+        Metabolism.of(event.getPlayer()).setNumberOneRolls(0);
+    }
+
+    private void handleBowelsServerAccident(AccidentEvent event, Undergarment undergarment) {
+        if (event.getAmount() + undergarment.getSolids() > undergarment.getMaxSolids()) {
+            undergarment.setSolids(undergarment.getMaxSolids());
+        } else {
+            undergarment.modifySolids(event.getAmount());
+        }
+        Metabolism.of(event.getPlayer()).setNumberTwoRolls(0);
+    }
+
+    private void handleServerLeak(AccidentEvent event, Undergarment undergarment) {
+        CrinkleEvent.Type type = switch (event.getType()) {
+            case BLADDER -> CrinkleEvent.Type.LIQUIDS;
+            case BOWEL -> CrinkleEvent.Type.SOLIDS;
+            case BOTH -> CrinkleEvent.Type.BOTH;
+            default -> throw new IllegalStateException("Unexpected value: " + event.getType());
+        };
+        CrinkleMod.EVENT_BUS.post(new LeakEvent(event.getPlayer(), event.getAmount(), undergarment.getItemStack(),
+                AccidentEvent.Side.SERVER, type));
+    }
+
+    @SubscribeEvent
+    public void propagateAccident(AccidentEvent event) {
         CrinkleEvent.Side currentSide = event.getPlayer() instanceof ServerPlayer ?
                 CrinkleEvent.Side.SERVER : CrinkleEvent.Side.CLIENT;
         if (currentSide != event.getSide()) {
@@ -34,119 +113,10 @@ public class CrinkleBusEvents {
         }
         switch (event.getSide()) {
             case CLIENT -> CrinkleChannel.INSTANCE.sendToServer(
-                    new AccidentEventMessage(AccidentEventMessage.AccidentType.BLADDER, event.getAmount()));
+                    new AccidentEventMessage(event.getType(), event.getAmount()));
             case SERVER -> CrinkleChannel.INSTANCE.send(PacketDistributor.PLAYER.with(
                             () -> (ServerPlayer) event.getPlayer()),
-                    new AccidentEventMessage(AccidentEventMessage.AccidentType.BLADDER, event.getAmount()));
+                    new AccidentEventMessage(event.getType(), event.getAmount()));
         }
-    }
-
-    @SubscribeEvent
-    public void propagateBowelsAccident(AccidentEvent.Bowels event) {
-        CrinkleEvent.Side currentSide = event.getPlayer() instanceof ServerPlayer ?
-                CrinkleEvent.Side.SERVER : CrinkleEvent.Side.CLIENT;
-        if (currentSide != event.getSide()) {
-            return;
-        }
-        switch (event.getSide()) {
-            case CLIENT -> CrinkleChannel.INSTANCE.sendToServer(
-                    new AccidentEventMessage(AccidentEventMessage.AccidentType.BOWELS, event.getAmount()));
-            case SERVER -> CrinkleChannel.INSTANCE.send(PacketDistributor.PLAYER.with(
-                            () -> (ServerPlayer) event.getPlayer()),
-                    new AccidentEventMessage(AccidentEventMessage.AccidentType.BOWELS, event.getAmount()));
-        }
-    }
-
-    @SubscribeEvent
-    public void onBladderDesperation(DesperationEvent.Bladder event) {
-        if (event.getPlayer() instanceof ServerPlayer) {
-            Style style = Style.EMPTY.withColor(ChatFormatting.YELLOW);
-            event.getPlayer().sendSystemMessage(
-                    Component.translatable("event.crinklemod.undergarment.bladder.desperation.text."
-                                    + event.getLevel()).withStyle(style));
-        }
-    }
-
-    @SubscribeEvent
-    public void onBowelsDesperation(DesperationEvent.Bowels event) {
-        if (event.getPlayer() instanceof ServerPlayer) {
-            Style style = Style.EMPTY.withColor(ChatFormatting.DARK_GREEN);
-            event.getPlayer().sendSystemMessage(
-                    Component.translatable("event.crinklemod.undergarment.bowel.desperation.text."
-                                    + event.getLevel()).withStyle(style));
-        }
-    }
-
-    @SubscribeEvent
-    public void onBladderAccident(AccidentEvent.Bladder event) {
-        if (event.getPlayer() instanceof ServerPlayer) {
-            ItemStack itemStack = Undergarment.getWornUndergarment(event.getPlayer());
-            Style style = Style.EMPTY.withColor(ChatFormatting.YELLOW);
-            if (itemStack.isEmpty()) {
-                event.getPlayer().sendSystemMessage(
-                        Component.translatable("event.crinklemod.undergarment.bladder.accident_no_pants.text").withStyle(style));
-            } else {
-                event.getPlayer().sendSystemMessage(
-                        Component.translatable("event.crinklemod.undergarment.bladder.accident.text").withStyle(style));
-                Undergarment undergarment = Undergarment.of(itemStack);
-                LOGGER.debug("Player {} had a bladder accident with {} amount of liquids", event.getPlayer().getName().getString(), event.getAmount());
-                if (event.getAmount() + undergarment.getLiquids() > undergarment.getMaxLiquids()) {
-                    int amount = undergarment.getLiquids() - undergarment.getMaxLiquids();
-                    undergarment.setLiquids(undergarment.getMaxLiquids());
-                    CrinkleMod.EVENT_BUS.post(new LeakEvent.Liquids(event.getPlayer(), amount, undergarment.getItemStack(),
-                            AccidentEvent.Side.SERVER));
-                } else {
-                    undergarment.modifyLiquids(event.getAmount());
-                }
-            }
-            Metabolism metabolism = Metabolism.of(event.getPlayer());
-            metabolism.setNumberOneRolls(0);
-            metabolism.syncClient();
-        } else {
-            event.getPlayer().playSound(SoundEvents.BOTTLE_EMPTY, 0.5F, (float) (0.5 + Math.random()));
-        }
-    }
-
-    @SubscribeEvent
-    public void onBowelsAccident(AccidentEvent.Bowels event) {
-        if (event.getPlayer() instanceof ServerPlayer) {
-            ItemStack itemStack = Undergarment.getWornUndergarment(event.getPlayer());
-            Style style = Style.EMPTY.withColor(ChatFormatting.DARK_GREEN);
-            if (itemStack.isEmpty()) {
-                event.getPlayer().sendSystemMessage(
-                        Component.translatable("event.crinklemod.undergarment.bowel.accident_no_pants.text").withStyle(style));
-            } else {
-                event.getPlayer().sendSystemMessage(
-                        Component.translatable("event.crinklemod.undergarment.bowel.accident.text").withStyle(style));
-                Undergarment undergarment = Undergarment.of(itemStack);
-                if (event.getAmount() + undergarment.getSolids() > undergarment.getMaxSolids()) {
-                    int amount = undergarment.getSolids() - undergarment.getMaxSolids();
-                    undergarment.setSolids(undergarment.getMaxSolids());
-                    CrinkleMod.EVENT_BUS.post(new LeakEvent.Solids(event.getPlayer(), amount, undergarment.getItemStack(),
-                            AccidentEvent.Side.SERVER));
-                } else {
-                    undergarment.modifySolids(event.getAmount());
-                }
-            }
-            Metabolism metabolism = Metabolism.of(event.getPlayer());
-            metabolism.setNumberTwoRolls(0);
-            metabolism.syncClient();
-        } else {
-            event.getPlayer().playSound(SoundEvents.CHICKEN_EGG, 0.5F, (float)(0.5 + Math.random()));
-        }
-    }
-
-    @SubscribeEvent
-    public void onLiquidsLeakAccident(LeakEvent.Liquids event) {
-        Style style = Style.EMPTY.withColor(ChatFormatting.YELLOW).applyFormat(ChatFormatting.BOLD);
-        event.getPlayer().sendSystemMessage(
-                Component.translatable("event.crinklemod.undergarment.liquids.leak.text").withStyle(style));
-    }
-
-    @SubscribeEvent
-    public void onSolidsLeakAccident(LeakEvent.Solids event) {
-        Style style = Style.EMPTY.withColor(ChatFormatting.DARK_GREEN).applyFormat(ChatFormatting.BOLD);
-        event.getPlayer().sendSystemMessage(
-                Component.translatable("event.crinklemod.undergarment.solids.leak.text").withStyle(style));
     }
 }

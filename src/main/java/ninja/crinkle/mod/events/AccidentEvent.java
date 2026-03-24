@@ -1,7 +1,6 @@
 package ninja.crinkle.mod.events;
 
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.eventbus.api.Event;
 import ninja.crinkle.mod.capabilities.MetabolismImpl;
 
 /**
@@ -11,39 +10,12 @@ import ninja.crinkle.mod.capabilities.MetabolismImpl;
  * @see net.minecraftforge.eventbus.api.Event
  * @see MetabolismImpl
  */
-public abstract class AccidentEvent extends CrinkleEvent {
+public class AccidentEvent extends CrinkleEvent {
     private final int amount;
 
-    public AccidentEvent(Player player, int amount, Side side) {
-        super(side, player);
+    public AccidentEvent(Player player, int amount, Side side, Type type) {
+        super(side, player, type);
         this.amount = amount;
-    }
-
-    /**
-     * Get the amount of liquids or solids that were lost
-     *
-     * @return The amount of liquids or solids that were lost
-     */
-    public int getAmount() {
-        return amount;
-    }
-
-    /**
-     * An accident event that is fired when a player has a bladder accident.
-     */
-    public static class Bladder extends AccidentEvent {
-        public Bladder(Player player, int amount, Side side) {
-            super(player, amount, side);
-        }
-    }
-
-    /**
-     * An accident event that is fired when a player has a bowel accident.
-     */
-    public static class Bowels extends AccidentEvent {
-        public Bowels(Player player, int amount, Side side) {
-            super(player, amount, side);
-        }
     }
 
     @Override
@@ -53,5 +25,14 @@ public abstract class AccidentEvent extends CrinkleEvent {
                 ", amount=" + getAmount() +
                 ", player=" + getPlayer() +
                 '}';
+    }
+
+    /**
+     * Get the amount of liquids or solids that were lost
+     *
+     * @return The amount of liquids or solids that were lost
+     */
+    public int getAmount() {
+        return amount;
     }
 }

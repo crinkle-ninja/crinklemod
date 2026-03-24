@@ -30,7 +30,9 @@ public class DunnyItem extends BlockItem implements GeoItem {
             @Override
             public BlockEntityWithoutLevelRenderer getCustomRenderer() {
                 if (this.renderer == null)
-                    this.renderer = new GeoItemRenderer<>(new DefaultedBlockGeoModel<>(new ResourceLocation(CrinkleMod.MODID, "dunny")));
+                    this.renderer =
+                            new GeoItemRenderer<>(new DefaultedBlockGeoModel<>(new ResourceLocation(CrinkleMod.MODID,
+                                    "dunny")));
                 return this.renderer;
             }
         });

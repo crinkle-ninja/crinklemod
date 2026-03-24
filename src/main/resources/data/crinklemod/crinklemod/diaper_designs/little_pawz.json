@@ -1,0 +1,32 @@
+{
+  "display_name": "Little Pawz",
+  "armor_texture": "crinklemod:armor/diaper_little_pawz",
+  "item_texture": "crinklemod:item/diaper_little_pawz",
+  "stats": {
+    "max_liquids": 5,
+    "max_solids": 3
+  },
+  "texture_overlays": {
+    "wet": {
+      "parts": [
+        "FRONT",
+        "FRONT_BOTTOM",
+        "BOTTOM"
+      ],
+      "fade_colors": [
+        "#DFDFE0",
+        "#BDBDBD"
+      ]
+    },
+    "mess": {
+      "parts": [
+        "BACK",
+        "BACK_BOTTOM"
+      ],
+      "fade_colors": [
+        "#DFDFE0",
+        "#BDBDBD"
+      ]
+    }
+  }
+}

@@ -15,20 +15,47 @@ import net.minecraftforge.entity.IEntityAdditionalSpawnData;
  */
 @AutoRegisterCapability
 public interface IMetabolism extends INBTSerializable<CompoundTag>, IEntityAdditionalSpawnData {
-    int getTimer();
-    void setTimer(int timer);
-    int getNumberOneRolls();
-    void setNumberOneRolls(int rolls);
-    int getNumberOneSafeRolls();
-    void setNumberOneSafeRolls(int safeRolls);
+    int getIndicatorPositionX();
+
+    void setIndicatorPositionX(int x);
+
+    int getIndicatorPositionY();
+
+    void setIndicatorPositionY(int y);
+
     double getNumberOneChance();
+
     void setNumberOneChance(double numberOneChance);
-    int getNumberTwoRolls();
-    void setNumberTwoRolls(int rolls);
-    int getNumberTwoSafeRolls();
-    void setNumberTwoSafeRolls(int safeRolls);
+
+    int getNumberOneRolls();
+
+    void setNumberOneRolls(int rolls);
+
+    int getNumberOneSafeRolls();
+
+    void setNumberOneSafeRolls(int safeRolls);
+
     double getNumberTwoChance();
+
     void setNumberTwoChance(double numberTwoChance);
-    boolean isEnabled();
-    void setEnabled(boolean enabled);
+
+    int getNumberTwoRolls();
+
+    void setNumberTwoRolls(int rolls);
+
+    int getNumberTwoSafeRolls();
+
+    void setNumberTwoSafeRolls(int safeRolls);
+
+    int getTimer();
+
+    void setTimer(int timer);
+
+    boolean isNumberOneEnabled();
+
+    void setNumberOneEnabled(boolean enabled);
+
+    boolean isNumberTwoEnabled();
+
+    void setNumberTwoEnabled(boolean enabled);
 }

@@ -18,9 +18,9 @@ import java.util.function.Supplier;
 public class UndergarmentUpdateMessage {
     private static final Logger LOGGER = LogUtils.getLogger();
     private Integer liquids;
-    private Integer solids;
     private Integer maxLiquids;
     private Integer maxSolids;
+    private Integer solids;
 
     UndergarmentUpdateMessage(@Nullable Integer liquids, @Nullable Integer solids,
                               @Nullable Integer maxLiquids, @Nullable Integer maxSolids) {
@@ -47,40 +47,6 @@ public class UndergarmentUpdateMessage {
 
     public static Builder builder() {
         return new Builder();
-    }
-
-    public static class Builder {
-        private Integer liquids;
-        private Integer solids;
-        private Integer maxLiquids;
-        private Integer maxSolids;
-
-        Builder() {
-        }
-
-        public Builder liquids(int liquids) {
-            this.liquids = liquids;
-            return this;
-        }
-
-        public Builder solids(int solids) {
-            this.solids = solids;
-            return this;
-        }
-
-        public Builder maxLiquids(int maxLiquids) {
-            this.maxLiquids = maxLiquids;
-            return this;
-        }
-
-        public Builder maxSolids(int maxSolids) {
-            this.maxSolids = maxSolids;
-            return this;
-        }
-
-        public UndergarmentUpdateMessage build() {
-            return new UndergarmentUpdateMessage(this.liquids, this.solids, this.maxLiquids, this.maxSolids);
-        }
     }
 
     @Contract("_ -> new")
@@ -137,5 +103,39 @@ public class UndergarmentUpdateMessage {
 
     public void sendToServer() {
         CrinkleChannel.INSTANCE.sendToServer(this);
+    }
+
+    public static class Builder {
+        private Integer liquids;
+        private Integer maxLiquids;
+        private Integer maxSolids;
+        private Integer solids;
+
+        Builder() {
+        }
+
+        public UndergarmentUpdateMessage build() {
+            return new UndergarmentUpdateMessage(this.liquids, this.solids, this.maxLiquids, this.maxSolids);
+        }
+
+        public Builder liquids(int liquids) {
+            this.liquids = liquids;
+            return this;
+        }
+
+        public Builder maxLiquids(int maxLiquids) {
+            this.maxLiquids = maxLiquids;
+            return this;
+        }
+
+        public Builder maxSolids(int maxSolids) {
+            this.maxSolids = maxSolids;
+            return this;
+        }
+
+        public Builder solids(int solids) {
+            this.solids = solids;
+            return this;
+        }
     }
 }

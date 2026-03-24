@@ -1,57 +1,81 @@
 {
-	"format_version": "1.8.0",
-	"animations": {
-		"animation.Dunny.seat.open.deploy": {
-			"loop": "hold_on_last_frame",
-			"animation_length": 1,
-			"bones": {
-				"seat": {
-					"rotation": {
-						"0.0": {
-							"vector": [0, 0, 0]
-						},
-						"1.0": {
-							"vector": [-90, 0, 0]
-						}
-					}
-				}
-			}
-		},
-		"animation.Dunny.seat.close.deploy": {
-			"loop": "hold_on_last_frame",
-			"animation_length": 1,
-			"bones": {
-				"seat": {
-					"rotation": {
-						"0.0": {
-							"vector": [-90, 0, 0]
-						},
-						"1.0": {
-							"vector": [0, 0, 0]
-						}
-					}
-				}
-			}
-		},
-		"animation.Dunny.seat.open.idle": {
-			"loop": "hold_on_last_frame",
-			"bones": {
-				"seat": {
-					"rotation": {
-						"vector": [-90, 0, 0]
-					}
-				}
-			}
-		},
-		"animation.Dunny.seat.close.idle": {
-			"loop": "hold_on_last_frame",
-			"bones": {
-				"seat": {
-					"rotation": {
-						"vector": [0, 0, 0]
-					}
-				}
-			}
-		}
-	}
+  "format_version": "1.8.0",
+  "animations": {
+    "animation.Dunny.seat.open.deploy": {
+      "loop": "hold_on_last_frame",
+      "animation_length": 1,
+      "bones": {
+        "seat": {
+          "rotation": {
+            "0.0": {
+              "vector": [
+                0,
+                0,
+                0
+              ]
+            },
+            "1.0": {
+              "vector": [
+                -90,
+                0,
+                0
+              ]
+            }
+          }
+        }
+      }
+    },
+    "animation.Dunny.seat.close.deploy": {
+      "loop": "hold_on_last_frame",
+      "animation_length": 1,
+      "bones": {
+        "seat": {
+          "rotation": {
+            "0.0": {
+              "vector": [
+                -90,
+                0,
+                0
+              ]
+            },
+            "1.0": {
+              "vector": [
+                0,
+                0,
+                0
+              ]
+            }
+          }
+        }
+      }
+    },
+    "animation.Dunny.seat.open.idle": {
+      "loop": "hold_on_last_frame",
+      "bones": {
+        "seat": {
+          "rotation": {
+            "vector": [
+              -90,
+              0,
+              0
+            ]
+          }
+        }
+      }
+    },
+    "animation.Dunny.seat.close.idle": {
+      "loop": "hold_on_last_frame",
+      "bones": {
+        "seat": {
+          "rotation": {
+            "vector": [
+              0,
+              0,
+              0
+            ]
+          }
+        }
+      }
+    }
+  }
 }

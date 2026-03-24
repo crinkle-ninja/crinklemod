@@ -1,0 +1,24 @@
+{
+  "display_name": "Diaper",
+  "armor_texture": "crinklemod:armor/diaper_plain",
+  "item_texture": "crinklemod:item/diaper",
+  "stats": {
+    "max_liquids": 5,
+    "max_solids": 3
+  },
+  "texture_overlays": {
+    "wet": {
+      "parts": [
+        "FRONT",
+        "FRONT_BOTTOM",
+        "BOTTOM"
+      ]
+    },
+    "mess": {
+      "parts": [
+        "BACK",
+        "BACK_BOTTOM"
+      ]
+    }
+  }
+}
