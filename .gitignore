@@ -32,3 +32,4 @@ forge*changelog.txt
 #macos
 .DS_Store
 logs
+/mcmodsrepo/
