@@ -2,6 +2,7 @@ package ninja.crinkle.mod.client.gui.addons;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.logging.LogUtils;
+import net.minecraft.client.gui.screens.PauseScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.client.event.InputEvent;
@@ -13,6 +14,7 @@ import ninja.crinkle.mod.client.gui.properties.Point;
 import ninja.crinkle.mod.client.gui.properties.Rect;
 import ninja.crinkle.mod.client.gui.renderers.ThemeGraphics;
 import ninja.crinkle.mod.client.gui.screens.AbstractScreen;
+import ninja.crinkle.mod.client.gui.screens.CrinkleModConfigScreen;
 import ninja.crinkle.mod.client.gui.screens.LayoutEditorScreen;
 import ninja.crinkle.mod.client.gui.textures.ThemeAtlas;
 import ninja.crinkle.mod.util.ClientUtil;
@@ -54,6 +56,11 @@ public abstract class AbstractAddOn extends AbstractScreen {
         if (ClientSetup.LAYOUT_EDITOR_KEY != null
                 && ClientSetup.LAYOUT_EDITOR_KEY.matches(event.getKeyCode(), event.getScanCode())) {
             ClientUtil.getMinecraft().setScreen(new LayoutEditorScreen(this));
+            event.setCanceled(true);
+        }
+        if (ClientSetup.CRINKLE_CONFIG_KEY != null
+                && ClientSetup.CRINKLE_CONFIG_KEY.matches(event.getKeyCode(), event.getScanCode())) {
+            ClientUtil.getMinecraft().setScreen(new CrinkleModConfigScreen());
             event.setCanceled(true);
         }
     }

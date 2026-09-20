@@ -1,0 +1,33 @@
+{
+  "display_name": "Snow Day",
+  "armor_texture": "crinklemod:armor/diaper_snowday",
+  "item_texture": "crinklemod:item/diaper_snowday",
+  "stats": {
+    "max_liquids": 5,
+    "max_solids": 3
+  },
+  "texture_overlays": {
+    "wet": {
+      "parts": [
+        "FRONT_BOTTOM",
+        "BOTTOM"
+      ],
+      "fade_colors": [
+        "#f1faff", 
+        "#ceedff", 
+        "#cef0ff"
+      ]
+    },
+    "mess": {
+      "parts": [
+        "BACK",
+        "BACK_BOTTOM"
+      ],
+      "fade_colors": [
+        "#f1faff", 
+        "#ceedff", 
+        "#cef0ff"
+      ]
+    }
+  }
+}

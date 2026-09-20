@@ -49,7 +49,7 @@ public interface IManagedGUI {
                 entry.onApply().accept(defaultRect);
                 LayoutRegistry.savePosition(entry.id(), defaultRect, width(), height());
             }
-            nextX += w + 4;
+            nextX += w;
         }
     }
 

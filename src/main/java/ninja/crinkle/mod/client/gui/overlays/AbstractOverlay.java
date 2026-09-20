@@ -7,6 +7,7 @@ import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 import ninja.crinkle.mod.client.gui.managers.GuiManager;
 import ninja.crinkle.mod.client.gui.managers.IManagedGUI;
 import ninja.crinkle.mod.client.gui.properties.Point;
+import ninja.crinkle.mod.client.gui.properties.Rect;
 import ninja.crinkle.mod.client.gui.renderers.ThemeGraphics;
 import ninja.crinkle.mod.client.gui.textures.ThemeAtlas;
 import org.slf4j.Logger;
@@ -44,10 +45,12 @@ public abstract class AbstractOverlay implements IGuiOverlay, IManagedGUI {
     }
 
     protected void onScreenResize() {
+        manager().root().setRect(new Rect(0, 0, lastScreenWidth, lastScreenHeight));
         resolveLayoutPositions();
     }
 
     public void init() {
+        manager().root().setRect(new Rect(0, 0, lastScreenWidth, lastScreenHeight));
         registerLayoutEntries();
         resolveLayoutPositions();
         ready = true;

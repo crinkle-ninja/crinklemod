@@ -912,6 +912,16 @@
             }
           }
         }
+      },
+      {
+        "id": "icon",
+        "variants": {
+          "base": {
+            "foreground": {
+              "color": "white"
+            }
+          }
+        }
       }
     ],
     "icons": [

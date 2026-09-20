@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Random;
 
 public record Color(int color, Type type) {
     private static final @NotNull Color INVALID = new Color(-1, Type.INVALID);
@@ -42,17 +43,29 @@ public record Color(int color, Type type) {
 
     @Contract("_, _, _ -> new")
     public static @NotNull Color of(double red, double green, double blue) {
-        return Color.of(red, green, blue, 255);
+        return Color.of(red, green, blue, 1.0);
     }
 
     @Contract("_, _, _, _ -> new")
     public static @NotNull Color of(double red, double green, double blue, double alpha) {
-        return new Color((int) (alpha * 255) << 24 | (int) (red * 255) << 16 | (int) (green * 255) << 8 | (int) (blue * 255));
+        int a = clamp8(alpha);
+        int r = clamp8(red);
+        int g = clamp8(green);
+        int b = clamp8(blue);
+        return new Color(a << 24 | r << 16 | g << 8 | b);
+    }
+
+    private static int clamp8(double value) {
+        return Math.max(0, Math.min(255, (int) (value * 255)));
     }
 
     @Contract("_, _, _ -> new")
     public static @NotNull Color of(int red, int green, int blue) {
         return Color.of(red, green, blue, 255);
+    }
+
+    public static @NotNull Color of(int red, int green, int blue, double alpha) {
+        return Color.of(red, green, blue, clamp8(255 * alpha));
     }
 
     @Contract("_, _, _, _ -> new")
@@ -121,6 +134,14 @@ public record Color(int color, Type type) {
     @Contract("_ -> new")
     public static @NotNull Color ofABGR(int color) {
         return new Color(((color & 0xFF000000) | ((color & 0x00FF0000) >> 16) | (color & 0x0000FF00) | ((color & 0x000000FF) << 16)));
+    }
+
+    public static @NotNull Color random() {
+        Random random = new Random();
+        int r = (random.nextInt(256) + 255) / 2;
+        int g = (random.nextInt(256) + 255) / 2;
+        int b = (random.nextInt(256) + 255) / 2;
+        return Color.of(r, g, b);
     }
 
     public int ABGR() {

@@ -119,6 +119,10 @@ public class Player implements ThemeRenderable {
         }
         elapsedTime = gameTime - startTime;
         int frameIndex = (int) (elapsedTime / frameTime()) % sprite.frames().size();
+        if (frameIndex >= sprite.frames().size()) {
+            LOGGER.warn("frameIndex ({}) >= sprite.frames().size() ({})", frameIndex, sprite.frames().size());
+            return sprite.frames().get(0);
+        }
         return sprite.frames().get(frameIndex);
     }
 

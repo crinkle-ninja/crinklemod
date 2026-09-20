@@ -17,6 +17,7 @@ import static ninja.crinkle.mod.CrinkleMod.MODID;
 
 @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class ClientSetup {
+    public static KeyMapping CRINKLE_CONFIG_KEY;
     public static KeyMapping LAYOUT_EDITOR_KEY;
 
     @SubscribeEvent
@@ -40,6 +41,14 @@ public class ClientSetup {
                 GLFW.GLFW_KEY_F7,
                 "key.categories.crinklemod"
         );
+        CRINKLE_CONFIG_KEY = new KeyMapping(
+                "key.crinklemod.crinkle_config",
+                KeyConflictContext.IN_GAME,
+                InputConstants.Type.KEYSYM,
+                GLFW.GLFW_KEY_C,
+                "key.categories.crinklemod"
+        );
         event.register(LAYOUT_EDITOR_KEY);
+        event.register(CRINKLE_CONFIG_KEY);
     }
 }

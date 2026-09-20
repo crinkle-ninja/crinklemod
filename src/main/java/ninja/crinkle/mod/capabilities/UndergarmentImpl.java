@@ -1,39 +1,46 @@
 package ninja.crinkle.mod.capabilities;
 
-import com.mojang.logging.LogUtils;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import ninja.crinkle.mod.config.UndergarmentConfig;
 import ninja.crinkle.mod.items.custom.DiaperArmorItem;
 import ninja.crinkle.mod.undergarment.DiaperDesign;
+import ninja.crinkle.mod.undergarment.DiaperDesignRegistry;
 import ninja.crinkle.mod.undergarment.Undergarment;
 import ninja.crinkle.mod.util.MathUtil;
-import org.slf4j.Logger;
+
+import java.util.Optional;
 
 public class UndergarmentImpl implements IUndergarment {
-    private static final Logger LOGGER = LogUtils.getLogger();
     private static final String NBT_KEY_LIQUIDS = "liquids";
     private static final String NBT_KEY_MAX_LIQUIDS = "maxLiquids";
     private static final String NBT_KEY_MAX_SOLIDS = "maxSolids";
     private static final String NBT_KEY_SOLIDS = "solids";
+    private static final String NBT_KEY_DESIGN = "design";
     private int liquids;
     private int maxLiquids;
     private int maxSolids;
     private int solids;
+    private DiaperDesign design;
 
     public UndergarmentImpl(ItemStack stack) {
-        // Try design-specific stats first, fall back to global config defaults
-        DiaperDesign design = DiaperArmorItem.getDesign(stack, false);
-        if (design != null && design.maxLiquids() != null) {
-            maxLiquids = design.maxLiquids();
-        } else {
-            maxLiquids = UndergarmentConfig.getDefaultMaxLiquids();
-        }
-        if (design != null && design.maxSolids() != null) {
-            maxSolids = design.maxSolids();
-        } else {
-            maxSolids = UndergarmentConfig.getDefaultMaxSolids();
-        }
+        Optional.ofNullable(DiaperArmorItem.getDesign(stack, false)).ifPresent(this::setDesign);
+        getDesign().ifPresentOrElse(d -> {
+            setMaxLiquids(Optional.ofNullable(d.maxLiquids()).orElse(UndergarmentConfig.getDefaultMaxLiquids()));
+            setMaxSolids(Optional.ofNullable(d.maxSolids()).orElse(UndergarmentConfig.getDefaultMaxSolids()));
+        }, () -> {
+            setMaxSolids(UndergarmentConfig.getDefaultMaxSolids());
+            setMaxLiquids(UndergarmentConfig.getDefaultMaxLiquids());
+        });
+    }
+
+    public Optional<DiaperDesign> getDesign() {
+        return Optional.ofNullable(design);
+    }
+
+    public void setDesign(DiaperDesign design) {
+        this.design = design;
     }
 
     @Override
@@ -85,11 +92,11 @@ public class UndergarmentImpl implements IUndergarment {
     @Override
     public CompoundTag serializeNBT() {
         CompoundTag nbt = new CompoundTag();
-        // LOGGER.debug("Serializing undergarment data: {}", this);
         nbt.putInt(NBT_KEY_LIQUIDS, liquids);
         nbt.putInt(NBT_KEY_SOLIDS, solids);
         nbt.putInt(NBT_KEY_MAX_LIQUIDS, maxLiquids);
         nbt.putInt(NBT_KEY_MAX_SOLIDS, maxSolids);
+        getDesign().ifPresent(d -> nbt.putString(NBT_KEY_DESIGN, d.id().toString()));
         return nbt;
     }
 
@@ -99,6 +106,10 @@ public class UndergarmentImpl implements IUndergarment {
             maxLiquids = nbt.getInt(NBT_KEY_MAX_LIQUIDS);
         if (nbt.contains(NBT_KEY_MAX_SOLIDS))
             maxSolids = nbt.getInt(NBT_KEY_MAX_SOLIDS);
+        if (nbt.contains(NBT_KEY_DESIGN)) {
+            ResourceLocation designId = new ResourceLocation(nbt.getString(NBT_KEY_DESIGN));
+            DiaperDesignRegistry.getDesign(designId, true).ifPresent(this::setDesign);
+        }
         setLiquids(nbt.getInt(NBT_KEY_LIQUIDS));
         setSolids(nbt.getInt(NBT_KEY_SOLIDS));
     }
@@ -127,7 +138,7 @@ public class UndergarmentImpl implements IUndergarment {
 
     @Override
     public String toString() {
-        return String.format("UndergarmentImpl{liquids=%d, solids=%d, maxLiquids=%d, maxSolids=%d}", liquids, solids,
-                maxLiquids, maxSolids);
+        return String.format("UndergarmentImpl{liquids=%d, solids=%d, maxLiquids=%d, maxSolids=%d, design=%s}",
+                liquids, solids, maxLiquids, maxSolids, getDesign().toString());
     }
 }

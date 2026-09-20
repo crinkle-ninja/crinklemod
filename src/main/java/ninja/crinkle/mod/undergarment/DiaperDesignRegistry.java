@@ -16,7 +16,7 @@ import java.util.*;
 
 public class DiaperDesignRegistry extends SimpleJsonResourceReloadListener {
     public static final String DIRECTORY = CrinkleMod.MODID + "/diaper_designs";
-    public static final ResourceLocation PLAIN_ID = CrinkleMod.loc("plain");
+    public static final ResourceLocation PLAIN_ID = CrinkleMod.loc("diaper_white");
     private static final Logger LOGGER = LogUtils.getLogger();
     private static final Gson GSON = new GsonBuilder().create();
 

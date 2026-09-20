@@ -1,8 +1,12 @@
 package ninja.crinkle.mod.client.gui.widgets;
 
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Renderable;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.gui.screens.inventory.tooltip.TooltipRenderUtil;
+import net.minecraft.network.chat.Component;
 import ninja.crinkle.mod.client.color.Color;
 import ninja.crinkle.mod.client.gui.builders.GenericBuilder;
 import ninja.crinkle.mod.client.gui.events.*;
@@ -19,10 +23,12 @@ import ninja.crinkle.mod.client.gui.states.WidgetDisplay;
 import ninja.crinkle.mod.client.gui.textures.ThemeAtlas;
 import ninja.crinkle.mod.client.gui.themes.Style;
 import ninja.crinkle.mod.client.gui.themes.StyleVariant;
+import ninja.crinkle.mod.client.gui.themes.Theme;
 import ninja.crinkle.mod.client.gui.themes.ThemeRegistry;
 import ninja.crinkle.mod.config.ClientConfig;
 import ninja.crinkle.mod.util.ClientUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Comparator;
 import java.util.EnumSet;
@@ -46,16 +52,16 @@ public abstract class AbstractWidget implements Renderable, Widget, EventNode,
     private int priority;
     private Rect rect = Rect.ZERO;
     private float stretchRatio;
-    private Style style;
     private String styleId;
     private int tabIndex;
     private EnumSet<Sizing> verticalSizing;
+    private Color debugColor;
+    private Component tooltip;
 
     protected AbstractWidget(@NotNull AbstractBuilder<?> builder) {
         this.activePredicate = builder.activePredicate();
         this.name = builder.name();
         this.styleId = builder.styleId();
-        this.style = builder.resolvedStyle();
         this.tabIndex = builder.tabIndex();
         this.manager = builder.manager();
         this.priority = builder.priority();
@@ -67,6 +73,8 @@ public abstract class AbstractWidget implements Renderable, Widget, EventNode,
         this.horizontalSizing = builder.horizontalSizing();
         this.verticalSizing = builder.verticalSizing();
         this.stretchRatio = builder.stretchRatio();
+        this.debugColor = Color.random();
+        this.tooltip = builder.tooltip();
 
         if (builder.zIndex() == DragManager.Z_MIN) {
             parent().filter(p -> !p.equals(this)).ifPresent(p -> zIndex(nextZIndex()));
@@ -82,7 +90,6 @@ public abstract class AbstractWidget implements Renderable, Widget, EventNode,
     public AbstractWidget() {
         this.activePredicate = null;
         this.name = "Unnamed_" + hashCode();
-        this.style = null;
         this.tabIndex = 0;
         this.manager = GuiManager.create();
         this.priority = 1;
@@ -94,6 +101,7 @@ public abstract class AbstractWidget implements Renderable, Widget, EventNode,
         this.horizontalSizing = EnumSet.of(Sizing.Fill);
         this.verticalSizing = EnumSet.of(Sizing.Fill);
         this.stretchRatio = 1.0f;
+        this.debugColor = Color.random();
     }
 
     public static int zIndexOf(AbstractWidget widget) {
@@ -172,16 +180,18 @@ public abstract class AbstractWidget implements Renderable, Widget, EventNode,
         return current;
     }
 
+    @Nullable
     public Style style() {
         if (styleId != null) {
-            return ThemeRegistry.current().style(styleId);
+            Theme theme = ThemeRegistry.current();
+            return theme != null ? theme.style(styleId) : null;
         }
-        return style;
+        return null;
     }
 
     protected void copyVisualProperties(AbstractWidget source) {
         this.name = source.name;
-        this.style = source.style;
+        this.styleId = source.styleId;
         this.minWidth = source.minWidth;
         this.minHeight = source.minHeight;
         this.horizontalSizing = EnumSet.copyOf(source.horizontalSizing);
@@ -234,12 +244,11 @@ public abstract class AbstractWidget implements Renderable, Widget, EventNode,
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == this) return true;
         if (obj == null || obj.getClass() != this.getClass()) return false;
         var that = (AbstractWidget) obj;
         return Objects.equals(this.activePredicate, that.activePredicate) &&
                 Objects.equals(this.name, that.name) &&
-                Objects.equals(this.style, that.style) &&
+                Objects.equals(this.styleId, that.styleId) &&
                 this.tabIndex == that.tabIndex &&
                 this.priority == that.priority &&
                 Objects.equals(this.parent, that.parent) &&
@@ -311,11 +320,6 @@ public abstract class AbstractWidget implements Renderable, Widget, EventNode,
     protected void init() {
     }
 
-    public void layoutChanged() {
-        LayoutChangedEvent event = new LayoutChangedEvent(this);
-        dispatchEvent(event);
-    }
-
     public int minimumHeight() {
         return minHeight;
     }
@@ -352,14 +356,14 @@ public abstract class AbstractWidget implements Renderable, Widget, EventNode,
     @Override
     public void renderDebug(ThemeGraphics pGuiGraphics) {
         if (parent().isEmpty()) return;
-        pGuiGraphics.drawRect(rect, Color.GREEN, zIndex());
+        pGuiGraphics.drawBox(rect, debugColor, zIndex() + 1);
     }
 
     private int nextPriority() {
         return parent().map(abstractContainer -> abstractContainer.children().stream()
                         .mapToInt(AbstractWidget::priority).max()
                         .orElse(abstractContainer.priority()) - EventManager.PRIORITY_STEP)
-                .orElseGet(() -> EventManager.PRIORITY_STEP);
+                .orElse(EventManager.PRIORITY_STEP);
     }
 
     private int nextZIndex() {
@@ -509,17 +513,30 @@ public abstract class AbstractWidget implements Renderable, Widget, EventNode,
     public void render(@NotNull ThemeGraphics graphics, Point pMouse, float pPartialTick) {
         if (!visible() || rect == null || rect.equals(Rect.ZERO)) return;
         Style s = style();
-        if (!ClientConfig.debug() && s != null) s.render(graphics, rect, this);
+        if (s != null) s.render(graphics, rect, this);
         renderContent(graphics, pMouse, rect, pPartialTick);
         if (ClientConfig.debug()) {
             renderDebug(graphics);
         }
+        if (hovered() && tooltip() != null) {
+            graphics.renderTooltip(ClientUtil.getMinecraft().font, tooltip(), pMouse.xInt(), pMouse.yInt());
+        }
     }
 
+    private Component tooltip() {
+        return tooltip;
+    }
+
+    private void tooltip(Component tooltip) {
+        this.tooltip = tooltip;
+    }
+
+    @SuppressWarnings("unused")
     public boolean repositionable() {
         return behavior().repositionable();
     }
 
+    @SuppressWarnings("unused")
     public void repositionable(boolean repositionable) {
         behavior(behavior().withRepositionable(repositionable));
     }
@@ -537,18 +554,13 @@ public abstract class AbstractWidget implements Renderable, Widget, EventNode,
         return stretchRatio;
     }
 
+    @SuppressWarnings("unused")
     public void stretchRatio(float ratio) {
         this.stretchRatio = ratio;
     }
 
     public void style(String styleId) {
         this.styleId = styleId;
-        this.style = null;
-    }
-
-    public void style(Style style) {
-        this.style = style;
-        this.styleId = null;
     }
 
     @Override
@@ -611,9 +623,9 @@ public abstract class AbstractWidget implements Renderable, Widget, EventNode,
         private String name = "Unnamed_" + hashCode();
         private int priority = 0;
         private float stretchRatio = 1.0f;
-        private Style style = null;
         private String styleId = null;
         private int tabIndex = 0;
+        private Component tooltip;
         private EnumSet<Sizing> verticalSizing = EnumSet.of(Sizing.Fill);
         private boolean visible = true;
 
@@ -778,13 +790,6 @@ public abstract class AbstractWidget implements Renderable, Widget, EventNode,
             return self();
         }
 
-        public Style resolvedStyle() {
-            if (styleId != null) {
-                return ThemeRegistry.current().style(styleId);
-            }
-            return style;
-        }
-
         public T stretchRatio(float ratio) {
             this.stretchRatio = ratio;
             return self();
@@ -796,13 +801,6 @@ public abstract class AbstractWidget implements Renderable, Widget, EventNode,
 
         public T style(String styleId) {
             this.styleId = styleId;
-            this.style = null;
-            return self();
-        }
-
-        public T style(Style style) {
-            this.style = style;
-            this.styleId = null;
             return self();
         }
 
@@ -817,6 +815,15 @@ public abstract class AbstractWidget implements Renderable, Widget, EventNode,
         public T tabIndex(int tabIndex) {
             this.tabIndex = tabIndex;
             return self();
+        }
+
+        public T tooltip(Component tooltip) {
+            this.tooltip = tooltip;
+            return self();
+        }
+
+        public Component tooltip() {
+            return this.tooltip;
         }
 
         public T verticalSizing(Sizing... flags) {

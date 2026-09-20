@@ -45,6 +45,21 @@ public record DiaperDesign(
         return new DiaperDesign(id, displayName, armorTexture, itemTexture, maxLiquids, maxSolids, overlays);
     }
 
+    @Override
+    public @NotNull String toString() {
+        return String.format(
+                "DiaperDesign{"
+                        + "id=%s"
+                        + ",displayName=%s"
+                        + ",armorTexture=%s"
+                        + ",itemTexture=%s"
+                        +"}",
+                id().toString(),
+                displayName(),
+                armorTexture().toString(),
+                itemTexture().toString());
+    }
+
     public void toNetwork(@NotNull FriendlyByteBuf buf) {
         buf.writeResourceLocation(id);
         buf.writeUtf(displayName);

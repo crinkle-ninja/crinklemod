@@ -1,21 +1,28 @@
 package ninja.crinkle.mod.client.gui.screens;
 
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.world.item.ItemStack;
 import ninja.crinkle.mod.api.ServerUpdater;
 import ninja.crinkle.mod.client.color.Color;
 import ninja.crinkle.mod.client.gui.events.TabChangedEvent;
 import ninja.crinkle.mod.client.gui.properties.Sizing;
 import ninja.crinkle.mod.client.gui.widgets.*;
+import ninja.crinkle.mod.config.ClientConfig;
+import ninja.crinkle.mod.metabolism.Metabolism;
 import ninja.crinkle.mod.metabolism.MetabolismSettings;
 import ninja.crinkle.mod.settings.Setting;
+import ninja.crinkle.mod.undergarment.DiaperDesign;
+import ninja.crinkle.mod.undergarment.DiaperDesignRegistry;
+import ninja.crinkle.mod.undergarment.Undergarment;
 import ninja.crinkle.mod.util.ClientUtil;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -23,11 +30,10 @@ public class CrinkleModConfigScreen extends AbstractScreen {
     private final Player player;
     private Label dirtyLabel;
     private Label errorLabel;
-    // Pending values
     private int pendingTimer;
     private Button saveButton;
     private Label tabTitle;
-    // Widgets that need updating
+    private TabbedPanelContainer tabs;
     private TextBox timerTextBox;
     private CenterContainer titleRow;
 
@@ -63,7 +69,7 @@ public class CrinkleModConfigScreen extends AbstractScreen {
     @Override
     public void init() {
         int fontHeight = ClientUtil.getMinecraft().font.lineHeight;
-        int rowHeight = fontHeight + 13;
+        int rowHeight = fontHeight + 8;
 
         // Root window container (centered, draggable panel)
         VBoxContainer window = new VBoxContainer.Builder(root())
@@ -118,11 +124,11 @@ public class CrinkleModConfigScreen extends AbstractScreen {
                 .pushAndReturn();
 
         // Tabbed panel
-        TabbedPanelContainer tabs = new TabbedPanelContainer.Builder(window)
+        tabs = new TabbedPanelContainer.Builder(window)
                 .name("tabs")
                 .tabWidth(90)
                 .tabMargin(4)
-                .contentMargin(4)
+                .contentMargin(6)
                 .horizontalSizing(Sizing.Fill)
                 .verticalSizing(Sizing.Expand, Sizing.Fill)
                 .build();
@@ -141,25 +147,41 @@ public class CrinkleModConfigScreen extends AbstractScreen {
         MetabolismTab.NumberTwo.buildTab(tabs.addTab("number_two",
                 Component.translatable("gui.crinklemod.config.tab.number_two").getString()), rowHeight);
 
+        // === Undergarment tab ===
+        ItemStack itemStack = Undergarment.getWornUndergarment(player());
+        if (Undergarment.hasUndergarmentData(itemStack)) {
+            buildUndergarmentTab(tabs.addTab("undergarment", itemStack.getDisplayName().getString()), rowHeight, itemStack);
+        }
+
         // Dirty label
         dirtyLabel = new Label.Builder(window)
                 .name("dirty_label")
                 .text(Component.translatable("gui.crinklemod.shared.unsaved_changes.label").getString())
                 .minSize(0, fontHeight + 6)
-                .horizontalSizing(Sizing.Fill)
+                .horizontalSizing(Sizing.Expand)
                 .verticalSizing(Sizing.ShrinkBegin)
                 .visible(false)
                 .build();
-        window.add(dirtyLabel);
+
+        MarginContainer labelContainer = new MarginContainer.Builder(window)
+                .name("dirty_container")
+                .margins(4)
+                .style("textbox")
+                .horizontalSizing(Sizing.ShrinkCenter)
+                .verticalSizing(Sizing.ShrinkCenter)
+                .visible(true)
+                .build();
+        labelContainer.add(dirtyLabel);
+        window.add(labelContainer);
 
         errorLabel = new Label.Builder(window)
                 .name("error_label")
                 .minSize(0, fontHeight + 6)
-                .horizontalSizing(Sizing.Fill)
+                .horizontalSizing(Sizing.Expand)
                 .verticalSizing(Sizing.ShrinkBegin)
                 .visible(false)
                 .build();
-        window.add(errorLabel);
+        labelContainer.add(errorLabel);
 
         // Footer
         MarginContainer footerMargin = new MarginContainer.Builder(window)
@@ -208,26 +230,160 @@ public class CrinkleModConfigScreen extends AbstractScreen {
         titleRow.arrange();
     }
 
-    private void buildTimerRow(VBoxContainer parent, int rowHeight) {
-        HBoxContainer row = new HBoxContainer.Builder(parent)
-                .name("timer_row")
+    private void buildUndergarmentTab(VBoxContainer parent, int rowHeight, ItemStack itemStack) {
+        Undergarment undergarment = Undergarment.of(itemStack);
+        HBoxContainer wetnessRow = new HBoxContainer.Builder(parent)
+                .name("wetness_row")
+                .separation(4)
+                .minSize(0, rowHeight)
+                .pushAndReturn();
+
+        new Label.Builder(wetnessRow)
+                .name("wetness_progress_label")
+                .text(Component.translatable("setting.crinklemod.undergarment.liquids.label").getString())
+                .horizontalSizing(Sizing.Expand, Sizing.ShrinkBegin)
+                .push();
+
+
+        ProgressBar wetnessBar = new ProgressBar.Builder(wetnessRow)
+                .fillColor(ClientConfig.wetFillColors().entrySet().stream()
+                        .sorted(Comparator.comparingInt(a -> a.getValue().color()))
+                        .map(Map.Entry::getValue).findFirst().orElse(Color.RAINBOW))
+                .backgroundColor(Color.of(128, 128, 128, 1.0f))
+                .maxValue(undergarment.getMaxLiquids())
+                .value(undergarment.getLiquids())
+                .showPercent(true)
+                .horizontalSizing(Sizing.Expand, Sizing.Fill)
+                .visible(true)
+                .pushAndReturn();
+
+        HBoxContainer messinessRow = new HBoxContainer.Builder(parent)
+                .name("messiness_row")
                 .separation(4)
                 .minSize(0, rowHeight)
                 .horizontalSizing(Sizing.Fill)
                 .verticalSizing(Sizing.ShrinkBegin)
                 .pushAndReturn();
 
+        new Label.Builder(messinessRow)
+                .name("messiness_progress_label")
+                .text(Component.translatable("setting.crinklemod.undergarment.solids.label").getString())
+                .horizontalSizing(Sizing.Expand, Sizing.ShrinkBegin)
+                .push();
+
+
+        ProgressBar messinessBar = new ProgressBar.Builder(messinessRow)
+                .fillColor(ClientConfig.messFillColors().entrySet().stream()
+                        .sorted(Comparator.comparingInt(a -> a.getValue().color()))
+                        .map(Map.Entry::getValue).findFirst().orElse(Color.RAINBOW))
+                .backgroundColor(Color.of(128, 128, 128, 1.0f))
+                .maxValue(undergarment.getMaxSolids())
+                .value(undergarment.getSolids())
+                .showPercent(true)
+                .horizontalSizing(Sizing.Expand, Sizing.Fill)
+                .visible(true)
+                .pushAndReturn();
+
+        HBoxContainer buttonRow = new HBoxContainer.Builder(parent)
+                .name("undergarment_button_row")
+                .separation(4)
+                .minSize(0, rowHeight)
+                .horizontalSizing(Sizing.ShrinkBegin)
+                .verticalSizing(Sizing.ShrinkCenter)
+                .pushAndReturn();
+        new Button.Builder(buttonRow)
+                .name("undergarment_clean_action")
+                .text("Clean")
+                .minSize(20, rowHeight)
+                .onClick((e, w) -> {
+                    if (player() == null) return;
+                    undergarment.setLiquids(0);
+                    undergarment.setSolids(0);
+                    wetnessBar.value(undergarment.getLiquids());
+                    messinessBar.value(undergarment.getSolids());
+                })
+                .push();
+
+        // Design section
+        buildDesignGrid(parent, rowHeight);
+    }
+
+    private void buildDesignGrid(VBoxContainer parent, int rowHeight) {
+        Collection<DiaperDesign> designs = DiaperDesignRegistry.getAllDesigns(true);
+        if (designs.isEmpty()) return;
+
+        new Label.Builder(parent)
+                .name("design_label")
+                .text("Design")
+                .color(Color.CYAN)
+                .minSize(0, rowHeight)
+                .horizontalSizing(Sizing.ShrinkBegin)
+                .push();
+
+        int iconSize = 20;
+        int iconSeparation = 2;
+
+        ScrollContainer scroll = new ScrollContainer.Builder(parent)
+                .name("design_scroll")
+                .separation(iconSeparation)
+                .horizontalSizing(Sizing.Fill)
+                .minSize(0, 64)
+                .verticalSizing(Sizing.Expand, Sizing.Fill)
+                .pushAndReturn();
+
+        int estimatedWidth = 160;
+        int columns = Math.max(1, (estimatedWidth + iconSeparation) / (iconSize + iconSeparation));
+
+        TextureAtlas blockAtlas = ClientUtil.getMinecraft().getModelManager()
+                .getAtlas(InventoryMenu.BLOCK_ATLAS);
+
+        List<DiaperDesign> designList = new ArrayList<>(designs);
+        for (int i = 0; i < designList.size(); i += columns) {
+            HBoxContainer row = new HBoxContainer.Builder(scroll)
+                    .name("design_row_" + (i / columns))
+                    .separation(iconSeparation)
+                    .minSize(0, iconSize)
+                    .horizontalSizing(Sizing.ShrinkBegin)
+                    .verticalSizing(Sizing.ShrinkBegin)
+                    .pushAndReturn();
+
+            for (int j = i; j < Math.min(i + columns, designList.size()); j++) {
+                DiaperDesign design = designList.get(j);
+                new IconButton.Builder(row)
+                        .name("design_" + design.id().getPath())
+                        .atlas(blockAtlas)
+                        .texture(design.itemTexture())
+                        .minSize(iconSize, iconSize)
+                        .onClick((e, w) -> onDesignSelected(design))
+                        .pushAndReturn();
+            }
+        }
+    }
+
+    private void onDesignSelected(DiaperDesign design) {
+        ItemStack itemStack = Undergarment.getWornUndergarment(player());
+        Undergarment.of(itemStack).setDesign(design);
+    }
+
+    private void buildTimerRow(VBoxContainer parent, int rowHeight) {
+        HBoxContainer row = new HBoxContainer.Builder(parent)
+                .name("timer_row")
+                .separation(4)
+                .minSize(0, rowHeight)
+                .horizontalSizing(Sizing.Expand)
+                .verticalSizing(Sizing.Expand)
+                .pushAndReturn();
+
         new Label.Builder(row)
                 .name("timer_label")
                 .text(MetabolismSettings.TIMER.label().getString())
-                .horizontalSizing(Sizing.Expand, Sizing.ShrinkBegin)
+                .horizontalSizing(Sizing.Expand)
                 .push();
 
         HBoxContainer controls = new HBoxContainer.Builder(row)
                 .name("timer_controls")
                 .separation(1)
                 .horizontalSizing(Sizing.ShrinkEnd)
-                .verticalSizing(Sizing.Fill)
                 .pushAndReturn();
 
         new Button.Builder(controls)
@@ -235,7 +391,7 @@ public class CrinkleModConfigScreen extends AbstractScreen {
                 .text("-")
                 .minSize(20, rowHeight)
                 .onClick((e, w) -> {
-                    pendingTimer = Math.max(10, pendingTimer - 5);
+                    pendingTimer = Math.max(10, pendingTimer - intModifierValue());
                     refreshTimerDisplay();
                 })
                 .push();
@@ -245,7 +401,6 @@ public class CrinkleModConfigScreen extends AbstractScreen {
                 .text(String.valueOf(pendingTimer))
                 .minSize(45, rowHeight)
                 .style("textbox")
-                .readOnly(true)
                 .pushAndReturn();
 
         new Button.Builder(controls)
@@ -253,10 +408,16 @@ public class CrinkleModConfigScreen extends AbstractScreen {
                 .text("+")
                 .minSize(20, rowHeight)
                 .onClick((e, w) -> {
-                    pendingTimer += 5;
+                    pendingTimer += intModifierValue();
                     refreshTimerDisplay();
                 })
                 .push();
+    }
+
+    private int intModifierValue() {
+        if (hasControlDown()) return 10;
+        if (hasShiftDown()) return 5;
+        return 1;
     }
 
     private void onSave() {
@@ -266,9 +427,21 @@ public class CrinkleModConfigScreen extends AbstractScreen {
     }
 
     private void onReset() {
-        MetabolismTab.NumberOne.onReset();
-        MetabolismTab.NumberTwo.onReset();
-        refreshTimerDisplay();
+        switch (tabs.selectedIndex()) {
+            case 0:
+                pendingTimer = MetabolismSettings.TIMER.getDefault();
+                refreshTimerDisplay();
+                break;
+            case 1:
+                MetabolismTab.NumberOne.onReset();
+                break;
+            case 2:
+                MetabolismTab.NumberTwo.onReset();
+                break;
+            case 3:
+                // todo
+                break;
+        }
     }
 
     private void refreshTimerDisplay() {
@@ -291,12 +464,13 @@ public class CrinkleModConfigScreen extends AbstractScreen {
                 .flatMap(Collection::stream)
                 .toList();
         if (!errors.isEmpty()) {
-            errorLabel.text(errors.stream().map(Component::toString).collect(Collectors.joining("\n")));
+            errorLabel.text(errors.stream().map(Component::getString).collect(Collectors.joining("\n")));
             errorLabel.visible(true);
             saveButton.active(false);
         } else {
             errorLabel.visible(false);
             errorLabel.text("");
+            pendingTimer = Integer.parseInt(timerTextBox.text());
             boolean dirty = isDirty();
             dirtyLabel.visible(dirty);
             saveButton.active(dirty);
@@ -304,7 +478,7 @@ public class CrinkleModConfigScreen extends AbstractScreen {
     }
 
     private List<Component> timerErrors() {
-        return MetabolismSettings.TIMER.errors(player(), pendingTimer);
+        return MetabolismSettings.TIMER.errors(player(), timerTextBox.text());
     }
 
     // --- Display refresh ---
@@ -360,7 +534,6 @@ public class CrinkleModConfigScreen extends AbstractScreen {
         private TextBox chanceTextBox;
         // widgets
         private Button enabledButton;
-        private boolean formChanged;
         private double pendingChance;
         // values
         private boolean pendingEnabled;
@@ -506,6 +679,31 @@ public class CrinkleModConfigScreen extends AbstractScreen {
                     })
                     .activePredicate(w -> pendingEnabled)
                     .pushAndReturn();
+
+            // Void button
+            HBoxContainer voidButtonRow = new HBoxContainer.Builder(parent)
+                    .name(prefix + "_void_row")
+                    .separation(4)
+                    .minSize(0, rowHeight)
+                    .horizontalSizing(Sizing.Fill)
+                    .verticalSizing(Sizing.Expand)
+                    .pushAndReturn();
+
+            new Button.Builder(voidButtonRow)
+                    .name(prefix + "_void_action")
+                    .text("Void")
+                    .minSize(20, rowHeight)
+                    .onClick((e, w) -> {
+                        if (player().isEmpty()) return;
+                        switch(this) {
+                            case NumberOne -> Metabolism.of(player().get()).voidNumberOne();
+                            case NumberTwo -> Metabolism.of(player().get()).voidNumberTwo();
+                        }
+                        refreshDisplay();
+                    })
+                    .activePredicate(w -> pendingEnabled)
+                    .pushAndReturn();
+
         }
 
         private void refreshDisplay() {
@@ -546,10 +744,11 @@ public class CrinkleModConfigScreen extends AbstractScreen {
         }
 
         private boolean isDirty() {
-            player().ifPresent(p -> formChanged = pendingEnabled != enabled.get(p)
+            AtomicBoolean formChanged = new AtomicBoolean(false);
+            player().ifPresent(p -> formChanged.set(pendingEnabled != enabled.get(p)
                     || Math.abs(pendingChance - chance.getDouble(p)) > 0.001
-                    || pendingSafeRolls != safeRolls.get(p));
-            return formChanged;
+                    || pendingSafeRolls != safeRolls.get(p)));
+            return formChanged.get();
         }
 
         public Optional<Player> player() {

@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 
 
 public class TextBox extends AbstractWidget {
@@ -30,6 +31,7 @@ public class TextBox extends AbstractWidget {
     private boolean shiftDown;
     private String text;
     private int visibleStart = 0;
+    private final BiConsumer<TextChangedEvent, TextBox> onTextChanged;
 
     protected TextBox(Builder builder) {
         super(builder);
@@ -37,6 +39,7 @@ public class TextBox extends AbstractWidget {
         this.placeholder = builder.placeholder();
         this.shadow = builder.shadow();
         this.readOnly = builder.readOnly();
+        this.onTextChanged = builder.onTextChanged();
     }
 
     public void cursorPos(int cursorPos) {
@@ -83,13 +86,11 @@ public class TextBox extends AbstractWidget {
     private int cursorPosFromPoint(Point point) {
         int cursorPos = 0;
         double charX = rect().x();
-        for (int i = 0; i < text().length(); i++) {
-            double halfWidth = appearance().font().width(text().substring(i, i + 1)) / 2.0;
-            charX += halfWidth;
+        for (char c : text().toCharArray()) {
+            charX += appearance().font().width(String.valueOf(c));
             if (charX > point.x()) {
                 break;
             }
-            charX += halfWidth;
             cursorPos++;
         }
         return cursorPos;
@@ -515,7 +516,11 @@ public class TextBox extends AbstractWidget {
     }
 
     public void text(String text) {
+        String previous = this.text;
         this.text = text;
+        if (!previous.equals(text) && onTextChanged != null) {
+            onTextChanged.accept(new TextChangedEvent(this, previous), this);
+        }
     }
 
     public void visibleStart(int visibleStart) {
@@ -528,6 +533,17 @@ public class TextBox extends AbstractWidget {
         private boolean readOnly = false;
         private boolean shadow = false;
         private String text = "";
+        private BiConsumer<TextChangedEvent, TextBox> onTextChanged;
+
+        public BiConsumer<TextChangedEvent, TextBox> onTextChanged() {
+            return onTextChanged;
+        }
+
+        public Builder onTextChanged(BiConsumer<TextChangedEvent, TextBox> onTextChanged) {
+            this.onTextChanged = onTextChanged;
+            return self();
+        }
+
 
         protected Builder(AbstractContainer parent) {
             super(parent);

@@ -8,6 +8,7 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import ninja.crinkle.mod.client.ClientSetup;
 import ninja.crinkle.mod.client.gui.overlays.CrinkleOverlay;
+import ninja.crinkle.mod.client.gui.screens.CrinkleModConfigScreen;
 import ninja.crinkle.mod.client.gui.screens.LayoutEditorScreen;
 import ninja.crinkle.mod.sounds.CrinkleSounds;
 import ninja.crinkle.mod.undergarment.Undergarment;
@@ -43,6 +44,11 @@ public class CrinkleForgeBusClientEvents {
                 && ClientSetup.LAYOUT_EDITOR_KEY.consumeClick()
                 && minecraft.screen == null) {
             minecraft.setScreen(new LayoutEditorScreen(CrinkleOverlay.HUD));
+        }
+        if (ClientSetup.CRINKLE_CONFIG_KEY != null
+                && ClientSetup.CRINKLE_CONFIG_KEY.consumeClick()
+                && minecraft.screen == null) {
+            minecraft.setScreen(new CrinkleModConfigScreen());
         }
     }
 }

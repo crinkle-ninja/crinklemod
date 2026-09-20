@@ -1,0 +1,23 @@
+{
+  "display_name": "Peekabu Husky",
+  "armor_texture": "crinklemod:armor/diaper_peekabuhusky",
+  "item_texture": "crinklemod:item/diaper_peekabuhusky",
+  "stats": {
+    "max_liquids": 5,
+    "max_solids": 3
+  },
+  "texture_overlays": {
+    "wet": {
+      "parts": [
+        "FRONT_BOTTOM",
+        "BOTTOM"
+      ]
+    },
+    "mess": {
+      "parts": [
+        "BACK",
+        "BACK_BOTTOM"
+      ]
+    }
+  }
+}

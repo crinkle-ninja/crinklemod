@@ -62,14 +62,14 @@ public class ClientConfig {
                 .comment("Gradient colors for mess overlay, sampled evenly by fullness (0% is always untouched).\n" +
                         "Samples left-to-right in 20% increments.")
                 .defineListAllowEmpty(List.of("messColors"), () -> DEFAULT_MESS_COLORS,
-                        o -> o instanceof String s && s.startsWith("#"));
+                        o -> o instanceof String s && Color.of(s).isValid());
         builder.pop();
         builder.comment("Layout positions for widgets.")
                 .push("layout");
         layout = new LayoutSection(builder
                 .comment("JSON map of widget positions: { \"id\": { \"anchor\": \"TOP_LEFT\", \"x\": 0, \"y\": 0 }, ." +
                         ".. }")
-                .define("positions", "{}"));
+                .define("positions", "{\"metabolism_widget\":{\"anchor\":\"TOP_RIGHT\",\"x\":-69,\"y\":3},\"undergarment_widget\":{\"anchor\":\"BOTTOM_RIGHT\",\"x\":-66,\"y\":-65},\"test_buttons\":{\"anchor\":\"CENTER\",\"x\":-53,\"y\":19},\"layout_toolbar\":{\"anchor\":\"TOP_CENTER\",\"x\":-65,\"y\":8}}"));
         builder.pop();
         builder.push("overlay");
         builder.comment("Settings for the metabolism overlay.")

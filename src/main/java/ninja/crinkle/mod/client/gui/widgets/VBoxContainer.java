@@ -37,15 +37,23 @@ public class VBoxContainer extends AbstractContainer {
             }
         }
 
-        int leftover = Math.max(0, available - nonExpandSum - expandMinSum);
+        // Space available for Expand children: whatever is left after non-Expand.
+        // If negative, Expand children get 0.
+        int expandPool = Math.max(0, available - nonExpandSum);
+        int leftover = Math.max(0, expandPool - expandMinSum);
 
         // Place children
         int offset = rect().y();
         for (AbstractWidget child : kids) {
             int allocH;
             if (child.verticalSizing().contains(Sizing.Expand)) {
-                int extra = totalRatio > 0 ? (int) (leftover * (child.stretchRatio() / totalRatio)) : 0;
-                allocH = child.minimumHeight() + extra;
+                if (expandPool <= 0) {
+                    allocH = 0;
+                } else if (totalRatio > 0) {
+                    allocH = (int) (expandPool * (child.stretchRatio() / totalRatio));
+                } else {
+                    allocH = 0;
+                }
             } else {
                 allocH = child.minimumHeight();
             }

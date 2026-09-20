@@ -1,33 +1,38 @@
 package ninja.crinkle.mod.undergarment;
 
-import com.mojang.logging.LogUtils;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import ninja.crinkle.mod.CrinkleMod;
 import ninja.crinkle.mod.capabilities.IUndergarment;
 import ninja.crinkle.mod.capabilities.UndergarmentImpl;
-import ninja.crinkle.mod.client.color.Color;
+import ninja.crinkle.mod.config.UndergarmentConfig;
 import ninja.crinkle.mod.items.custom.DiaperArmorItem;
-import ninja.crinkle.mod.tooltips.GradientBarTooltip;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
+
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class Undergarment {
-    public static final int LIQUIDS_COLOR = 0xffffef00;
+    public static final Undergarment EMPTY = new Undergarment(ItemStack.EMPTY);
     public static final String NBT_KEY = CrinkleMod.MODID + ".undergarment";
-    public static final int SOLIDS_COLOR = 0xFF836953;
-    private static final Logger LOGGER = LogUtils.getLogger();
     private final IUndergarment capability;
     private final ItemStack itemStack;
 
     private Undergarment(@NotNull ItemStack itemStack) {
         this.itemStack = itemStack;
-        IUndergarment u = new UndergarmentImpl(itemStack);
-        u.deserializeNBT(itemStack.getOrCreateTagElement(NBT_KEY));
-        this.capability = u;
+        if (itemStack.equals(ItemStack.EMPTY)) {
+            this.capability = null;
+        } else {
+            IUndergarment u = new UndergarmentImpl(itemStack);
+            u.deserializeNBT(itemStack.getOrCreateTagElement(NBT_KEY));
+            this.capability = u;
+        }
     }
 
     public static ItemStack getWornUndergarment(@NotNull Player player) {
@@ -43,14 +48,43 @@ public class Undergarment {
         return ItemStack.EMPTY;
     }
 
-    public static boolean hasUndergarmentData(@NotNull ItemStack itemStack) {
-        return itemStack.getItem() instanceof DiaperArmorItem;
+    public static boolean hasUndergarmentData(ItemStack itemStack) {
+        return itemStack != null && itemStack.getItem() instanceof DiaperArmorItem;
+    }
+
+    public static @NotNull Undergarment of(ICapabilityProvider provider) {
+        if (provider instanceof ItemStack itemStack) {
+            return of(itemStack);
+        }
+        return Undergarment.EMPTY;
     }
 
     @Contract(value = "_ -> new", pure = true)
     public static @NotNull Undergarment of(ItemStack item) {
-        return new Undergarment(item);
+        return item.equals(ItemStack.EMPTY) ? Undergarment.EMPTY : new Undergarment(item);
     }
+
+    private <T> Optional<T> getCapability(Function<IUndergarment, T> getter) {
+        if (capability != null)
+            return Optional.of(getter.apply(capability));
+        return Optional.empty();
+    }
+
+    private void saveCapability(Consumer<IUndergarment> setter) {
+        if (capability != null) {
+            setter.accept(capability);
+            capability.save(itemStack);
+        }
+    }
+
+    public Optional<DiaperDesign> getDesign() {
+        return getCapability(IUndergarment::getDesign).orElse(Optional.empty());
+    }
+
+    public void setDesign(DiaperDesign design) {
+        saveCapability(c -> c.setDesign(design));
+    }
+
 
     public ItemStack getItemStack() {
         return itemStack;
@@ -61,27 +95,19 @@ public class Undergarment {
     }
 
     public int getLiquids() {
-        return capability.getLiquids();
+        return getCapability(IUndergarment::getLiquids).orElse(0);
     }
 
     public int getMaxLiquids() {
-        return capability.getMaxLiquids();
+        return getCapability(IUndergarment::getMaxLiquids).orElse(UndergarmentConfig.getDefaultMaxLiquids());
     }
 
     public void setMaxLiquids(int value) {
-        capability.setMaxLiquids(value);
-        capability.save(itemStack);
+        saveCapability(c -> c.setMaxLiquids(value));
     }
 
     public void setLiquids(int value) {
-        capability.setLiquids(value);
-        capability.save(itemStack);
-    }
-
-    public GradientBarTooltip getLiquidsTooltip() {
-        return new GradientBarTooltip(UndergarmentSettings.LIQUIDS.label(), getLiquids(), getMaxLiquids(),
-                LIQUIDS_COLOR, Color.brightness(LIQUIDS_COLOR, 0.5f),
-                Color.brightness(LIQUIDS_COLOR, 0.25f), 9, 60, 40);
+        saveCapability(c -> c.setLiquids(value));
     }
 
     public double getSolidsPercent() {
@@ -89,27 +115,19 @@ public class Undergarment {
     }
 
     public int getSolids() {
-        return capability.getSolids();
+        return getCapability(IUndergarment::getSolids).orElse(0);
     }
 
     public int getMaxSolids() {
-        return capability.getMaxSolids();
+        return getCapability(IUndergarment::getMaxSolids).orElse(UndergarmentConfig.getDefaultMaxSolids());
     }
 
     public void setMaxSolids(int value) {
-        capability.setMaxSolids(value);
-        capability.save(itemStack);
+        saveCapability(c -> c.setMaxSolids(value));
     }
 
     public void setSolids(int value) {
-        capability.setSolids(value);
-        capability.save(itemStack);
-    }
-
-    public GradientBarTooltip getSolidsTooltip() {
-        return new GradientBarTooltip(UndergarmentSettings.SOLIDS.label(), getSolids(), getMaxSolids(),
-                SOLIDS_COLOR, Color.brightness(SOLIDS_COLOR, 0.5f),
-                Color.brightness(SOLIDS_COLOR, 0.25f), 9, 60, 40);
+        saveCapability(c -> c.setSolids(value));
     }
 
     public boolean isLeaking() {
@@ -117,12 +135,12 @@ public class Undergarment {
     }
 
     public void modifyLiquids(int amount) {
-        capability.setLiquids(capability.getLiquids() + amount);
-        capability.save(itemStack);
+        int newAmount = getLiquids() + amount;
+        saveCapability(c -> setLiquids(newAmount));
     }
 
     public void modifySolids(int amount) {
-        capability.setSolids(capability.getSolids() + amount);
-        capability.save(itemStack);
+        int newAmount = getSolids() + amount;
+        saveCapability(c -> c.setSolids(newAmount));
     }
 }

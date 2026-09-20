@@ -9,6 +9,7 @@ import ninja.crinkle.mod.client.gui.properties.Point;
 import ninja.crinkle.mod.client.gui.properties.Rect;
 import ninja.crinkle.mod.client.gui.properties.Sizing;
 import ninja.crinkle.mod.client.gui.renderers.ThemeGraphics;
+import ninja.crinkle.mod.client.gui.screens.CrinkleModConfigScreen;
 import ninja.crinkle.mod.client.gui.screens.LayoutEditorScreen;
 import ninja.crinkle.mod.util.ClientUtil;
 import org.jetbrains.annotations.NotNull;
@@ -122,6 +123,26 @@ public abstract class AbstractContainer extends AbstractWidget {
         return new Container.Builder(this);
     }
 
+    public Icon.Builder addIcon() {
+        return new Icon.Builder(this);
+    }
+
+    public IconButton.Builder addIconButton() {
+        return new IconButton.Builder(this);
+    }
+
+    public ItemIcon.Builder addItemIcon() {
+        return new ItemIcon.Builder(this);
+    }
+
+    public ProgressBar.Builder addProgressBar() {
+        return new ProgressBar.Builder(this);
+    }
+
+    public ScrollContainer.Builder addScrollContainer() {
+        return new ScrollContainer.Builder(this);
+    }
+
     public TextBox.Builder addTextBox() {
         return new TextBox.Builder(this);
     }
@@ -166,6 +187,17 @@ public abstract class AbstractContainer extends AbstractWidget {
 
     @Override
     public void renderContent(ThemeGraphics graphics, Point pMouse, Rect renderRect, float pPartialTick) {
+        renderClipped(graphics, pMouse, pPartialTick);
+    }
+
+    protected void renderClipped(ThemeGraphics graphics, Point pMouse, float pPartialTick) {
+        Rect r = rect();
+        graphics.enableScissor(r.x(), r.y(), r.right(), r.bottom());
+        renderChildren(graphics, pMouse, pPartialTick);
+        graphics.disableScissor();
+    }
+
+    protected void renderChildren(ThemeGraphics graphics, Point pMouse, float pPartialTick) {
         children().stream().sorted(Comparator.comparingInt(AbstractWidget::zIndexOf))
                 .forEach(child -> child.render(graphics, pMouse, pPartialTick));
     }
@@ -207,6 +239,15 @@ public abstract class AbstractContainer extends AbstractWidget {
                 ClientUtil.getMinecraft().setScreen(new LayoutEditorScreen(gui));
                 event.consumed(true);
             }
+        }
+        if (ClientSetup.CRINKLE_CONFIG_KEY != null
+                && ClientSetup.CRINKLE_CONFIG_KEY.matches(event.keyCode(), event.scanCode())) {
+            if (ClientUtil.getMinecraft().screen instanceof CrinkleModConfigScreen) {
+                ClientUtil.getMinecraft().screen.onClose();
+                return;
+            }
+            ClientUtil.getMinecraft().setScreen(new CrinkleModConfigScreen());
+            event.consumed(true);
         }
     }
 

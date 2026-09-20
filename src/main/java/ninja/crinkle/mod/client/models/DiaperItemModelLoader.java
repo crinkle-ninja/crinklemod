@@ -28,7 +28,7 @@ public class DiaperItemModelLoader {
         resourceManager.listResources("models/diaper_design", loc ->
                 loc.getNamespace().equals(CrinkleMod.MODID) && loc.getPath().endsWith(".json")
         ).keySet().forEach(modelFile -> {
-            // modelFile = crinklemod:models/diaper_design/diaper_little_pawz.json
+            // modelFile = crinklemod:models/diaper_design/diaper_littlepawz.json
             String modelPath = modelFile.getPath()
                     .replace("models/", "")
                     .replace(".json", "");

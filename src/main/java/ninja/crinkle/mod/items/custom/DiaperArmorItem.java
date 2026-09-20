@@ -36,7 +36,7 @@ import java.util.function.Consumer;
 
 public class DiaperArmorItem extends ArmorItem implements GeoItem {
     private static final String DESIGN_TAG = CrinkleMod.MODID + ".design";
-    private static final ResourceLocation DEFAULT_TEXTURE = CrinkleMod.loc("armor/diaper_plain");
+    private static final ResourceLocation DEFAULT_TEXTURE = CrinkleMod.loc("armor/diaper_white");
     private static final DiaperArmorModel SHARED_MODEL = new DiaperArmorModel();
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
     private final ThreadLocal<ResourceLocation> texture = new ThreadLocal<>();
@@ -110,15 +110,14 @@ public class DiaperArmorItem extends ArmorItem implements GeoItem {
 
         // Only regenerate texture when fullness bucket or design changes
         int[] last = lastPct.get();
-        ResourceLocation designId = getDesignId(stack);
+        DiaperDesign design = undergarment.getDesign().orElse(DiaperArmorItem.getDesign(stack, true));
+        ResourceLocation designId = design != null ? design.id() : DEFAULT_TEXTURE;
         if (last[0] != pctL || last[1] != pctS || !designId.equals(lastDesign.get())) {
             last[0] = pctL;
             last[1] = pctS;
             lastDesign.set(designId);
 
-            DiaperDesign design = getDesign(stack, true);
             ResourceLocation armorTexture = design != null ? design.armorTexture() : DEFAULT_TEXTURE;
-
             DiaperTextureGenerator.Data data =
                     new DiaperTextureGenerator.Data(armorTexture.toString(), SHARED_MODEL, undergarment);
             texture.set(Textures.getInstance().getTexture(armorTexture, data));

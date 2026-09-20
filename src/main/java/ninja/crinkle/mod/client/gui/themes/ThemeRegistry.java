@@ -16,10 +16,19 @@ public enum ThemeRegistry {
     private final Map<String, Theme> themes = new HashMap<>();
 
     public static Theme current() {
-        Theme theme = INSTANCE.theme(ClientConfig.themeId());
+        String id;
+        try {
+            id = ClientConfig.themeId();
+        } catch (IllegalStateException e) {
+            return defaultTheme();
+        }
+        Theme theme = INSTANCE.theme(id);
         if (theme == null) {
-            LOGGER.warn("Theme {} not found, using default", ClientConfig.themeId());
+            LOGGER.warn("Theme {} not found, using default", id);
             theme = INSTANCE.theme(DEFAULT_THEME_ID);
+        }
+        if (theme == null) {
+            return defaultTheme();
         }
         return theme;
     }
