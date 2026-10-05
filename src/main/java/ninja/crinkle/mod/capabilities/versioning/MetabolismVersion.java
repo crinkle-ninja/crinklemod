@@ -10,40 +10,41 @@ import org.slf4j.Logger;
 
 import java.util.function.BiFunction;
 
-public enum MetabolismVersions {
+public enum MetabolismVersion {
     V1((provider, tag) -> tag),
-    V2((provider, tag) -> new CompoundTag()),
-    V3((provider, tag) -> {
-        boolean enabled = tag.getBoolean("enabled");
-        tag.remove("enabled");
-        tag.putBoolean(MetabolismSettings.NUMBER_ONE_ENABLED.key(), enabled);
-        tag.putBoolean(MetabolismSettings.NUMBER_TWO_ENABLED.key(), enabled);
-        return tag;
-    });
+    ;
 
     public static final String TAG_VERSION = "version";
     private static final Logger LOGGER = LogUtils.getLogger();
     private final BiFunction<ICapabilityProvider, CompoundTag, CompoundTag> upgrade;
 
-    MetabolismVersions(BiFunction<ICapabilityProvider, CompoundTag, CompoundTag> upgrade) {
+    MetabolismVersion(BiFunction<ICapabilityProvider, CompoundTag, CompoundTag> upgrade) {
         this.upgrade = upgrade;
     }
 
-    public static MetabolismVersions getLatest() {
+    public static MetabolismVersion getLatest() {
         return values()[values().length - 1];
     }
 
     public static CompoundTag performUpgrades(ICapabilityProvider provider, CompoundTag tag) {
-        MetabolismVersions version = fromNBT(tag);
-        for (MetabolismVersions v : values()) {
+        MetabolismVersion version = fromNBT(tag);
+        for (MetabolismVersion v : values()) {
             if (v.ordinal() > version.ordinal())
                 tag = v.upgrade(provider, tag);
         }
         return tag;
     }
 
-    public static MetabolismVersions fromNBT(@NotNull CompoundTag tag) {
-        return tag.contains(TAG_VERSION) ? MetabolismVersions.valueOf(tag.getString(TAG_VERSION)) : V1;
+    public static MetabolismVersion fromNBT(@NotNull CompoundTag tag) {
+        if (tag.contains(TAG_VERSION)) {
+            String versionString = tag.getString(TAG_VERSION);
+            try {
+                return MetabolismVersion.valueOf(versionString);
+            } catch (IllegalArgumentException e) {
+                LOGGER.warn("invalid metabolism version found: {}, returning {}", versionString, getLatest());
+            }
+        }
+        return getLatest();
     }
 
     public CompoundTag upgrade(ICapabilityProvider provider, CompoundTag tag) {

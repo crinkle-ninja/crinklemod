@@ -17,6 +17,7 @@ import ninja.crinkle.mod.client.gui.screens.AbstractScreen;
 import ninja.crinkle.mod.client.gui.screens.CrinkleModConfigScreen;
 import ninja.crinkle.mod.client.gui.screens.LayoutEditorScreen;
 import ninja.crinkle.mod.client.gui.textures.ThemeAtlas;
+import ninja.crinkle.mod.client.gui.themes.ThemeRegistry;
 import ninja.crinkle.mod.util.ClientUtil;
 import org.slf4j.Logger;
 
@@ -54,12 +55,12 @@ public abstract class AbstractAddOn extends AbstractScreen {
         if (ClientUtil.getMinecraft() == null || ClientUtil.getMinecraft().screen == null) return;
         if (screenClass() != ClientUtil.getMinecraft().screen.getClass()) return;
         if (ClientSetup.LAYOUT_EDITOR_KEY != null
-                && ClientSetup.LAYOUT_EDITOR_KEY.matches(event.getKeyCode(), event.getScanCode())) {
+                && ClientSetup.LAYOUT_EDITOR_KEY.consumeClick()) {
             ClientUtil.getMinecraft().setScreen(new LayoutEditorScreen(this));
             event.setCanceled(true);
         }
         if (ClientSetup.CRINKLE_CONFIG_KEY != null
-                && ClientSetup.CRINKLE_CONFIG_KEY.matches(event.getKeyCode(), event.getScanCode())) {
+                && ClientSetup.CRINKLE_CONFIG_KEY.consumeClick()) {
             ClientUtil.getMinecraft().setScreen(new CrinkleModConfigScreen());
             event.setCanceled(true);
         }
@@ -113,7 +114,7 @@ public abstract class AbstractAddOn extends AbstractScreen {
         if (ClientUtil.getMinecraft() == null || ClientUtil.getMinecraft().screen == null) return;
         if (screenClass() != event.getScreen().getClass()) return;
         mouseMoved(event.getMouseX(), event.getMouseY());
-        ThemeGraphics themeGraphics = new ThemeGraphics(event.getGuiGraphics(), ThemeAtlas.getAtlas());
+        ThemeGraphics themeGraphics = new ThemeGraphics(event.getGuiGraphics(), ThemeAtlas.getAtlas(), ThemeRegistry.current());
         root().render(themeGraphics, Point.of(event.getMouseX(), event.getMouseY()), event.getPartialTick());
     }
 

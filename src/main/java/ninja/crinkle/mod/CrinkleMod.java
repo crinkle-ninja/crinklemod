@@ -8,11 +8,11 @@ import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import ninja.crinkle.mod.blocks.CrinkleBlocks;
-import ninja.crinkle.mod.capabilities.MetabolismProvider;
+import ninja.crinkle.mod.capabilities.MessProvider;
+import ninja.crinkle.mod.capabilities.WetProvider;
 import ninja.crinkle.mod.config.ClientConfig;
 import ninja.crinkle.mod.config.UndergarmentConfig;
 import ninja.crinkle.mod.datagen.CrinkleDataGeneration;
-import ninja.crinkle.mod.events.handlers.CrinkleBusEvents;
 import ninja.crinkle.mod.items.CrinkleItems;
 import ninja.crinkle.mod.items.CrinkleTabs;
 import ninja.crinkle.mod.menus.CrinkleMenus;
@@ -39,7 +39,8 @@ public class CrinkleMod {
 
     public CrinkleMod() {
         // Metabolism
-        MinecraftForge.EVENT_BUS.addGenericListener(Entity.class, MetabolismProvider::attach);
+        MinecraftForge.EVENT_BUS.addGenericListener(Entity.class, WetProvider::attach);
+        MinecraftForge.EVENT_BUS.addGenericListener(Entity.class, MessProvider::attach);
         CrinkleChannel.register();
 
         // Undergarments
@@ -52,7 +53,6 @@ public class CrinkleMod {
         CrinkleItems.register(modEventBus);
         CrinkleTabs.register(modEventBus);
         CrinkleMenus.register(modEventBus);
-        CrinkleMod.EVENT_BUS.register(new CrinkleBusEvents());
 
         // Client
         ClientConfig.register();

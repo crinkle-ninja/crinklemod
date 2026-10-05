@@ -67,7 +67,11 @@ public class AnimatedWidget extends AbstractWidget {
         this.player.position(Point.of(rect().x(), rect().y()));
     }
 
-    protected boolean trySetAnimations(double speed, String animationId, String... sprites) {
+    protected boolean trySetAnimation(double speed, String animationId, String... sprites) {
+        return trySetAnimation(speed, false, animationId, sprites);
+    }
+
+    protected boolean trySetAnimation(double speed, boolean interrupt, String animationId, String... sprites) {
         Theme theme = ThemeRegistry.current();
         if (theme == null) return false;
         boolean shouldClearPlayer = true;
@@ -77,7 +81,7 @@ public class AnimatedWidget extends AbstractWidget {
                 LOGGER.error("animation is null for animationId {} of theme {}", animationId, theme.id());
                 return false;
             }
-            if (shouldClearPlayer) {
+            if (shouldClearPlayer && interrupt) {
                 clearPlayer();
                 shouldClearPlayer = false;
             }
@@ -88,7 +92,7 @@ public class AnimatedWidget extends AbstractWidget {
     }
 
     public void clearPlayer() {
-        this.player.clear();
+        this.player.shouldClear(true);
     }
 
     public void fps(double framesPerSecond) {

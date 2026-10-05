@@ -14,7 +14,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Optional;
 
 public class Icon extends AbstractWidget {
-    private @Nullable TextureAtlas atlas;
+    private final @Nullable TextureAtlas atlas;
     private boolean dropShadow;
     private ResourceLocation texture;
     private TextureSize textureSize;
@@ -128,6 +128,7 @@ public class Icon extends AbstractWidget {
 
         public T texture(ResourceLocation texture) {
             this.texture = texture;
+            this.name(texture.getPath());
             return self();
         }
 

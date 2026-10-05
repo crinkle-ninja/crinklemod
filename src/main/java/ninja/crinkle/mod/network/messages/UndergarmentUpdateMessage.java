@@ -1,11 +1,15 @@
 package ninja.crinkle.mod.network.messages;
 
 import com.mojang.logging.LogUtils;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.network.NetworkEvent;
-import ninja.crinkle.mod.network.CrinkleChannel;
+import ninja.crinkle.mod.capabilities.IUndergarment;
+import ninja.crinkle.mod.undergarment.DiaperDesign;
+import ninja.crinkle.mod.undergarment.DiaperDesignRegistry;
 import ninja.crinkle.mod.undergarment.Undergarment;
 import ninja.crinkle.mod.util.ClientUtil;
 import org.jetbrains.annotations.Contract;
@@ -21,13 +25,24 @@ public class UndergarmentUpdateMessage {
     private Integer maxLiquids;
     private Integer maxSolids;
     private Integer solids;
+    private ResourceLocation design;
 
     UndergarmentUpdateMessage(@Nullable Integer liquids, @Nullable Integer solids,
-                              @Nullable Integer maxLiquids, @Nullable Integer maxSolids) {
+                              @Nullable Integer maxLiquids, @Nullable Integer maxSolids,
+                              @Nullable ResourceLocation design) {
         this.liquids = liquids;
         this.solids = solids;
         this.maxLiquids = maxLiquids;
         this.maxSolids = maxSolids;
+        this.design = design;
+    }
+
+    public UndergarmentUpdateMessage(IUndergarment undergarment) {
+        this.liquids = undergarment.getLiquids();
+        this.solids = undergarment.getSolids();
+        this.maxLiquids = undergarment.getMaxLiquids();
+        this.maxSolids = undergarment.getMaxSolids();
+        this.design = undergarment.getDesign().map(DiaperDesign::id).orElse(null);
     }
 
     UndergarmentUpdateMessage(@NotNull FriendlyByteBuf buffer) {
@@ -42,6 +57,9 @@ public class UndergarmentUpdateMessage {
         }
         if (buffer.readBoolean()) {
             this.maxSolids = buffer.readInt();
+        }
+        if (buffer.readBoolean()) {
+            this.design = new ResourceLocation(buffer.readUtf());
         }
     }
 
@@ -71,6 +89,10 @@ public class UndergarmentUpdateMessage {
         if (this.maxSolids != null) {
             buffer.writeInt(this.maxSolids);
         }
+        buffer.writeBoolean(this.design != null);
+        if (this.design != null) {
+            buffer.writeUtf(this.design.toString());
+        }
     }
 
     public void messageConsumer(@NotNull Supplier<NetworkEvent.Context> ctx) {
@@ -99,10 +121,17 @@ public class UndergarmentUpdateMessage {
         if (this.maxSolids != null) {
             undergarment.setMaxSolids(this.maxSolids);
         }
-    }
-
-    public void sendToServer() {
-        CrinkleChannel.INSTANCE.sendToServer(this);
+        if (this.design != null) {
+            DiaperDesign design;
+            if (ClientUtil.isClient()) {
+                design = DiaperDesignRegistry.getClientDesigns().get(this.design);
+            } else {
+                design = DiaperDesignRegistry.getServerDesigns().get(this.design);
+            }
+            if (design != null) {
+                undergarment.setDesign(design);
+            }
+        }
     }
 
     public static class Builder {
@@ -110,12 +139,13 @@ public class UndergarmentUpdateMessage {
         private Integer maxLiquids;
         private Integer maxSolids;
         private Integer solids;
+        private ResourceLocation design;
 
         Builder() {
         }
 
         public UndergarmentUpdateMessage build() {
-            return new UndergarmentUpdateMessage(this.liquids, this.solids, this.maxLiquids, this.maxSolids);
+            return new UndergarmentUpdateMessage(this.liquids, this.solids, this.maxLiquids, this.maxSolids, this.design);
         }
 
         public Builder liquids(int liquids) {

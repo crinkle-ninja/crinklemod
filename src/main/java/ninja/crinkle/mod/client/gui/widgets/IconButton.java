@@ -31,7 +31,6 @@ public class IconButton extends AbstractContainer {
                     .pushAndReturn();
             icon.zIndex(zIndex() + 1);
             icon.priority(EventManager.PRIORITY_IGNORE);
-            add(icon);
         } else if (builder.texture() != null) {
             this.icon = new Icon.Builder(this)
                     .atlas(builder.atlas())
@@ -41,7 +40,6 @@ public class IconButton extends AbstractContainer {
                     .pushAndReturn();
             icon.zIndex(zIndex() + 1);
             icon.priority(EventManager.PRIORITY_IGNORE);
-            add(icon);
         }
 
         if (builder.text() != null) {
@@ -50,7 +48,6 @@ public class IconButton extends AbstractContainer {
                     .pushAndReturn();
             label.zIndex(zIndex() + 1);
             label.priority(EventManager.PRIORITY_IGNORE);
-            add(label);
         }
     }
 

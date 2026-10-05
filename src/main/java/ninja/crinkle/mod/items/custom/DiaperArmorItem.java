@@ -39,9 +39,9 @@ public class DiaperArmorItem extends ArmorItem implements GeoItem {
     private static final ResourceLocation DEFAULT_TEXTURE = CrinkleMod.loc("armor/diaper_white");
     private static final DiaperArmorModel SHARED_MODEL = new DiaperArmorModel();
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
-    private final ThreadLocal<ResourceLocation> texture = new ThreadLocal<>();
-    private final ThreadLocal<int[]> lastPct = ThreadLocal.withInitial(() -> new int[]{-1, -1});
-    private final ThreadLocal<ResourceLocation> lastDesign = new ThreadLocal<>();
+    private ResourceLocation texture;
+    private final int[] lastPct = new int[]{-1, -1};
+    private ResourceLocation lastDesign;
 
     public DiaperArmorItem(ArmorMaterial pMaterial, @NotNull Properties pProperties) {
         super(pMaterial, ArmorItem.Type.LEGGINGS, pProperties.rarity(Rarity.EPIC).durability(1000));
@@ -74,7 +74,7 @@ public class DiaperArmorItem extends ArmorItem implements GeoItem {
     }
 
     public ResourceLocation getTexture() {
-        ResourceLocation tex = texture.get();
+        ResourceLocation tex = texture;
         return tex != null ? tex : DEFAULT_TEXTURE;
     }
 
@@ -109,18 +109,18 @@ public class DiaperArmorItem extends ArmorItem implements GeoItem {
         int pctS = MathUtil.twenties((int) (undergarment.getSolidsPercent() * 100));
 
         // Only regenerate texture when fullness bucket or design changes
-        int[] last = lastPct.get();
+        int[] last = lastPct;
         DiaperDesign design = undergarment.getDesign().orElse(DiaperArmorItem.getDesign(stack, true));
         ResourceLocation designId = design != null ? design.id() : DEFAULT_TEXTURE;
-        if (last[0] != pctL || last[1] != pctS || !designId.equals(lastDesign.get())) {
+        if (last[0] != pctL || last[1] != pctS || !designId.equals(lastDesign)) {
             last[0] = pctL;
             last[1] = pctS;
-            lastDesign.set(designId);
+            lastDesign = designId;
 
             ResourceLocation armorTexture = design != null ? design.armorTexture() : DEFAULT_TEXTURE;
             DiaperTextureGenerator.Data data =
                     new DiaperTextureGenerator.Data(armorTexture.toString(), SHARED_MODEL, undergarment);
-            texture.set(Textures.getInstance().getTexture(armorTexture, data));
+            texture = Textures.getInstance().getTexture(armorTexture, data);
         }
 
         if (pctL == 0 && pctS == 0) {

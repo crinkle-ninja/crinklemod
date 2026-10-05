@@ -12,29 +12,23 @@ import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import ninja.crinkle.mod.CrinkleMod;
-import ninja.crinkle.mod.capabilities.versioning.MetabolismVersions;
+import ninja.crinkle.mod.capabilities.versioning.MetabolismVersion;
+import ninja.crinkle.mod.metabolism.Metabolism;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
-/**
- * Metabolism provider class.
- * This class is used to provide the metabolism capability to an entity.
- *
- * @see IMetabolism
- * @see net.minecraftforge.common.capabilities.ICapabilityProvider
- * @see net.minecraftforge.common.util.INBTSerializable
- */
-public class MetabolismProvider implements ICapabilityProvider, INBTSerializable<CompoundTag> {
-    public static final String NAME = "metabolism";
-    public static final ResourceLocation IDENTIFIER = new ResourceLocation(CrinkleMod.MODID, NAME);
+public class MessProvider implements ICapabilityProvider, INBTSerializable<CompoundTag> {
+    public static final String NAME_FORMAT = "metabolism.mess";
     private static final Logger LOGGER = LogUtils.getLogger();
     private final Player player;
-    private final IMetabolism storage = new MetabolismImpl();
-    private final LazyOptional<IMetabolism> instance = LazyOptional.of(() -> storage);
+    private final MessCapability storage;
+    private final LazyOptional<MessCapability> instance;
 
-    public MetabolismProvider(Player player) {
+    public MessProvider(Player player) {
         this.player = player;
+        this.storage = new MetabolismImpl(Metabolism.Type.Mess);
+        this.instance = LazyOptional.of(() -> storage);
     }
 
     /**
@@ -45,8 +39,8 @@ public class MetabolismProvider implements ICapabilityProvider, INBTSerializable
      */
     public static void attach(final @NotNull AttachCapabilitiesEvent<Entity> event) {
         if (event.getObject() instanceof Player player) {
-            LOGGER.debug("Attaching metabolism capability to player");
-            event.addCapability(IDENTIFIER, new MetabolismProvider(player));
+            LOGGER.debug("Attaching mess metabolism capability to player");
+            event.addCapability(new ResourceLocation(CrinkleMod.MODID, NAME_FORMAT), new MessProvider(player));
         }
     }
 
@@ -62,7 +56,7 @@ public class MetabolismProvider implements ICapabilityProvider, INBTSerializable
     @NotNull
     @Override
     public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
-        return MetabolismCapabilities.METABOLISM.orEmpty(cap, instance);
+        return MetabolismCapabilities.MESS.orEmpty(cap, instance);
     }
 
     /**
@@ -82,6 +76,6 @@ public class MetabolismProvider implements ICapabilityProvider, INBTSerializable
      */
     @Override
     public void deserializeNBT(CompoundTag nbt) {
-        storage.deserializeNBT(MetabolismVersions.performUpgrades(this.player, nbt));
+        storage.deserializeNBT(MetabolismVersion.performUpgrades(this.player, nbt));
     }
 }

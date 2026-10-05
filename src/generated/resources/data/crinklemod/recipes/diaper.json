@@ -4,14 +4,11 @@
   "key": {
     "p": {
       "item": "minecraft:paper"
-    },
-    "w": {
-      "tag": "minecraft:wool"
     }
   },
   "pattern": [
     "ppp",
-    " w ",
+    " p ",
     "ppp"
   ],
   "result": {

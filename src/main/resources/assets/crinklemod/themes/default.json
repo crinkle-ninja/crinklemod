@@ -23,7 +23,8 @@
       "highlightText": "#F5F5F5",
       "white": "#FFFFFF",
       "rainbow": "rainbow",
-      "tabContent": "#bbe0f0"
+      "tabContent": "#bbe0f0",
+      "config.textbox.bg": "#6699B0"
     },
     "textures": [
       {
@@ -615,7 +616,7 @@
           "y": 0
         },
         "sprites": {
-          "normal": [
+          "none": [
             "normal1",
             "normal2"
           ],
@@ -623,13 +624,7 @@
             "wet1",
             "wet2"
           ],
-          "messy": [
-            "messy1",
-            "messy2"
-          ],
-          "both": [
-            "wet1",
-            "wet2",
+          "mess": [
             "messy1",
             "messy2"
           ]
@@ -646,15 +641,15 @@
           "y": 40
         },
         "sprites": {
-          "normal": [
+          "none": [
             "normal1",
             "normal2"
           ],
-          "desperate": [
+          "minor": [
             "desperate1",
             "desperate2"
           ],
-          "very_desperate": [
+          "major": [
             "very_desperate1",
             "very_desperate2"
           ],
@@ -824,6 +819,17 @@
             "background": {
               "texture": "textbox_background",
               "color": "focused"
+            }
+          }
+        }
+      },
+      {
+        "id": "config.value.textbox",
+        "parent": "textbox",
+        "variants": {
+          "active": {
+            "background": {
+              "color": "config.textbox.bg"
             }
           }
         }

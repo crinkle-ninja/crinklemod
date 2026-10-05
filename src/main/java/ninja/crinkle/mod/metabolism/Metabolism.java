@@ -1,369 +1,322 @@
 package ninja.crinkle.mod.metabolism;
 
 import com.mojang.logging.LogUtils;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.network.PacketDistributor;
-import ninja.crinkle.mod.CrinkleMod;
-import ninja.crinkle.mod.api.ServerUpdater;
 import ninja.crinkle.mod.capabilities.IMetabolism;
 import ninja.crinkle.mod.capabilities.MetabolismCapabilities;
-import ninja.crinkle.mod.events.AccidentEvent;
 import ninja.crinkle.mod.events.CrinkleEvent;
-import ninja.crinkle.mod.events.DesperationEvent;
 import ninja.crinkle.mod.network.CrinkleChannel;
 import ninja.crinkle.mod.network.messages.MetabolismUpdateMessage;
-import ninja.crinkle.mod.undergarment.Undergarment;
+import ninja.crinkle.mod.settings.Setting;
+import ninja.crinkle.mod.util.LogMarkers;
 import ninja.crinkle.mod.util.MathUtil;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
-import java.util.Optional;
+import java.util.Random;
 
-public class Metabolism implements ServerUpdater {
+public class Metabolism {
+    private static final int ACCIDENT_DURATION = 5;
+    private static final int SYNC_SERVER_TICK_FREQUENCY = 20 * 60; // ticks per second * seconds
     private static final Logger LOGGER = LogUtils.getLogger();
+    private static final int TICK_FREQ = 20;
+    private static final int MIN_PANG = 5;
+    private static final int MAX_PANG = 15;
+    private static final int DELAY_SECONDS = 60;
     private final Player player;
+    private final Type metabolismType;
+    private boolean dirty = false;
 
-    private Metabolism(Player player) {
-        this.player = player;
+    public double getAsDouble(Setting<?> setting) {
+        return capability().getAsDouble(setting);
     }
 
-    @Contract(value = "_ -> new", pure = true)
-    public static @NotNull Metabolism of(ICapabilityProvider provider) {
-        if (provider instanceof Player player)
-            return new Metabolism(player);
-        throw new IllegalArgumentException("Cannot create metabolism for non-player entity");
+    public int getAsInt(Setting<?> setting) {
+        return capability().getAsInt(setting);
     }
 
-    public int getIndicatorPositionX() {
-        return getMetabolism().map(IMetabolism::getIndicatorPositionX).orElse(0);
+    public String getAsString(Setting<?> setting) {
+        return capability().getAsString(setting);
     }
 
-    public void setIndicatorPositionX(int x) {
-        getMetabolism().ifPresent(m -> m.setIndicatorPositionX(x));
-        syncClient();
+    public void intensity(double intensity) {
+        setValue(MetabolismSettings.of(metabolismType).intensity(), intensity);
     }
 
-    public int getIndicatorPositionY() {
-        return getMetabolism().map(IMetabolism::getIndicatorPositionY).orElse(0);
+    public <T extends Comparable<? super T>> void setValue(Setting<T> setting, T value) {
+        capability().updateValue(setting, value);
+        dirty = true;
     }
 
-    public void setIndicatorPositionY(int y) {
-        getMetabolism().ifPresent(m -> m.setIndicatorPositionY(y));
-        syncClient();
+    public void slopeDegradation(double slopeDegradation) {
+        setValue(MetabolismSettings.of(metabolismType).slopeDegradation(), slopeDegradation);
     }
 
-    public int getTimer() {
-        return getMetabolism().map(IMetabolism::getTimer).orElse(0);
+    public void ticks(int ticks) {
+        setValue(MetabolismSettings.of(metabolismType).ticks(), ticks);
     }
 
-    public void setTimer(int timer) {
-        getMetabolism().ifPresent(m -> m.setTimer(timer));
-        syncClient();
+    public void training(double training) {
+        setValue(MetabolismSettings.of(metabolismType).training(), training);
     }
 
-    public void syncClient() {
-        if (player instanceof ServerPlayer serverPlayer) {
-            LOGGER.debug("Sending metabolism sync to client");
-            getMetabolism().ifPresent(m ->
-                    CrinkleChannel.INSTANCE.send(PacketDistributor.PLAYER.with(() -> serverPlayer),
-                            new MetabolismUpdateMessage(m)));
+    public Type type() {
+        return metabolismType;
+    }
+
+    public enum Type {
+        Wet, Mess;
+
+        @Override
+        public String toString() {
+            return name().toLowerCase();
         }
     }
 
-    private boolean isMetabolismEnabled() {
-        return getMetabolism().isPresent() && getTimer() > 0
-                && (isNumberOneEnabled() || isNumberTwoEnabled())
-                && !Undergarment.getWornUndergarment(player).isEmpty();
+    private Metabolism(Player player, Type metabolismType) {
+        this.player = player;
+        this.metabolismType = metabolismType;
     }
 
-    public boolean isNumberOneDesperate() {
-        return getNumberOneDesperationLevel().compareTo(DesperationLevel.LOW) > 0;
+    public static @NotNull Metabolism wetOf(ICapabilityProvider provider) {
+        return of(provider, Type.Wet);
     }
 
-    public DesperationLevel getNumberOneDesperationLevel() {
-        return getDesperationLevel(getNumberOneRolls(), getNumberOneSafeRolls(), getNumberOneChance());
+    public static @NotNull Metabolism messOf(ICapabilityProvider provider) {
+        return of(provider, Type.Mess);
     }
 
-    private DesperationLevel getDesperationLevel(int rolls, int safeRolls, double chance) {
-        int dangerRolls = rolls - safeRolls;
-        if (dangerRolls < 0) return DesperationLevel.NONE;
-        return DesperationLevel.of(MathUtil.clamp((int) Math.round(dangerRolls * (1 + chance)), 0, 4));
-    }
-
-    public int getNumberOneRolls() {
-        return getMetabolism().map(IMetabolism::getNumberOneRolls).orElse(0);
-    }
-
-    public void setNumberOneRolls(int rolls) {
-        getMetabolism().ifPresent(m -> m.setNumberOneRolls(rolls));
-        syncClient();
-    }
-
-    public int getNumberOneSafeRolls() {
-        return getMetabolism().map(IMetabolism::getNumberOneSafeRolls).orElse(0);
-    }
-
-    public void setNumberOneSafeRolls(int safeRolls) {
-        getMetabolism().ifPresent(m -> m.setNumberOneSafeRolls(safeRolls));
-        syncClient();
-    }
-
-    public double getNumberOneChance() {
-        return getMetabolism().map(IMetabolism::getNumberOneChance).orElse(0.0);
-    }
-
-    public void setNumberOneChance(double numberOneChance) {
-        getMetabolism().ifPresent(m -> m.setNumberOneChance(numberOneChance));
-        syncClient();
-    }
-
-    public boolean isNumberOneEnabled() {
-        return getMetabolism().map(IMetabolism::isNumberOneEnabled).orElse(false);
-    }
-
-    public void setNumberOneEnabled(boolean enabled) {
-        getMetabolism().ifPresent(m -> m.setNumberOneEnabled(enabled));
-        syncClient();
-    }
-
-    public boolean isNumberTwoDesperate() {
-        return getNumberTwoDesperationLevel().compareTo(DesperationLevel.LOW) > 0;
-    }
-
-    public DesperationLevel getNumberTwoDesperationLevel() {
-        return getDesperationLevel(getNumberTwoRolls(), getNumberTwoSafeRolls(), getNumberTwoChance());
-    }
-
-    public int getNumberTwoRolls() {
-        return getMetabolism().map(IMetabolism::getNumberTwoRolls).orElse(0);
-    }
-
-    public void setNumberTwoRolls(int numberTwoRolls) {
-        getMetabolism().ifPresent(m -> m.setNumberTwoRolls(numberTwoRolls));
-        syncClient();
-    }
-
-    public int getNumberTwoSafeRolls() {
-        return getMetabolism().map(IMetabolism::getNumberTwoSafeRolls).orElse(0);
-    }
-
-    public double getNumberTwoChance() {
-        return getMetabolism().map(IMetabolism::getNumberTwoChance).orElse(0.0);
-    }
-
-    public void setNumberTwoChance(double numberTwoChance) {
-        getMetabolism().ifPresent(m -> m.setNumberTwoChance(numberTwoChance));
-        syncClient();
-    }
-
-    public void setNumberTwoSafeRolls(int numberTwoSafeRolls) {
-        getMetabolism().ifPresent(m -> m.setNumberTwoSafeRolls(numberTwoSafeRolls));
-        syncClient();
-    }
-
-    public boolean isNumberTwoEnabled() {
-        return getMetabolism().map(IMetabolism::isNumberTwoEnabled).orElse(false);
-    }
-
-    public void setNumberTwoEnabled(boolean enabled) {
-        getMetabolism().ifPresent(m -> m.setNumberTwoEnabled(enabled));
-        syncClient();
-    }
-
-    public void syncServer() {
-        if (player instanceof ServerPlayer) return;
-        LOGGER.debug("Sending metabolism sync to server");
-        getMetabolism().ifPresent(m -> CrinkleChannel.INSTANCE.sendToServer(new MetabolismUpdateMessage(m)));
+    public static @NotNull Metabolism of(ICapabilityProvider provider, Type metabolismType) {
+        if (provider instanceof Player player) {
+            return new Metabolism(player, metabolismType);
+        }
+        throw new IllegalArgumentException("Cannot create metabolism for non-player entity");
     }
 
     /**
      * Get the player's metabolism capability.
      */
-    private @NotNull Optional<IMetabolism> getMetabolism() {
-        Optional<IMetabolism> metabolism = player.getCapability(MetabolismCapabilities.METABOLISM).resolve();
-        if (metabolism.isEmpty())
-            LOGGER.warn("Player {} does not have a metabolism capability", player.getDisplayName().getString());
-        return metabolism;
+    protected IMetabolism capability() {
+        return switch(metabolismType) {
+            case Mess -> player.getCapability(MetabolismCapabilities.MESS).resolve().orElseThrow();
+            case Wet -> player.getCapability(MetabolismCapabilities.WET).resolve().orElseThrow();
+        };
     }
 
-    public void tick(int tickCount) {
-        if (!isMetabolismEnabled() || tickCount % 20 != 0 || player.getFoodData().getFoodLevel() == 0
-                || tickCount / 20 % getTimer() != 0)
-            return;
-        MetabolismData one = MetabolismData.of(player, MetabolismDataType.NUMBER_ONE);
-        MetabolismData two = MetabolismData.of(player, MetabolismDataType.NUMBER_TWO);
-        one.tick();
-        if (one.accidentType != CrinkleEvent.Type.BOTH) {
-            two.tick();
-        }
+    public boolean enabled() {
+        boolean enabled = capability().getAsBool(MetabolismSettings.of(metabolismType).enabled());
+        return !player.isDeadOrDying() && enabled;
+    }
 
-        CrinkleEvent.Type eventType;
-        if (two.accidentType != CrinkleEvent.Type.NONE && one.accidentType != CrinkleEvent.Type.NONE) {
-            eventType = CrinkleEvent.Type.BOTH;
-        } else if (two.accidentType != CrinkleEvent.Type.NONE) {
-            eventType = two.accidentType;
+    public void enabled(boolean enabled) {
+        setValue(MetabolismSettings.of(metabolismType).enabled(), enabled);
+    }
+
+    public double training() {
+        return capability().getAsDouble(MetabolismSettings.of(metabolismType).training());
+    }
+
+    public int ticks() {
+        return capability().getAsInt(MetabolismSettings.of(metabolismType).ticks());
+    }
+
+    public double slopeDegradation() {
+        return capability().getAsDouble(MetabolismSettings.of(metabolismType).slopeDegradation());
+    }
+
+    public double frequencyCompression() {
+        return capability().getAsDouble(MetabolismSettings.of(metabolismType).frequencyCompression());
+    }
+
+    public void frequencyCompression(double compression) {
+        setValue(MetabolismSettings.of(metabolismType).frequencyCompression(), compression);
+    }
+
+    public double intensity() {
+        return capability().getAsDouble(MetabolismSettings.of(metabolismType).intensity());
+    }
+
+    public void syncClient() {
+        if (player instanceof ServerPlayer serverPlayer) {
+            LOGGER.trace(LogMarkers.MET, "({}) [{}] Sending metabolism sync to client", CrinkleEvent.side(), metabolismType);
+            CrinkleChannel.INSTANCE.send(PacketDistributor.PLAYER.with(() -> serverPlayer),
+                    new MetabolismUpdateMessage(this));
+        }
+    }
+
+    public void syncServer() {
+        if (player instanceof ServerPlayer) return;
+        LOGGER.trace(LogMarkers.MET, "({}) [{}] Sending metabolism sync to server", CrinkleEvent.side(), metabolismType);
+        CrinkleChannel.INSTANCE.sendToServer(new MetabolismUpdateMessage(this));
+    }
+
+    public void resetDefaults() {
+        capability().reset();
+        syncServer();
+    }
+
+    public void reset() {
+        LOGGER.trace(LogMarkers.MET, "({}) [{}] reset metabolism vars", CrinkleEvent.side(), metabolismType);
+        currentTraining(training());
+        pang(Pang.None);
+        currentFrequency(ticks());
+        pangDuration(0);
+        tickCount(0);
+    }
+
+    public void currentTraining(double training) {
+        setValue(MetabolismSettings.of(metabolismType).currentTraining(), training);
+    }
+
+    public void triggerAccident() {
+        currentFrequency(ticks());
+        currentTraining(training());
+        pang(Pang.Accident);
+        pangDuration(ACCIDENT_DURATION);
+        LOGGER.trace(LogMarkers.MET, "({}) [{}] triggering accident: {}", CrinkleEvent.side(), metabolismType, capability());
+    }
+
+    private void handleFrequency() {
+        if (isDelayed() || pang() == Pang.Accident) return;
+        double newFrequency = currentFrequency() - frequencyCompression();
+        if (newFrequency <= 0) {
+            triggerAccident();
         } else {
-            eventType = one.accidentType;
-        }
-
-        if (eventType != CrinkleEvent.Type.NONE) {
-            CrinkleMod.EVENT_BUS.post(new AccidentEvent(player, 1, CrinkleEvent.Side.SERVER, eventType));
-        }
-        syncClient();
-    }
-
-    public void voidNumberOne() {
-        CrinkleEvent.Side side = player instanceof ServerPlayer ? CrinkleEvent.Side.SERVER : CrinkleEvent.Side.CLIENT;
-        getMetabolism().ifPresent(m -> CrinkleMod.EVENT_BUS.post(new AccidentEvent(player, 1, side,
-                CrinkleEvent.Type.BLADDER)));
-    }
-
-    public void voidNumberTwo() {
-        CrinkleEvent.Side side = player instanceof ServerPlayer ? CrinkleEvent.Side.SERVER : CrinkleEvent.Side.CLIENT;
-        getMetabolism().ifPresent(m -> CrinkleMod.EVENT_BUS.post(new AccidentEvent(player, 1, side,
-                CrinkleEvent.Type.BOWEL)));
-    }
-
-    public enum DesperationLevel implements Comparable<DesperationLevel> {
-        NONE(Component.translatable("desperation.crinklemod.none"), -1),
-        LOW(Component.translatable("desperation.crinklemod.low"), 0),
-        MEDIUM_LOW(Component.translatable("desperation.crinklemod.medium_low"), 1),
-        MEDIUM(Component.translatable("desperation.crinklemod.medium"), 2),
-        MEDIUM_HIGH(Component.translatable("desperation.crinklemod.medium_high"), 3),
-        HIGH(Component.translatable("desperation.crinklemod.high"), 4);
-
-        private final Component label;
-        private final int level;
-
-        DesperationLevel(Component label, int level) {
-            this.label = label;
-            this.level = level;
-        }
-
-        public static DesperationLevel max(DesperationLevel a, DesperationLevel b) {
-            if (a == null) return b;
-            if (b == null) return a;
-            return a.level > b.level ? a : b;
-        }
-
-        public static DesperationLevel of(int level) {
-            for (DesperationLevel desperationLevel : values())
-                if (desperationLevel.level == level)
-                    return desperationLevel;
-            throw new IllegalArgumentException("Invalid desperation level: " + level);
-        }
-
-        public Component getLabel() {
-            return label;
-        }
-
-        public int getLevel() {
-            return level;
+            currentFrequency(newFrequency);
         }
     }
 
-    private enum MetabolismDataType {
-        NUMBER_ONE,
-        NUMBER_TWO;
-
-        public void setRolls(Player player, int rolls) {
-            switch (this) {
-                case NUMBER_ONE -> Metabolism.of(player).setNumberOneRolls(rolls);
-                case NUMBER_TWO -> Metabolism.of(player).setNumberTwoRolls(rolls);
-            }
-        }
-    }
-
-    private static class MetabolismData {
-        CrinkleEvent.Type accidentType = CrinkleEvent.Type.NONE;
-        double chance;
-        DesperationLevel desperationLevel = DesperationLevel.NONE;
-        boolean enabled;
-        Player player;
-        int rolls;
-        int safeRolls;
-        MetabolismDataType type;
-
-        protected static MetabolismData of(Player player, MetabolismDataType type) {
-            Metabolism metabolism = Metabolism.of(player);
-            MetabolismData data = new MetabolismData();
-            data.player = player;
-            data.type = type;
-            if (type == MetabolismDataType.NUMBER_ONE) {
-                data.enabled = metabolism.isNumberOneEnabled();
-                data.rolls = metabolism.getNumberOneRolls();
-                data.safeRolls = metabolism.getNumberOneSafeRolls();
-                data.chance = metabolism.getNumberOneChance();
-            } else {
-                data.enabled = metabolism.isNumberTwoEnabled();
-                data.rolls = metabolism.getNumberTwoRolls();
-                data.safeRolls = metabolism.getNumberTwoSafeRolls();
-                data.chance = metabolism.getNumberTwoChance();
-            }
-            return data;
-        }
-
-        protected DesperationLevel getDesperationLevel() {
-            int dangerRolls = rolls - safeRolls;
-            if (dangerRolls < 0) return DesperationLevel.NONE;
-            return DesperationLevel.of(MathUtil.clamp((int) Math.round(dangerRolls * (1 + chance)), 0, 4));
-        }
-
-        protected CrinkleEvent.Type getDesperationType() {
-            return type == MetabolismDataType.NUMBER_ONE ? CrinkleEvent.Type.BLADDER : CrinkleEvent.Type.BOWEL;
-        }
-
-        private void rollAdditionalAccident() {
-            MetabolismData data = switch (type) {
-                case NUMBER_ONE -> MetabolismData.of(player, MetabolismDataType.NUMBER_TWO);
-                case NUMBER_TWO -> MetabolismData.of(player, MetabolismDataType.NUMBER_ONE);
-            };
-            double roll = Math.random();
-            if (roll < data.chance) {
-                data.triggerAccident(false);
-                if (data.accidentType != CrinkleEvent.Type.NONE) {
-                    accidentType = CrinkleEvent.Type.BOTH;
+    private void handlePangs() {
+        if (isDelayed()) return;
+        Random random = new Random();
+        switch(pang()) {
+            case Accident -> {
+                if (pangDuration() <= 0) {
+                    reset();
+                    LOGGER.trace(LogMarkers.MET, "({}) [{}] accident stop: pang={} pangDuration={}, currentFrequency={}",
+                            CrinkleEvent.side(), metabolismType, pang(), pangDuration(), currentFrequency());
+                } else {
+                    pangDuration(pangDuration() - 1);
+                    LOGGER.trace(LogMarkers.MET, "({}) [{}] accident tick: pang={} pangDuration={}, currentFrequency={}",
+                            CrinkleEvent.side(), metabolismType, pang(), pangDuration(), currentFrequency());
                 }
             }
-        }
-
-        protected void tick() {
-            if (!enabled) return;
-            rolls++;
-            updateMetabolism();
-            if (rolls < safeRolls) return;
-            double roll = Math.random();
-            DesperationLevel newDesperationLevel = getDesperationLevel();
-
-            if (newDesperationLevel != DesperationLevel.NONE
-                    && rolls >= safeRolls && (roll - (double) (newDesperationLevel.getLevel() * 2) / 100) < chance) {
-                triggerAccident(true);
+            case Major, Minor -> {
+                if (pangDuration() <= 0) {
+                    // Check for accident
+                    boolean accident = false;
+                    double roll = 0.0;
+                    if (pang() == Pang.Major) {
+                        roll = random.nextDouble();
+                        accident = roll > currentTraining();
+                        if (accident) {
+                            triggerAccident();
+                        }
+                    }
+                    if (!accident) {
+                        pang(Pang.None);
+                        pangDuration(0);
+                    }
+                    LOGGER.trace(LogMarkers.MET, "({}) [{}] pang stop: pang={} pangDuration={}, currentFrequency={}, accident={}, roll={}, currentTraining={}",
+                            CrinkleEvent.side(), metabolismType, pang(), pangDuration(), currentFrequency(), accident, roll, currentTraining());
+                } else {
+                    pangDuration(pangDuration() - 1);
+                    LOGGER.trace(LogMarkers.MET, "({}) [{}] pang tick: pang={} pangDuration={}, currentFrequency={}",
+                            CrinkleEvent.side(), metabolismType, pang(), pangDuration(), currentFrequency());
+                }
             }
-            if (desperationLevel != getDesperationLevel()) {
-                CrinkleMod.EVENT_BUS.post(new DesperationEvent(player, getDesperationLevel(),
-                        CrinkleEvent.Side.SERVER, getDesperationType()));
+            case None -> {
+                // We only handle pangs on the frequency tick
+                if (tickCount() % Math.max(MIN_PANG, Math.ceil(currentFrequency())) != 0) {
+                    LOGGER.trace(LogMarkers.MET, "({}) [{}] pang skip: tickCount={}, currentFrequency={} ceil(currentFrequency)={}",
+                            CrinkleEvent.side(), metabolismType, tickCount(), currentFrequency(), Math.ceil(currentFrequency()));
+                    return;
+                }
+                Pang pang = intensity() >= currentTraining() ? Pang.Major : Pang.Minor;
+                pang(pang);
+                int maxDuration = MathUtil.clamp((int) (currentFrequency() * 0.666), MIN_PANG + 1, MAX_PANG);
+                pangDuration(random.nextInt(MIN_PANG, maxDuration));
+                LOGGER.trace(LogMarkers.MET, "({}) [{}] pang start: pang={} pangDuration={}, maxDuration={}, currentFrequency={}",
+                        CrinkleEvent.side(), metabolismType, pang(), pangDuration(), maxDuration, currentFrequency());
             }
-            desperationLevel = getDesperationLevel();
         }
+    }
 
-        private void triggerAccident(boolean additionalAccident) {
-            accidentType = switch (type) {
-                case NUMBER_ONE -> CrinkleEvent.Type.BLADDER;
-                case NUMBER_TWO -> CrinkleEvent.Type.BOWEL;
-            };
-            if (additionalAccident) {
-                rollAdditionalAccident();
-            }
-            rolls = 0;
-            updateMetabolism();
-        }
+    private boolean isDelayed() {
+        // We are delayed if our tickCount is less than DELAY_SECONDS and currentTraining equals default training,
+        // since both values reset after an accident.
+        return tickCount() < DELAY_SECONDS && currentTraining() == training();
+    }
 
-        private void updateMetabolism() {
-            type.setRolls(player, rolls);
+    private void handleTraining() {
+        if (isDelayed()) return;
+        // Update currentTraining based on our slope
+        double newTraining = Math.max(0, (slopeDegradation() * tickCount()) + training());
+        LOGGER.trace(LogMarkers.MET, "({}) [{}] training tick: currentTraining={}, newTraining={}, slopeDegradation={}", CrinkleEvent.side(), metabolismType, currentTraining(), newTraining, slopeDegradation());
+        if (newTraining <= 0) {
+            triggerAccident();
+        } else {
+            currentTraining(newTraining);
         }
+    }
+
+    public void tick(int mcTickCount) {
+        if (!enabled()) return;
+
+        // Only process every second (TICK_FREQ = 20)
+        if (mcTickCount % TICK_FREQ != 0) return;
+
+        // Record our tick count
+        tickCount(tickCount() + 1);
+
+        // Process
+        // Each checks isDelayed to see if we've entered the delay period
+        // this ensures an accident from one handler will prevent other handlers during the delay
+        handleTraining();
+        handlePangs();
+        handleFrequency();
+        if (dirty && mcTickCount % SYNC_SERVER_TICK_FREQUENCY == 0) {
+            syncServer();
+            dirty = false;
+        }
+    }
+
+    public void tickCount(int tickCount) {
+        setValue(MetabolismSettings.of(metabolismType).tickCount(), tickCount);
+    }
+
+    public int tickCount() {
+        return capability().getAsInt(MetabolismSettings.of(metabolismType).tickCount());
+    }
+
+    public Pang pang() {
+        return Pang.from(capability().getAsString(MetabolismSettings.of(metabolismType).pang()));
+    }
+
+    public void pang(Pang pang) {
+        setValue(MetabolismSettings.of(metabolismType).pang(), pang.name());
+    }
+
+    public void pangDuration(int duration) {
+        setValue(MetabolismSettings.of(metabolismType).pangDuration(), duration);
+    }
+
+    public void currentFrequency(double frequency) {
+        setValue(MetabolismSettings.of(metabolismType).currentFrequency(), frequency);
+    }
+
+    public int pangDuration() {
+        return capability().getAsInt(MetabolismSettings.of(metabolismType).pangDuration());
+    }
+
+    public double currentFrequency() {
+        return capability().getAsDouble(MetabolismSettings.of(metabolismType).currentFrequency());
+    }
+
+    public double currentTraining() {
+        return capability().getAsDouble(MetabolismSettings.of(metabolismType).currentTraining());
     }
 }

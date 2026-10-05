@@ -86,8 +86,8 @@ public abstract class AbstractContainer extends AbstractWidget {
             return this;
         }
         if (children().contains(widget)) {
-            LOGGER.warn("Attempted to add duplicate widget: {}", widget);
-            return this;
+            LOGGER.error("Attempted to add duplicate widget: {}", widget);
+            throw new RuntimeException();
         }
         children.add(widget);
         manager().eventManager().addListener(widget);
@@ -233,7 +233,7 @@ public abstract class AbstractContainer extends AbstractWidget {
 
     public void onKey(KeyEvent event) {
         if (ClientSetup.LAYOUT_EDITOR_KEY != null
-                && ClientSetup.LAYOUT_EDITOR_KEY.matches(event.keyCode(), event.scanCode())) {
+                && ClientSetup.LAYOUT_EDITOR_KEY.consumeClick()) {
             if (ClientUtil.getMinecraft().screen instanceof LayoutEditorScreen) return;
             if (manager() instanceof IManagedGUI gui && gui.layoutEditorEnabled()) {
                 ClientUtil.getMinecraft().setScreen(new LayoutEditorScreen(gui));
@@ -241,11 +241,7 @@ public abstract class AbstractContainer extends AbstractWidget {
             }
         }
         if (ClientSetup.CRINKLE_CONFIG_KEY != null
-                && ClientSetup.CRINKLE_CONFIG_KEY.matches(event.keyCode(), event.scanCode())) {
-            if (ClientUtil.getMinecraft().screen instanceof CrinkleModConfigScreen) {
-                ClientUtil.getMinecraft().screen.onClose();
-                return;
-            }
+                && ClientSetup.CRINKLE_CONFIG_KEY.consumeClick()) {
             ClientUtil.getMinecraft().setScreen(new CrinkleModConfigScreen());
             event.consumed(true);
         }

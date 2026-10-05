@@ -1,50 +1,40 @@
 package ninja.crinkle.mod.settings;
 
 import net.minecraft.network.chat.Component;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import ninja.crinkle.mod.api.ServerUpdater;
+import org.apache.commons.lang3.NotImplementedException;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
+import java.text.DecimalFormat;
+import java.text.ParseException;
 import java.util.*;
-import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
-import java.util.function.BiPredicate;
-import java.util.function.Function;
+import java.util.function.Predicate;
 
 public abstract class Setting<T extends Comparable<? super T>> {
-    protected final Map<ActionType, List<BiConsumer<Setting<T>, ICapabilityProvider>>> actionListeners;
-    protected final Function<ICapabilityProvider, T> defaultSupplier;
     protected final T defaultValue;
-    protected final Function<ICapabilityProvider, T> getter;
     protected final String key;
     protected final Component label;
     protected final RangeSupplier<T> rangeSupplier;
-    protected final BiConsumer<ICapabilityProvider, T> setter;
-    protected final Function<ICapabilityProvider, ServerUpdater> syncer;
     protected final Component tooltip;
     protected final Class<T> type;
-    protected final Map<BiPredicate<ICapabilityProvider, T>, BiFunction<ICapabilityProvider, T, Component>> validators;
+    protected final String numberFormat;
+    protected final Map<ModifierValue, T> modifierValues = new HashMap<>();
+    protected final Map<Predicate<T>, BiFunction<Setting<T>, T, Component>> validators;
 
     protected Setting(String key, Component label, Component tooltip, Class<T> type,
-                      Map<BiPredicate<ICapabilityProvider, T>, BiFunction<ICapabilityProvider, T, Component>> validators,
-                      T defaultValue,
-                      Function<ICapabilityProvider, T> defaultSupplier, Function<ICapabilityProvider, T> getter,
-                      BiConsumer<ICapabilityProvider, T> setter, Function<ICapabilityProvider, ServerUpdater> syncer,
-                      RangeSupplier<T> rangeSupplier, Map<ActionType, List<BiConsumer<Setting<T>,
-                    ICapabilityProvider>>> actionListeners) {
+                      Map<Predicate<T>, BiFunction<Setting<T>, T, Component>> validators,
+                      T defaultValue, RangeSupplier<T> rangeSupplier, String numberFormat,
+                      Map<ModifierValue, T> modifierValues) {
         this.key = key;
         this.type = type;
         this.label = label;
         this.tooltip = tooltip;
         this.validators = validators;
         this.defaultValue = defaultValue;
-        this.defaultSupplier = defaultSupplier;
-        this.getter = getter;
-        this.setter = setter;
-        this.syncer = syncer;
         this.rangeSupplier = rangeSupplier;
-        this.actionListeners = actionListeners;
+        this.numberFormat = numberFormat;
+        this.modifierValues.putAll(modifierValues);
     }
 
     @Contract("_ -> new")
@@ -69,30 +59,31 @@ public abstract class Setting<T extends Comparable<? super T>> {
         return new StringValueBuilder(key);
     }
 
-    public void dispatchAction(ActionType type, ICapabilityProvider provider) {
-        actionListeners.get(type).forEach(l -> l.accept(this, provider));
+    public String displayName() {
+        return label() != null ? label().getString() : key();
     }
 
-    public List<Component> errors(ICapabilityProvider entity, Object value) {
+    public List<Component> errors(Object value) {
         if (!isValid(value)) {
             if (isInt()) {
                 return List.of(Component.translatable("validation.crinklemod.metabolism.failure.invalid.integer",
-                        value));
+                        value, displayName()));
             }
             if (isDouble()) {
                 return List.of(Component.translatable("validation.crinklemod.metabolism.failure.invalid.double",
-                        value));
+                        value, displayName()));
             }
             if (isBoolean()) {
                 return List.of(Component.translatable("validation.crinklemod.metabolism.failure.invalid.boolean",
-                        value));
+                        value, displayName()));
             }
-            return List.of(Component.translatable("validation.crinklemod.metabolism.failure.invalid.general", value));
+            return List.of(Component.translatable("validation.crinklemod.metabolism.failure.invalid.general",
+                    value, displayName()));
         }
         List<Component> errors = new ArrayList<>();
         validators.forEach((k, v) -> {
-            if (!k.test(entity, valueOf(value.toString()))) {
-                errors.add(v.apply(entity, valueOf(value.toString())));
+            if (!k.test(valueOf(value.toString()))) {
+                errors.add(v.apply(this, valueOf(value.toString())));
             }
         });
         return errors;
@@ -103,7 +94,11 @@ public abstract class Setting<T extends Comparable<? super T>> {
         if (isBoolean() && (value.toString().equals("true") || value.toString().equals("false"))) return true;
         if (isInt() || isDouble()) {
             try {
-                valueOf(value.toString());
+                T v = valueOf(value.toString());
+                for(var entry : validators.entrySet()) {
+                    if (!entry.getKey().test(v))
+                        return false;
+                }
                 return true;
             } catch (NumberFormatException e) {
                 return false;
@@ -111,6 +106,22 @@ public abstract class Setting<T extends Comparable<? super T>> {
         }
         // String
         return true;
+    }
+
+    public String formattedString(Object value) {
+        if (numberFormat().isBlank() || value == null) {
+            return String.valueOf(value);
+        }
+        if (isDouble() || isInt() || !String.valueOf(value).isBlank()) {
+            return new DecimalFormat(numberFormat()).format(value);
+        }
+        return value.toString();
+    }
+
+    public abstract T modifierValue(List<ModifierValue> modifierValues);
+
+    private String numberFormat() {
+        return numberFormat;
     }
 
     public boolean isInt() {
@@ -125,42 +136,14 @@ public abstract class Setting<T extends Comparable<? super T>> {
         return false;
     }
 
-    public abstract T valueOf(String value);
+    public abstract T add(T value, T modifier);
 
-    public boolean getBoolean(ICapabilityProvider entity) {
-        return BooleanValue.of(get(entity));
-    }
+    public abstract T subtract(T value, T modifier);
+
+    public abstract T valueOf(Object value);
 
     public T getDefault() {
         return defaultValue;
-    }
-
-    public double getDefaultDouble(ICapabilityProvider provider) {
-        return DoubleValue.of(getDefault(provider));
-    }
-
-    public T getDefault(ICapabilityProvider provider) {
-        if (defaultSupplier == null || provider == null)
-            return defaultValue;
-        return defaultSupplier.apply(provider);
-    }
-
-    public double getDouble(ICapabilityProvider entity) {
-        return DoubleValue.of(get(entity));
-    }
-
-    public int getInt(ICapabilityProvider provider) {
-        return IntValue.of(get(provider));
-    }
-
-    public T get(ICapabilityProvider provider) {
-        if (getter == null)
-            return getDefault(provider);
-        return getter.apply(provider);
-    }
-
-    public String getString(ICapabilityProvider entity) {
-        return StringValue.of(get(entity));
     }
 
     public boolean isString() {
@@ -179,58 +162,25 @@ public abstract class Setting<T extends Comparable<? super T>> {
         return rangeSupplier;
     }
 
-    public void reset(ICapabilityProvider provider) {
-        set(provider, getDefault(provider));
-    }
-
-    public void set(ICapabilityProvider entity, Object value) {
-        if (setter != null) {
-            setter.accept(entity, valueOf(value.toString()));
-        }
-    }
-
-    public Optional<ServerUpdater> syncer(ICapabilityProvider provider) {
-        return Optional.ofNullable(syncer).map(s -> s.apply(provider));
-    }
-
     public Component tooltip() {
         return tooltip;
     }
 
-    public enum ActionType {
-        RESET, SYNC_SERVER, SYNC_CLIENT;
-
-        private String custom;
-
-        ActionType() {
-        }
-
-        public String getCustom() {
-            return custom;
-        }
-
-        public void setCustom(String custom) {
-            this.custom = custom;
-        }
-    }
-
     public static class BooleanValue extends Setting<Boolean> {
         protected BooleanValue(String key, Component label, Component tooltip,
-                               Map<BiPredicate<ICapabilityProvider, Boolean>, BiFunction<ICapabilityProvider, Boolean
-                                       , Component>> validators,
-                               Boolean defaultValue,
-                               Function<ICapabilityProvider, Boolean> defaultSupplier, Function<ICapabilityProvider,
-                        Boolean> getter,
-                               BiConsumer<ICapabilityProvider, Boolean> setter,
-                               Function<ICapabilityProvider, ServerUpdater> syncer,
-                               RangeSupplier<Boolean> rangeSupplier,
-                               Map<ActionType, List<BiConsumer<Setting<Boolean>, ICapabilityProvider>>> changeListeners) {
-            super(key, label, tooltip, Boolean.class, validators, defaultValue, defaultSupplier, getter, setter,
-                    syncer, rangeSupplier, changeListeners);
+                               Map<Predicate<Boolean>, BiFunction<Setting<Boolean>, Boolean, Component>> validators,
+                               Boolean defaultValue, RangeSupplier<Boolean> rangeSupplier) {
+            super(key, label, tooltip, Boolean.class, validators, defaultValue,
+                    rangeSupplier, "", Map.of());
         }
 
         public static boolean of(Object value) {
             return Boolean.parseBoolean(String.valueOf(value));
+        }
+
+        @Override
+        public Boolean modifierValue(List<ModifierValue> modifierValues) {
+            throw new NotImplementedException("modifierValue is not implemented on BooleanValue");
         }
 
         @Override
@@ -239,8 +189,22 @@ public abstract class Setting<T extends Comparable<? super T>> {
         }
 
         @Override
-        public Boolean valueOf(String value) {
-            return Boolean.valueOf(value);
+        public Boolean valueOf(Object value) {
+            if (value instanceof Boolean)
+                return (Boolean) value;
+            if (value instanceof String v)
+                return Boolean.valueOf(v);
+            throw new IllegalArgumentException("invalid boolean type given, must be boolean or string");
+        }
+
+        @Override
+        public Boolean add(Boolean value, Boolean modifier) {
+            throw new IllegalArgumentException("add called on boolean value");
+        }
+
+        @Override
+        public Boolean subtract(Boolean value, Boolean modifier) {
+            throw new IllegalArgumentException("subtract called on boolean value");
         }
     }
 
@@ -252,24 +216,20 @@ public abstract class Setting<T extends Comparable<? super T>> {
         public BooleanValue build() {
             if (rangeSupplier != null)
                 throw new IllegalStateException("Boolean values cannot have a rangeSupplier");
-            return new BooleanValue(key, label, tooltip, validators, defaultValue, defaultSupplier, getter, setter,
-                    syncer, null, actionListeners);
+            return new BooleanValue(key, label, tooltip, validators, defaultValue,
+                    null);
         }
     }
 
     public static abstract class Builder<T extends Comparable<? super T>> {
-        protected final Map<ActionType, List<BiConsumer<Setting<T>, ICapabilityProvider>>> actionListeners =
-                new HashMap<>();
         protected final String key;
-        protected final Map<BiPredicate<ICapabilityProvider, T>, BiFunction<ICapabilityProvider, T, Component>> validators = new HashMap<>();
-        protected Function<ICapabilityProvider, T> defaultSupplier;
+        protected final Map<Predicate<T>, BiFunction<Setting<T>, T, Component>> validators = new HashMap<>();
         protected T defaultValue;
-        protected Function<ICapabilityProvider, T> getter;
-        protected Component label;
         protected RangeSupplier<T> rangeSupplier;
-        protected BiConsumer<ICapabilityProvider, T> setter;
-        protected Function<ICapabilityProvider, ServerUpdater> syncer;
+        protected Component label;
         protected Component tooltip;
+        protected String numberFormat = "";
+        protected Map<ModifierValue, T> modifierValues = new HashMap<>();
 
         private Builder(String key) {
             this.key = key;
@@ -279,18 +239,6 @@ public abstract class Setting<T extends Comparable<? super T>> {
 
         public Builder<T> defaultValue(T value) {
             this.defaultValue = value;
-            this.defaultSupplier = p -> value;
-            return this;
-        }
-
-        public Builder<T> defaultValue(Function<ICapabilityProvider, T> supplier, T defaultValue) {
-            this.defaultValue = defaultValue;
-            this.defaultSupplier = supplier;
-            return this;
-        }
-
-        public Builder<T> getter(Function<ICapabilityProvider, T> getter) {
-            this.getter = getter;
             return this;
         }
 
@@ -299,14 +247,12 @@ public abstract class Setting<T extends Comparable<? super T>> {
             return this;
         }
 
-        public Builder<T> onAction(ActionType actionType, BiConsumer<Setting<T>, ICapabilityProvider> listener) {
-            if (!this.actionListeners.containsKey(actionType))
-                this.actionListeners.put(actionType, new ArrayList<>());
-            this.actionListeners.get(actionType).add(listener);
+        public Builder<T> numberFormat(String format) {
+            this.numberFormat = format;
             return this;
         }
 
-        public Builder<T> range(Function<ICapabilityProvider, T> min, Function<ICapabilityProvider, T> max) {
+        public Builder<T> range(T min, T max) {
             return this.range(new RangeSupplier<>(min, max));
         }
 
@@ -315,47 +261,47 @@ public abstract class Setting<T extends Comparable<? super T>> {
             return this;
         }
 
-        public Builder<T> setter(BiConsumer<ICapabilityProvider, T> setter) {
-            this.setter = setter;
-            return this;
-        }
-
-        public Builder<T> synchronizer(Function<ICapabilityProvider, ServerUpdater> synchronizer) {
-            this.syncer = synchronizer;
-            return this;
-        }
-
         public Builder<T> tooltip(Component tooltip) {
             this.tooltip = tooltip;
             return this;
         }
 
-        @SuppressWarnings("unused")
-        public Builder<T> validator(BiPredicate<ICapabilityProvider, T> validator, BiFunction<ICapabilityProvider, T,
-                Component> messageSupplier) {
+        @SuppressWarnings("UnusedReturnValue")
+        public Builder<T> validator(Predicate<T> validator, BiFunction<Setting<T>, T, Component> messageSupplier) {
             validators.put(validator, messageSupplier);
+            return this;
+        }
+
+        public Builder<T> modifierValue(ModifierValue modifier, T value) {
+            modifierValues.put(modifier, value);
             return this;
         }
     }
 
     public static class DoubleValue extends Setting<Double> {
         protected DoubleValue(String key, Component label, Component tooltip,
-                              Map<BiPredicate<ICapabilityProvider, Double>, BiFunction<ICapabilityProvider, Double,
-                                      Component>> validators,
-                              Double defaultValue,
-                              Function<ICapabilityProvider, Double> defaultSupplier, Function<ICapabilityProvider,
-                        Double> getter,
-                              BiConsumer<ICapabilityProvider, Double> setter,
-                              Function<ICapabilityProvider, ServerUpdater> syncer,
-                              RangeSupplier<Double> rangeSupplier,
-                              Map<ActionType, List<BiConsumer<Setting<Double>, ICapabilityProvider>>> changeListeners) {
-            super(key, label, tooltip, Double.class, validators, defaultValue, defaultSupplier, getter, setter,
-                    syncer, rangeSupplier,
-                    changeListeners);
+                              Map<Predicate<Double>, BiFunction<Setting<Double>, Double, Component>> validators,
+                              Double defaultValue, RangeSupplier<Double> rangeSupplier, String numberFormat,
+                              Map<ModifierValue, Double> modifierValues) {
+            super(key, label, tooltip, Double.class, validators, defaultValue,
+                    rangeSupplier, numberFormat, modifierValues
+            );
         }
 
         public static double of(Object value) {
             return Double.parseDouble(String.valueOf(value));
+        }
+
+        @Override
+        public Double modifierValue(List<ModifierValue> modifierValues) {
+            List<ModifierValue> validModifiers = modifierValues.stream()
+                    .filter(v -> this.modifierValues.get(v) != null).toList();
+            if (validModifiers.isEmpty() || validModifiers.contains(ModifierValue.None)) {
+                return this.modifierValues.getOrDefault(ModifierValue.None, 0.01);
+            }
+            return validModifiers.stream()
+                    .mapToDouble(this.modifierValues::get)
+                    .sum();
         }
 
         @Override
@@ -364,44 +310,62 @@ public abstract class Setting<T extends Comparable<? super T>> {
         }
 
         @Override
-        public Double valueOf(String value) {
-            return Double.valueOf(value);
+        public Double add(Double value, Double modifier) {
+            return value + modifier;
+        }
+
+        @Override
+        public Double subtract(Double value, Double modifier) {
+            return value - modifier;
+        }
+
+        @Override
+        public Double valueOf(Object value) {
+            if (value instanceof Double d)
+                return d;
+            if (value instanceof Integer i)
+                return (double) i;
+            if (value instanceof String v)
+                return Double.valueOf(v);
+            throw new IllegalArgumentException("invalid double type given, must be double, integer, or string");
         }
     }
 
     public static class DoubleValueBuilder extends Builder<Double> {
 
+        private String numberFormat;
+
         private DoubleValueBuilder(String key) {
             super(key);
+            modifierValues.put(ModifierValue.None, 1.0);
+        }
+
+        public Builder<Double> numberFormat(String format) {
+            numberFormat = format;
+            return this;
         }
 
         public DoubleValue build() {
             if (rangeSupplier != null) {
-                validators.put((e, v) -> rangeSupplier.apply(e).contains(v), (e, v) -> {
-                    RangeSupplier.Result<Double> range = rangeSupplier.apply(e);
+                validator((v) -> rangeSupplier.apply().contains(v), (s,v) -> {
+                    RangeSupplier.Result<Double> range = rangeSupplier.apply();
                     return Component.translatable("validation.crinklemod.metabolism.failure.out_of_range.double", v,
-                            range.min(), range.max());
+                            s.displayName(), range.min(), range.max());
                 });
             }
-            return new DoubleValue(key, label, tooltip, validators, defaultValue, defaultSupplier, getter, setter,
-                    syncer, rangeSupplier, actionListeners);
+            return new DoubleValue(key, label, tooltip, validators, defaultValue,
+                    rangeSupplier, numberFormat, modifierValues);
         }
     }
 
     public static class IntValue extends Setting<Integer> {
         protected IntValue(String key, Component label, Component tooltip,
-                           Map<BiPredicate<ICapabilityProvider, Integer>, BiFunction<ICapabilityProvider, Integer,
-                                   Component>> validators,
-                           Integer defaultValue,
-                           Function<ICapabilityProvider, Integer> defaultSupplier, Function<ICapabilityProvider,
-                        Integer> getter,
-                           BiConsumer<ICapabilityProvider, Integer> setter,
-                           Function<ICapabilityProvider, ServerUpdater> syncer,
-                           RangeSupplier<Integer> rangeSupplier,
-                           Map<ActionType, List<BiConsumer<Setting<Integer>, ICapabilityProvider>>> changeListeners) {
-            super(key, label, tooltip, Integer.class, validators, defaultValue, defaultSupplier, getter, setter,
-                    syncer, rangeSupplier,
-                    changeListeners);
+                           Map<Predicate<Integer>, BiFunction<Setting<Integer>, Integer, Component>> validators,
+                           Integer defaultValue, RangeSupplier<Integer> rangeSupplier, String numberFormat,
+                           Map<ModifierValue, Integer> modifierValues) {
+            super(key, label, tooltip, Integer.class, validators, defaultValue,
+                    rangeSupplier, numberFormat, modifierValues
+            );
         }
 
         public static int of(Object value) {
@@ -414,8 +378,41 @@ public abstract class Setting<T extends Comparable<? super T>> {
         }
 
         @Override
-        public Integer valueOf(String value) {
-            return Integer.valueOf(value);
+        public Integer add(Integer value, Integer modifier) {
+            return value + modifier;
+        }
+
+        @Override
+        public Integer subtract(Integer value, Integer modifier) {
+            return value - modifier;
+        }
+
+        @Override
+        public Integer modifierValue(List<ModifierValue> modifierValues) {
+            List<ModifierValue> validModifiers = modifierValues.stream()
+                    .filter(v -> this.modifierValues.get(v) != null).toList();
+            if (validModifiers.isEmpty() || validModifiers.contains(ModifierValue.None)) {
+                return this.modifierValues.getOrDefault(ModifierValue.None, 1);
+            }
+            return validModifiers.stream()
+                    .mapToInt(this.modifierValues::get)
+                    .sum();
+        }
+
+        @Override
+        public Integer valueOf(Object value) {
+            if (value instanceof Integer i)
+                return i;
+            if (value instanceof String v) {
+                Number n;
+                try {
+                    n = new DecimalFormat("#,###").parse(v);
+                } catch (ParseException e) {
+                    throw new IllegalArgumentException(e);
+                }
+                return n.intValue();
+            }
+            throw new IllegalArgumentException("invalid integer type given, must be integer, or string");
         }
     }
 
@@ -423,33 +420,34 @@ public abstract class Setting<T extends Comparable<? super T>> {
 
         private IntValueBuilder(String key) {
             super(key);
+            modifierValues.put(ModifierValue.None, 1);
         }
 
         @Override
         public IntValue build() {
             if (rangeSupplier != null)
-                validators.put((e, v) -> rangeSupplier.apply(e).contains(v), (e, v) -> {
-                    RangeSupplier.Result<Integer> range = rangeSupplier.apply(e);
+                validator((v) -> rangeSupplier.apply().contains(v), (s,v) -> {
+                    RangeSupplier.Result<Integer> range = rangeSupplier.apply();
                     return Component.translatable("validation.crinklemod.metabolism.failure.out_of_range.integer", v,
-                            range.min(), range.max());
+                            s.displayName(), range.min(), range.max());
                 });
-            return new IntValue(key, label, tooltip, validators, defaultValue, defaultSupplier, getter, setter,
-                    syncer, rangeSupplier,
-                    actionListeners);
+            return new IntValue(key, label, tooltip, validators, defaultValue,
+                    rangeSupplier, numberFormat, modifierValues
+            );
         }
     }
 
     public static class RangeSupplier<T extends Comparable<? super T>> {
-        private final Function<ICapabilityProvider, T> max;
-        private final Function<ICapabilityProvider, T> min;
+        private final T max;
+        private final T min;
 
-        public RangeSupplier(Function<ICapabilityProvider, T> min, Function<ICapabilityProvider, T> max) {
+        public RangeSupplier(T min, T max) {
             this.min = min;
             this.max = max;
         }
 
-        public Result<T> apply(ICapabilityProvider entity) {
-            return new Result<>(min.apply(entity), max.apply(entity));
+        public Result<T> apply() {
+            return new Result<>(min, max);
         }
 
         public record Result<T extends Comparable<? super T>>(T min, T max) {
@@ -470,18 +468,11 @@ public abstract class Setting<T extends Comparable<? super T>> {
 
     public static class StringValue extends Setting<String> {
         protected StringValue(String key, Component label, Component tooltip,
-                              Map<BiPredicate<ICapabilityProvider, String>, BiFunction<ICapabilityProvider, String,
-                                      Component>> validators,
-                              String defaultValue,
-                              Function<ICapabilityProvider, String> defaultSupplier, Function<ICapabilityProvider,
-                        String> getter,
-                              BiConsumer<ICapabilityProvider, String> setter,
-                              Function<ICapabilityProvider, ServerUpdater> syncer,
-                              RangeSupplier<String> rangeSupplier,
-                              Map<ActionType, List<BiConsumer<Setting<String>, ICapabilityProvider>>> changeListeners) {
-            super(key, label, tooltip, String.class, validators, defaultValue, defaultSupplier, getter, setter,
-                    syncer, rangeSupplier,
-                    changeListeners);
+                              Map<Predicate<String>, BiFunction<Setting<String>, String, Component>> validators,
+                              String defaultValue, RangeSupplier<String> rangeSupplier, String numberFormat) {
+            super(key, label, tooltip, String.class, validators, defaultValue,
+                    rangeSupplier, numberFormat, Map.of()
+            );
         }
 
         public static String of(Object value) {
@@ -494,8 +485,23 @@ public abstract class Setting<T extends Comparable<? super T>> {
         }
 
         @Override
-        public String valueOf(String value) {
-            return value;
+        public String valueOf(Object value) {
+            return value.toString();
+        }
+
+        @Override
+        public String modifierValue(List<ModifierValue> modifierValues) {
+            throw new NotImplementedException("modifierValue does not exist for StringValue");
+        }
+
+        @Override
+        public String add(String value, String modifier) {
+            throw new IllegalArgumentException("add called on string value");
+        }
+
+        @Override
+        public String subtract(String value, String modifier) {
+            throw new IllegalArgumentException("subtract called on string value");
         }
     }
 
@@ -507,8 +513,12 @@ public abstract class Setting<T extends Comparable<? super T>> {
         public StringValue build() {
             if (rangeSupplier != null)
                 throw new IllegalStateException("String values cannot have a rangeSupplier");
-            return new StringValue(key, label, tooltip, validators, defaultValue, defaultSupplier, getter, setter,
-                    syncer, null, actionListeners);
+            return new StringValue(key, label, tooltip, validators, defaultValue,
+                    null, numberFormat);
         }
+    }
+
+    public enum ModifierValue {
+        None, Alt, Ctrl, Shift
     }
 }

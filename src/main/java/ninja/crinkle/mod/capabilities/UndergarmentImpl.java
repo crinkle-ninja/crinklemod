@@ -2,7 +2,9 @@ package ninja.crinkle.mod.capabilities;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import ninja.crinkle.mod.config.UndergarmentConfig;
 import ninja.crinkle.mod.items.custom.DiaperArmorItem;
 import ninja.crinkle.mod.undergarment.DiaperDesign;

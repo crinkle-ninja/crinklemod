@@ -5,8 +5,10 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.network.NetworkEvent;
 import ninja.crinkle.mod.capabilities.IMetabolism;
-import ninja.crinkle.mod.capabilities.MetabolismCapabilities;
 import ninja.crinkle.mod.capabilities.MetabolismImpl;
+import ninja.crinkle.mod.events.CrinkleEvent;
+import ninja.crinkle.mod.metabolism.Metabolism;
+import ninja.crinkle.mod.metabolism.Pang;
 import ninja.crinkle.mod.util.ClientUtil;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -21,17 +23,18 @@ import java.util.function.Supplier;
  */
 public class MetabolismUpdateMessage {
     private static final Logger LOGGER = LogUtils.getLogger();
-    private final int indicatorPositionX;
-    private final int indicatorPositionY;
-    private final double numberOneChance;
-    private final boolean numberOneEnabled;
-    private final int numberOneRolls;
-    private final int numberOneSafeRolls;
-    private final double numberTwoChance;
-    private final boolean numberTwoEnabled;
-    private final int numberTwoRolls;
-    private final int numberTwoSafeRolls;
-    private final int timer;
+    private final Metabolism.Type type;
+    private final boolean enabled;
+    private final double training;
+    private final int ticks;
+    private final double slopeDegradation;
+    private final double frequencyCompression;
+    private final double intensity;
+    private final double currentTraining;
+    private final Pang pang;
+    private final int pangDuration;
+    private final double currentFrequency;
+    private final int tickCount;
 
     /**
      * Create a new update message from a metabolism
@@ -39,18 +42,19 @@ public class MetabolismUpdateMessage {
      * @param metabolism The metabolism to create the message from
      * @see IMetabolism
      */
-    public MetabolismUpdateMessage(@NotNull IMetabolism metabolism) {
-        this.numberOneEnabled = metabolism.isNumberOneEnabled();
-        this.numberTwoEnabled = metabolism.isNumberTwoEnabled();
-        this.timer = metabolism.getTimer();
-        this.numberOneRolls = metabolism.getNumberOneRolls();
-        this.numberOneSafeRolls = metabolism.getNumberOneSafeRolls();
-        this.numberOneChance = metabolism.getNumberOneChance();
-        this.numberTwoRolls = metabolism.getNumberTwoRolls();
-        this.numberTwoSafeRolls = metabolism.getNumberTwoSafeRolls();
-        this.numberTwoChance = metabolism.getNumberTwoChance();
-        this.indicatorPositionX = metabolism.getIndicatorPositionX();
-        this.indicatorPositionY = metabolism.getIndicatorPositionY();
+    public MetabolismUpdateMessage(@NotNull Metabolism metabolism) {
+        this.type = metabolism.type();
+        this.enabled = metabolism.enabled();
+        this.training = metabolism.training();
+        this.ticks = metabolism.ticks();
+        this.slopeDegradation = metabolism.slopeDegradation();
+        this.frequencyCompression = metabolism.frequencyCompression();
+        this.intensity = metabolism.intensity();
+        this.currentTraining = metabolism.currentTraining();
+        this.pang = metabolism.pang();
+        this.pangDuration = metabolism.pangDuration();
+        this.currentFrequency = metabolism.currentFrequency();
+        this.tickCount = metabolism.tickCount();
     }
 
     /**
@@ -60,17 +64,18 @@ public class MetabolismUpdateMessage {
      * @see FriendlyByteBuf
      */
     public MetabolismUpdateMessage(@NotNull FriendlyByteBuf buffer) {
-        this.numberOneEnabled = buffer.readBoolean();
-        this.numberTwoEnabled = buffer.readBoolean();
-        this.timer = buffer.readInt();
-        this.numberOneRolls = buffer.readInt();
-        this.numberOneSafeRolls = buffer.readInt();
-        this.numberOneChance = buffer.readDouble();
-        this.numberTwoRolls = buffer.readInt();
-        this.numberTwoSafeRolls = buffer.readInt();
-        this.numberTwoChance = buffer.readDouble();
-        this.indicatorPositionX = buffer.readInt();
-        this.indicatorPositionY = buffer.readInt();
+        this.type = buffer.readEnum(Metabolism.Type.class);
+        this.enabled = buffer.readBoolean();
+        this.training = buffer.readDouble();
+        this.ticks = buffer.readInt();
+        this.slopeDegradation = buffer.readDouble();
+        this.frequencyCompression = buffer.readDouble();
+        this.intensity = buffer.readDouble();
+        this.currentTraining = buffer.readDouble();
+        this.pang = buffer.readEnum(Pang.class);
+        this.pangDuration = buffer.readInt();
+        this.currentFrequency = buffer.readDouble();
+        this.tickCount = buffer.readInt();
     }
 
     /**
@@ -91,17 +96,18 @@ public class MetabolismUpdateMessage {
      * @implSpec The order of the encoded values must match the order of the decoded values found in the constructor
      */
     public void encoder(@NotNull FriendlyByteBuf buffer) {
-        buffer.writeBoolean(numberOneEnabled);
-        buffer.writeBoolean(numberTwoEnabled);
-        buffer.writeInt(timer);
-        buffer.writeInt(numberOneRolls);
-        buffer.writeInt(numberOneSafeRolls);
-        buffer.writeDouble(numberOneChance);
-        buffer.writeInt(numberTwoRolls);
-        buffer.writeInt(numberTwoSafeRolls);
-        buffer.writeDouble(numberTwoChance);
-        buffer.writeInt(indicatorPositionX);
-        buffer.writeInt(indicatorPositionY);
+        buffer.writeEnum(this.type);
+        buffer.writeBoolean(this.enabled);
+        buffer.writeDouble(this.training);
+        buffer.writeInt(this.ticks);
+        buffer.writeDouble(this.slopeDegradation);
+        buffer.writeDouble(this.frequencyCompression);
+        buffer.writeDouble(this.intensity);
+        buffer.writeDouble(this.currentTraining);
+        buffer.writeEnum(this.pang);
+        buffer.writeInt(this.pangDuration);
+        buffer.writeDouble(this.currentFrequency);
+        buffer.writeInt(this.tickCount);
     }
 
     /**
@@ -116,20 +122,19 @@ public class MetabolismUpdateMessage {
             ctx.get().setPacketHandled(false);
             return;
         }
-
-        IMetabolism metabolism = player.getCapability(MetabolismCapabilities.METABOLISM).orElseThrow(() ->
-                new IllegalStateException("Player does not have a metabolism capability"));
-        metabolism.setNumberOneEnabled(numberOneEnabled);
-        metabolism.setNumberTwoEnabled(numberTwoEnabled);
-        metabolism.setTimer(timer);
-        metabolism.setNumberOneRolls(numberOneRolls);
-        metabolism.setNumberOneSafeRolls(numberOneSafeRolls);
-        metabolism.setNumberOneChance(numberOneChance);
-        metabolism.setNumberTwoRolls(numberTwoRolls);
-        metabolism.setNumberTwoSafeRolls(numberTwoSafeRolls);
-        metabolism.setNumberTwoChance(numberTwoChance);
-        metabolism.setIndicatorPositionX(indicatorPositionX);
-        metabolism.setIndicatorPositionY(indicatorPositionY);
+        Metabolism metabolism = Metabolism.of(player, type);
+        metabolism.enabled(enabled);
+        metabolism.training(training);
+        metabolism.ticks(ticks);
+        metabolism.slopeDegradation(slopeDegradation);
+        metabolism.frequencyCompression(frequencyCompression);
+        metabolism.intensity(intensity);
+        metabolism.currentTraining(currentTraining);
+        metabolism.pang(pang);
+        metabolism.currentFrequency(currentFrequency);
+        metabolism.pangDuration(pangDuration);
+        metabolism.tickCount(tickCount);
         ctx.get().setPacketHandled(true);
+        LOGGER.trace("({}) [{}] Consuming message", CrinkleEvent.side().name(), metabolism.type());
     }
 }

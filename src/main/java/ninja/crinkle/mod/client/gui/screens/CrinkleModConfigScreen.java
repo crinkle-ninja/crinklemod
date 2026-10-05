@@ -1,12 +1,12 @@
 package ninja.crinkle.mod.client.gui.screens;
 
+import com.mojang.logging.LogUtils;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
-import ninja.crinkle.mod.api.ServerUpdater;
 import ninja.crinkle.mod.client.color.Color;
 import ninja.crinkle.mod.client.gui.events.TabChangedEvent;
 import ninja.crinkle.mod.client.gui.properties.Sizing;
@@ -20,30 +20,21 @@ import ninja.crinkle.mod.undergarment.DiaperDesignRegistry;
 import ninja.crinkle.mod.undergarment.Undergarment;
 import ninja.crinkle.mod.util.ClientUtil;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class CrinkleModConfigScreen extends AbstractScreen {
     private final Player player;
-    private Label dirtyLabel;
     private Label errorLabel;
-    private int pendingTimer;
-    private Button saveButton;
     private Label tabTitle;
     private TabbedPanelContainer tabs;
-    private TextBox timerTextBox;
     private CenterContainer titleRow;
 
     public CrinkleModConfigScreen() {
-        super(Component.translatable("gui.crinklemod.screen.config.title"),
-                ClientUtil.screenWidth(), ClientUtil.screenHeight());
+        super(Component.translatable("gui.crinklemod.screen.config.title"), ClientUtil.screenWidth(), ClientUtil.screenHeight());
         this.player = ClientUtil.getPlayer();
-        pendingTimer = MetabolismSettings.TIMER.get(player);
-        MetabolismTab.NumberOne.init(player);
-        MetabolismTab.NumberTwo.init(player);
     }
 
     @Override
@@ -74,7 +65,7 @@ public class CrinkleModConfigScreen extends AbstractScreen {
         // Root window container (centered, draggable panel)
         VBoxContainer window = new VBoxContainer.Builder(root())
                 .name("config_window")
-                .minSize(300, 220)
+                .minSize(320, 220)
                 .separation(2)
                 .style("panel")
                 .draggable(true)
@@ -116,7 +107,7 @@ public class CrinkleModConfigScreen extends AbstractScreen {
         // Tab Title
         tabTitle = new Label.Builder(titleContainer)
                 .name("tab_title")
-                .text("General")
+                .text(MetabolismSettings.WET.label().getString())
                 .color(Color.MAGENTA)
                 .style("panel_title")
                 .minSize(0, rowHeight)
@@ -135,17 +126,11 @@ public class CrinkleModConfigScreen extends AbstractScreen {
         window.add(tabs);
         eventManager().addListener(TabChangedEvent.KEY, 0, this::onTabChanged);
 
-        // === General tab ===
-        buildTimerRow(tabs.addTab("general",
-                Component.translatable("gui.crinklemod.config.tab.general").getString()), rowHeight);
+        // === Wet tab ===
+        MetabolismTab.Wet.buildTab(tabs.addTab("wet", MetabolismSettings.WET.label().getString()), rowHeight);
+        // === Mess tab ===
+        MetabolismTab.Mess.buildTab(tabs.addTab("mess", MetabolismSettings.MESS.label().getString()), rowHeight);
 
-        // === Number One tab ===
-        MetabolismTab.NumberOne.buildTab(tabs.addTab("number_one",
-                Component.translatable("gui.crinklemod.config.tab.number_one").getString()), rowHeight);
-
-        // === Number Two tab ===
-        MetabolismTab.NumberTwo.buildTab(tabs.addTab("number_two",
-                Component.translatable("gui.crinklemod.config.tab.number_two").getString()), rowHeight);
 
         // === Undergarment tab ===
         ItemStack itemStack = Undergarment.getWornUndergarment(player());
@@ -153,35 +138,24 @@ public class CrinkleModConfigScreen extends AbstractScreen {
             buildUndergarmentTab(tabs.addTab("undergarment", itemStack.getDisplayName().getString()), rowHeight, itemStack);
         }
 
-        // Dirty label
-        dirtyLabel = new Label.Builder(window)
-                .name("dirty_label")
-                .text(Component.translatable("gui.crinklemod.shared.unsaved_changes.label").getString())
-                .minSize(0, fontHeight + 6)
-                .horizontalSizing(Sizing.Expand)
-                .verticalSizing(Sizing.ShrinkBegin)
-                .visible(false)
-                .build();
-
         MarginContainer labelContainer = new MarginContainer.Builder(window)
-                .name("dirty_container")
+                .name("info.container")
                 .margins(4)
+                .minSize(290, fontHeight + 8)
                 .style("textbox")
                 .horizontalSizing(Sizing.ShrinkCenter)
                 .verticalSizing(Sizing.ShrinkCenter)
                 .visible(true)
                 .build();
-        labelContainer.add(dirtyLabel);
-        window.add(labelContainer);
-
         errorLabel = new Label.Builder(window)
-                .name("error_label")
+                .name("error.label")
                 .minSize(0, fontHeight + 6)
-                .horizontalSizing(Sizing.Expand)
-                .verticalSizing(Sizing.ShrinkBegin)
-                .visible(false)
+                .horizontalSizing(Sizing.ShrinkCenter)
+                .verticalSizing(Sizing.ShrinkCenter)
+                .color(Color.RED)
                 .build();
         labelContainer.add(errorLabel);
+        window.add(labelContainer);
 
         // Footer
         MarginContainer footerMargin = new MarginContainer.Builder(window)
@@ -193,15 +167,6 @@ public class CrinkleModConfigScreen extends AbstractScreen {
                 .minSize(0, rowHeight)
                 .horizontalSizing(Sizing.Fill)
                 .verticalSizing(Sizing.ShrinkEnd)
-                .pushAndReturn();
-
-        saveButton = new Button.Builder(footer)
-                .name("save_btn")
-                .text(Component.translatable("gui.crinklemod.shared.save_button.title").getString())
-                .style("button_primary")
-                .minSize(60, rowHeight)
-                .horizontalSizing(Sizing.Expand, Sizing.Fill)
-                .onClick((e, w) -> onSave())
                 .pushAndReturn();
 
         new Button.Builder(footer)
@@ -228,6 +193,14 @@ public class CrinkleModConfigScreen extends AbstractScreen {
     public void onTabChanged(TabChangedEvent event) {
         tabTitle.text(event.currentTab().tabButton().text().text());
         titleRow.arrange();
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        List<String> errors = MetabolismTab.Wet.errors();
+        errors.addAll(MetabolismTab.Mess.errors());
+        errorLabel.text(String.join(" ", errors));
     }
 
     private void buildUndergarmentTab(VBoxContainer parent, int rowHeight, ItemStack itemStack) {
@@ -301,6 +274,7 @@ public class CrinkleModConfigScreen extends AbstractScreen {
                     undergarment.setSolids(0);
                     wetnessBar.value(undergarment.getLiquids());
                     messinessBar.value(undergarment.getSolids());
+                    undergarment.syncServer();
                 })
                 .push();
 
@@ -354,141 +328,33 @@ public class CrinkleModConfigScreen extends AbstractScreen {
                         .atlas(blockAtlas)
                         .texture(design.itemTexture())
                         .minSize(iconSize, iconSize)
-                        .onClick((e, w) -> onDesignSelected(design))
+                        .activePredicate(w -> design != Undergarment.of(player).getDesign().orElse(null))
+                        .onClick((e, w) -> onDesignSelected(design, w))
                         .pushAndReturn();
             }
         }
     }
 
-    private void onDesignSelected(DiaperDesign design) {
+    private void onDesignSelected(DiaperDesign design, AbstractWidget widget) {
         ItemStack itemStack = Undergarment.getWornUndergarment(player());
         Undergarment.of(itemStack).setDesign(design);
-    }
-
-    private void buildTimerRow(VBoxContainer parent, int rowHeight) {
-        HBoxContainer row = new HBoxContainer.Builder(parent)
-                .name("timer_row")
-                .separation(4)
-                .minSize(0, rowHeight)
-                .horizontalSizing(Sizing.Expand)
-                .verticalSizing(Sizing.Expand)
-                .pushAndReturn();
-
-        new Label.Builder(row)
-                .name("timer_label")
-                .text(MetabolismSettings.TIMER.label().getString())
-                .horizontalSizing(Sizing.Expand)
-                .push();
-
-        HBoxContainer controls = new HBoxContainer.Builder(row)
-                .name("timer_controls")
-                .separation(1)
-                .horizontalSizing(Sizing.ShrinkEnd)
-                .pushAndReturn();
-
-        new Button.Builder(controls)
-                .name("timer_minus")
-                .text("-")
-                .minSize(20, rowHeight)
-                .onClick((e, w) -> {
-                    pendingTimer = Math.max(10, pendingTimer - intModifierValue());
-                    refreshTimerDisplay();
-                })
-                .push();
-
-        timerTextBox = controls.addTextBox()
-                .name("timer_value")
-                .text(String.valueOf(pendingTimer))
-                .minSize(45, rowHeight)
-                .style("textbox")
-                .pushAndReturn();
-
-        new Button.Builder(controls)
-                .name("timer_plus")
-                .text("+")
-                .minSize(20, rowHeight)
-                .onClick((e, w) -> {
-                    pendingTimer += intModifierValue();
-                    refreshTimerDisplay();
-                })
-                .push();
-    }
-
-    private int intModifierValue() {
-        if (hasControlDown()) return 10;
-        if (hasShiftDown()) return 5;
-        return 1;
-    }
-
-    private void onSave() {
-        saveSetting(MetabolismSettings.TIMER, pendingTimer, player());
-        MetabolismTab.NumberOne.onSave();
-        MetabolismTab.NumberTwo.onSave();
+        Undergarment.of(itemStack).syncServer();
+        widget.focused(false);
+        widget.active(false);
     }
 
     private void onReset() {
         switch (tabs.selectedIndex()) {
             case 0:
-                pendingTimer = MetabolismSettings.TIMER.getDefault();
-                refreshTimerDisplay();
+                MetabolismTab.Wet.onReset();
                 break;
             case 1:
-                MetabolismTab.NumberOne.onReset();
+                MetabolismTab.Mess.onReset();
                 break;
             case 2:
-                MetabolismTab.NumberTwo.onReset();
-                break;
-            case 3:
                 // todo
                 break;
         }
-    }
-
-    private void refreshTimerDisplay() {
-        timerTextBox.text(String.valueOf(pendingTimer));
-    }
-
-    private static <T extends Comparable<? super T>> void saveSetting(Setting<T> setting, Object value,
-                                                                      Player provider) {
-        setting.set(provider, value);
-        setting.syncer(provider).ifPresent(ServerUpdater::syncServer);
-    }
-
-    @Override
-    public void tick() {
-        super.tick();
-        List<Component> errors = Stream.of(
-                        timerErrors(),
-                        MetabolismTab.NumberOne.errors(),
-                        MetabolismTab.NumberTwo.errors())
-                .flatMap(Collection::stream)
-                .toList();
-        if (!errors.isEmpty()) {
-            errorLabel.text(errors.stream().map(Component::getString).collect(Collectors.joining("\n")));
-            errorLabel.visible(true);
-            saveButton.active(false);
-        } else {
-            errorLabel.visible(false);
-            errorLabel.text("");
-            pendingTimer = Integer.parseInt(timerTextBox.text());
-            boolean dirty = isDirty();
-            dirtyLabel.visible(dirty);
-            saveButton.active(dirty);
-        }
-    }
-
-    private List<Component> timerErrors() {
-        return MetabolismSettings.TIMER.errors(player(), timerTextBox.text());
-    }
-
-    // --- Display refresh ---
-
-    private boolean isDirty() {
-        Player p = player();
-        if (p == null) return false;
-        return pendingTimer != MetabolismSettings.TIMER.get(p)
-                || MetabolismTab.NumberOne.isDirty()
-                || MetabolismTab.NumberTwo.isDirty();
     }
 
     private Player player() {
@@ -501,9 +367,6 @@ public class CrinkleModConfigScreen extends AbstractScreen {
         super.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
     }
 
-
-    // --- Screen overrides ---
-
     @Override
     public void renderBackground(@NotNull GuiGraphics pGuiGraphics) {
         super.renderBackground(pGuiGraphics);
@@ -515,44 +378,111 @@ public class CrinkleModConfigScreen extends AbstractScreen {
     }
 
     private enum MetabolismTab {
-        NumberOne("n1",
-                MetabolismSettings.NUMBER_ONE_ENABLED,
-                MetabolismSettings.NUMBER_ONE_CHANCE,
-                MetabolismSettings.NUMBER_ONE_SAFE_ROLLS
-        ),
-        NumberTwo("n2",
-                MetabolismSettings.NUMBER_TWO_ENABLED,
-                MetabolismSettings.NUMBER_TWO_CHANCE,
-                MetabolismSettings.NUMBER_TWO_SAFE_ROLLS
-        );
+        Wet(MetabolismSettings.WET),
+        Mess(MetabolismSettings.MESS);
 
-        private final Setting<Double> chance;
-        // settings
-        private final Setting<Boolean> enabled;
-        private final String prefix;
-        private final Setting<Integer> safeRolls;
-        private TextBox chanceTextBox;
-        // widgets
-        private Button enabledButton;
-        private double pendingChance;
-        // values
-        private boolean pendingEnabled;
-        private int pendingSafeRolls;
-        private Player player;
-        private TextBox safeRollsTextBox;
+        private final MetabolismSettings settings;
+        private final List<String> errors = new ArrayList<>();
+        private final Map<Setting<?>, TextBox> valueBoxes = new HashMap<>();
+        private static final Logger LOGGER = LogUtils.getLogger();
+        private Button enableButton;
 
-        MetabolismTab(String prefix, Setting<Boolean> enabled, Setting<Double> chance, Setting<Integer> safeRolls) {
-            this.prefix = prefix;
-            this.enabled = enabled;
-            this.chance = chance;
-            this.safeRolls = safeRolls;
-            this.player = null;
+        MetabolismTab(MetabolismSettings setting) {
+            this.settings = setting;
+        }
+
+        private Metabolism metabolism() {
+            Player player = ClientUtil.getPlayer();
+            return Metabolism.of(player, settings().type());
+        }
+
+        private <T extends Comparable<? super T>> void buildSettingRow(VBoxContainer parent, int rowHeight, Setting<T> setting) {
+            HBoxContainer rowContainer = new HBoxContainer.Builder(parent)
+                    .name("%s.row".formatted(setting.key()))
+                    .separation(4)
+                    .minSize(0, rowHeight)
+                    .horizontalSizing(Sizing.Fill)
+                    .verticalSizing(Sizing.ShrinkBegin)
+                    .pushAndReturn();
+
+            new Label.Builder(rowContainer)
+                    .name("%s.label".formatted(setting.key()))
+                    .text(setting.label().getString())
+                    .horizontalSizing(Sizing.Expand, Sizing.ShrinkBegin)
+                    .push();
+
+            HBoxContainer controls = new HBoxContainer.Builder(rowContainer)
+                    .name("%s.controls".formatted(setting.key()))
+                    .separation(1)
+                    .horizontalSizing(Sizing.ShrinkEnd)
+                    .verticalSizing(Sizing.Fill)
+                    .pushAndReturn();
+
+            final TextBox valueBox = new TextBox.Builder(controls)
+                    .name("%s.control.textbox".formatted(setting.key()))
+                    .style("config.value.textbox")
+                    .minSize(50, rowHeight)
+                    .readOnly(false)
+                    .activePredicate(w -> metabolism().enabled())
+                    .horizontalSizing(Sizing.ShrinkCenter)
+                    .verticalSizing(Sizing.Expand)
+                    .build();
+            valueBox.text(metabolism().getAsString(setting));
+            valueBoxes.put(setting, valueBox);
+
+            Button minus = new Button.Builder(controls)
+                    .name("%s.control.minus".formatted(setting.key()))
+                    .text("-")
+                    .minSize(20, rowHeight)
+                    .onClick((e, w) -> {
+                        if (setting instanceof Setting.DoubleValue dv) {
+                            double value = metabolism().getAsDouble(dv);
+                            setValue(dv, valueBox, dv.subtract(value, modifierValue(dv)));
+                        } else if (setting instanceof Setting.IntValue iv) {
+                            int value = metabolism().getAsInt(iv);
+                            setValue(iv, valueBox, iv.subtract(value, modifierValue(iv)));
+                        }
+                    })
+                    .activePredicate(w -> metabolism().enabled())
+                    .build();
+
+
+            Button plus = new Button.Builder(controls)
+                    .name("%s.control.plus".formatted(setting.key()))
+                    .text("+")
+                    .minSize(20, rowHeight)
+                    .onClick((e, w) -> {
+                        if (setting instanceof Setting.DoubleValue dv) {
+                            double value = metabolism().getAsDouble(dv);
+                            setValue(dv, valueBox, dv.add(value, modifierValue(dv)));
+                        } else if (setting instanceof Setting.IntValue iv) {
+                            int value = metabolism().getAsInt(iv);
+                            setValue(iv, valueBox, iv.add(value, modifierValue(iv)));
+                        }
+                    })
+                    .activePredicate(w -> metabolism().enabled())
+                    .build();
+
+            controls.add(minus);
+            controls.add(valueBox);
+            controls.add(plus);
+        }
+
+        private <T extends Comparable<? super T>> void setValue(Setting<T> setting, TextBox valueBox, T value) {
+            errors().clear();
+            if (setting.isValid(value)) {
+                valueBox.text(setting.formattedString(value));
+                metabolism().setValue(setting, value);
+                metabolism().reset();
+            } else {
+                errors().add(setting.errors(value).stream().map(Component::getString).collect(Collectors.joining(" ")));
+            }
         }
 
         void buildTab(VBoxContainer parent, int rowHeight) {
             // Enabled toggle row
             HBoxContainer enabledRow = new HBoxContainer.Builder(parent)
-                    .name(prefix + "_enabled_row")
+                    .name("%s.row".formatted(settings.enabled().key()))
                     .separation(4)
                     .minSize(0, rowHeight)
                     .horizontalSizing(Sizing.Fill)
@@ -560,216 +490,83 @@ public class CrinkleModConfigScreen extends AbstractScreen {
                     .pushAndReturn();
 
             new Label.Builder(enabledRow)
-                    .name(prefix + "_enabled_label")
-                    .text(Component.translatable("setting.crinklemod.metabolism.enabled.label").getString())
+                    .name("%s.label".formatted(settings.enabled().key()))
+                    .text(settings().enabled().label().getString())
                     .horizontalSizing(Sizing.ShrinkBegin, Sizing.Expand)
                     .push();
 
-            enabledButton = new Button.Builder(enabledRow)
-                    .name(prefix + "_enabled_btn")
-                    .text(pendingEnabled ? "ON" : "OFF")
-                    .minSize(50, rowHeight)
+            enableButton = new Button.Builder(enabledRow)
+                    .name("%s.button".formatted(settings.enabled().key()))
+                    .text(metabolism().enabled() ? "ON" : "OFF")
+                    .minSize(92, rowHeight)
                     .onClick((e, w) -> {
-                        pendingEnabled = !pendingEnabled;
-                        refreshDisplay();
+                        metabolism().enabled(!metabolism().enabled());
+                        ((Button) w).text(metabolism().enabled() ? "ON" : "OFF");
+                        Metabolism.of(ClientUtil.getPlayer(), settings().type()).syncServer();
                     })
-                    // .horizontalSizing(Sizing.ShrinkEnd)
                     .pushAndReturn();
 
-            // Chance row
-            HBoxContainer chanceRow = new HBoxContainer.Builder(parent)
-                    .name(prefix + "_chance_row")
-                    .separation(4)
-                    .minSize(0, rowHeight)
-                    .horizontalSizing(Sizing.Fill)
-                    .verticalSizing(Sizing.ShrinkBegin)
-                    .pushAndReturn();
+            // training
+            buildSettingRow(parent, rowHeight, settings().training());
+            // ticks
+            buildSettingRow(parent, rowHeight, settings().ticks());
+            // slopeDegradation
+            buildSettingRow(parent, rowHeight, settings().slopeDegradation());
+            // frequencyCompression
+            buildSettingRow(parent, rowHeight, settings().frequencyCompression());
+            // intensity
+            buildSettingRow(parent, rowHeight, settings().intensity());
 
-            new Label.Builder(chanceRow)
-                    .name(prefix + "_chance_label")
-                    .text(Component.translatable("setting.crinklemod.metabolism.chance.label").getString())
-                    .horizontalSizing(Sizing.Expand, Sizing.ShrinkBegin)
-                    .push();
 
-            HBoxContainer chanceControls = new HBoxContainer.Builder(chanceRow)
-                    .name(prefix + "_chance_controls")
-                    .separation(1)
-                    .horizontalSizing(Sizing.ShrinkEnd)
-                    .verticalSizing(Sizing.Fill)
-                    .pushAndReturn();
-
-            new Button.Builder(chanceControls)
-                    .name(prefix + "_chance_minus")
-                    .text("-")
-                    .minSize(20, rowHeight)
-                    .onClick((e, w) -> {
-                        pendingChance = pendingChance - doubleModifierValue();
-                        refreshDisplay();
-                    })
-                    .activePredicate(w -> pendingEnabled)
-                    .pushAndReturn();
-
-            chanceTextBox = chanceControls.addTextBox()
-                    .name(prefix + "_chance_value")
-                    .text(formatPercent(pendingChance))
-                    .minSize(45, rowHeight)
-                    .style("textbox")
-                    .activePredicate(w -> pendingEnabled)
-                    .pushAndReturn();
-
-            new Button.Builder(chanceControls)
-                    .name(prefix + "_chance_plus")
-                    .text("+")
-                    .minSize(20, rowHeight)
-                    .onClick((e, w) -> {
-                        pendingChance = pendingChance + doubleModifierValue();
-                        refreshDisplay();
-                    })
-                    .activePredicate(w -> pendingEnabled)
-                    .pushAndReturn();
-
-            // Safe Rolls row
-            HBoxContainer safeRollsRow = new HBoxContainer.Builder(parent)
-                    .name(prefix + "_safe_rolls_row")
-                    .separation(4)
-                    .minSize(0, rowHeight)
-                    .horizontalSizing(Sizing.Fill)
-                    .verticalSizing(Sizing.ShrinkBegin)
-                    .pushAndReturn();
-
-            new Label.Builder(safeRollsRow)
-                    .name(prefix + "_safe_rolls_label")
-                    .text(Component.translatable("setting.crinklemod.metabolism.safeRolls.label").getString())
-                    .horizontalSizing(Sizing.Expand, Sizing.ShrinkBegin)
-                    .push();
-
-            HBoxContainer safeRollsControls = new HBoxContainer.Builder(safeRollsRow)
-                    .name(prefix + "_safe_rolls_controls")
-                    .separation(1)
-                    .horizontalSizing(Sizing.ShrinkEnd)
-                    .verticalSizing(Sizing.Fill)
-                    .pushAndReturn();
-
-            new Button.Builder(safeRollsControls)
-                    .name(prefix + "_safe_rolls_minus")
-                    .text("-")
-                    .minSize(20, rowHeight)
-                    .onClick((e, w) -> {
-                        pendingSafeRolls = pendingSafeRolls - intModifierValue();
-                        refreshDisplay();
-                    })
-                    .activePredicate(w -> pendingEnabled)
-                    .pushAndReturn();
-
-            safeRollsTextBox = safeRollsControls.addTextBox()
-                    .name(prefix + "_safe_rolls_value")
-                    .text(String.valueOf(pendingSafeRolls))
-                    .minSize(45, rowHeight)
-                    .style("textbox")
-                    .activePredicate(w -> pendingEnabled)
-                    .pushAndReturn();
-
-            new Button.Builder(safeRollsControls)
-                    .name(prefix + "_safe_rolls_plus")
-                    .text("+")
-                    .minSize(20, rowHeight)
-                    .onClick((e, w) -> {
-                        pendingSafeRolls = pendingSafeRolls + intModifierValue();
-                        refreshDisplay();
-                    })
-                    .activePredicate(w -> pendingEnabled)
-                    .pushAndReturn();
-
-            // Void button
-            HBoxContainer voidButtonRow = new HBoxContainer.Builder(parent)
-                    .name(prefix + "_void_row")
-                    .separation(4)
-                    .minSize(0, rowHeight)
-                    .horizontalSizing(Sizing.Fill)
-                    .verticalSizing(Sizing.Expand)
-                    .pushAndReturn();
-
-            new Button.Builder(voidButtonRow)
-                    .name(prefix + "_void_action")
-                    .text("Void")
-                    .minSize(20, rowHeight)
-                    .onClick((e, w) -> {
-                        if (player().isEmpty()) return;
-                        switch(this) {
-                            case NumberOne -> Metabolism.of(player().get()).voidNumberOne();
-                            case NumberTwo -> Metabolism.of(player().get()).voidNumberTwo();
-                        }
-                        refreshDisplay();
-                    })
-                    .activePredicate(w -> pendingEnabled)
-                    .pushAndReturn();
+//            // Void button
+//            HBoxContainer voidButtonRow = new HBoxContainer.Builder(parent)
+//                    .name("%s.void.row".formatted(settings().type().name().toLowerCase()))
+//                    .separation(4)
+//                    .minSize(0, rowHeight)
+//                    .horizontalSizing(Sizing.Fill)
+//                    .verticalSizing(Sizing.Expand)
+//                    .pushAndReturn();
+//
+//            new Button.Builder(voidButtonRow)
+//                    .name("%s.void.button".formatted(settings().type().name().toLowerCase()))
+//                    .text("Void")
+//                    .minSize(20, rowHeight)
+//                    .onClick((e, w) -> {
+//                        switch(this) {
+//                            case Wet -> Metabolism.wetOf(ClientUtil.getPlayer()).wet();
+//                            case Mess -> Metabolism.messOf(ClientUtil.getPlayer()).mess();
+//                        }
+//                    })
+//                    .activePredicate(w -> metabolism().enabled())
+//                    .pushAndReturn();
 
         }
 
-        private void refreshDisplay() {
-            enabledButton.text().text(pendingEnabled ? "ON" : "OFF");
-            chanceTextBox.text(formatPercent(pendingChance));
-            safeRollsTextBox.text(String.valueOf(pendingSafeRolls));
+        private <T extends Comparable<? super T>> T modifierValue(Setting<T> setting) {
+            List<Setting.ModifierValue> modifierValues = new ArrayList<>();
+            if (hasShiftDown()) modifierValues.add(Setting.ModifierValue.Shift);
+            if (hasControlDown()) modifierValues.add(Setting.ModifierValue.Ctrl);
+            if (hasAltDown()) modifierValues.add(Setting.ModifierValue.Alt);
+            if (modifierValues.isEmpty()) modifierValues.add(Setting.ModifierValue.None);
+            return setting.modifierValue(modifierValues);
         }
 
-        private double doubleModifierValue() {
-            if (hasControlDown()) return 0.1d;
-            if (hasShiftDown()) return 0.05d;
-            return 0.01d;
-        }
-
-        private static String formatPercent(double value) {
-            return String.format("%d%%", Math.round(value * 100));
-        }
-
-        private int intModifierValue() {
-            return (int) (doubleModifierValue() * 100);
-        }
-
-        private List<Component> errors() {
-            return Stream.of(
-                            enabled.errors(player, pendingEnabled),
-                            chance.errors(player, pendingChance),
-                            safeRolls.errors(player, pendingSafeRolls))
-                    .flatMap(Collection::stream)
-                    .toList();
-        }
-
-        void init(Player player) {
-            if (player == null) return;
-            this.pendingChance = chance.get(player);
-            this.pendingEnabled = enabled.get(player);
-            this.pendingSafeRolls = safeRolls.get(player);
-            this.player = player;
-        }
-
-        private boolean isDirty() {
-            AtomicBoolean formChanged = new AtomicBoolean(false);
-            player().ifPresent(p -> formChanged.set(pendingEnabled != enabled.get(p)
-                    || Math.abs(pendingChance - chance.getDouble(p)) > 0.001
-                    || pendingSafeRolls != safeRolls.get(p)));
-            return formChanged.get();
-        }
-
-        public Optional<Player> player() {
-            return Optional.ofNullable(player);
+        public List<String> errors() {
+            return errors;
         }
 
         private void onReset() {
-            player().ifPresent(p -> {
-                pendingEnabled = enabled.getDefault(p);
-                pendingChance = chance.getDefaultDouble(p);
-                pendingSafeRolls = safeRolls.getDefault(p);
-                refreshDisplay();
-            });
+            metabolism().resetDefaults();
+            enableButton.text(metabolism().enabled() ? "ON" : "OFF");
+            for (Map.Entry<Setting<?>, TextBox> entry : valueBoxes.entrySet()) {
+                TextBox valueBox = entry.getValue();
+                Setting<?> setting = entry.getKey();
+                valueBox.text(metabolism().getAsString(setting));
+            }
         }
 
-        private void onSave() {
-            player().ifPresent(p -> {
-                saveSetting(enabled, pendingEnabled, p);
-                saveSetting(chance, pendingChance, p);
-                saveSetting(safeRolls, pendingSafeRolls, p);
-            });
+        public MetabolismSettings settings() {
+            return settings;
         }
     }
 }

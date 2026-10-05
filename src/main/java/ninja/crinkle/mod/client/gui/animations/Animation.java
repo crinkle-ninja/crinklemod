@@ -2,9 +2,11 @@ package ninja.crinkle.mod.client.gui.animations;
 
 import ninja.crinkle.mod.client.gui.properties.Point;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class Animation {
     private final String id;
@@ -35,5 +37,16 @@ public class Animation {
             throw new IllegalArgumentException(String.format("Invalid sprite id %s", id));
         }
         return sprites.get(id);
+    }
+
+    @Override
+    public String toString() {
+        return "Animation{"
+                + "id=" + id()
+                + ", offset=" + offset()
+                + ", sizes=" + sizes.toString()
+                + ", sprites=" + String.join(", ", sprites.keySet())
+                + "}";
+
     }
 }

@@ -12,7 +12,10 @@ import ninja.crinkle.mod.CrinkleMod;
 import ninja.crinkle.mod.items.custom.DiaperArmorItem;
 import ninja.crinkle.mod.undergarment.DiaperDesign;
 import ninja.crinkle.mod.undergarment.DiaperDesignRegistry;
+import ninja.crinkle.mod.util.ClientUtil;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 public class CrinkleTabs {
@@ -24,14 +27,14 @@ public class CrinkleTabs {
                     .icon(() -> new ItemStack(CrinkleItems.DUNNY_BLOCK_ITEM.get()))
                     .displayItems((p, o) -> {
                         o.accept(CrinkleItems.DUNNY_BLOCK_ITEM.get());
-                        Map<ResourceLocation, DiaperDesign> designs =
-                                DiaperDesignRegistry.getServerDesigns();
+                        Collection<DiaperDesign> designs =
+                                DiaperDesignRegistry.getAllDesigns(ClientUtil.isClient());
                         if (designs.isEmpty()) {
                             o.accept(CrinkleItems.DIAPER.get());
                         } else {
-                            for (Map.Entry<ResourceLocation, DiaperDesign> entry : designs.entrySet()) {
+                            for (DiaperDesign design : designs) {
                                 ItemStack stack = new ItemStack(CrinkleItems.DIAPER.get());
-                                DiaperArmorItem.setDesignId(stack, entry.getKey());
+                                DiaperArmorItem.setDesignId(stack, design.id());
                                 o.accept(stack);
                             }
                         }

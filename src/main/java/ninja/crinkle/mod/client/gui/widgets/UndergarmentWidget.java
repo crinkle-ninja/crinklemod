@@ -55,7 +55,7 @@ public class UndergarmentWidget extends AnimatedWidget {
                 String spriteId = getSpriteId(undergarment);
 
                 // Hard-coded for now, but get animationId from the item NBT in the future
-                if (!trySetAnimations(speed, "diaper", spriteId)) return;
+                if (!trySetAnimation(speed, "diaper", spriteId)) return;
                 onFinished(this::setUndergarmentAnimation);
             }
         }

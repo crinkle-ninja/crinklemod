@@ -19,7 +19,7 @@ public class Button extends AbstractContainer {
         super(builder);
         this.text = new Label.Builder(this)
                 .text(builder.text())
-                .pushAndReturn();
+                .build();
         this.onClick = builder.onClick();
         if (text != null) {
             text.zIndex(zIndex() + 1);
@@ -108,7 +108,8 @@ public class Button extends AbstractContainer {
     }
 
     public void onClick(ClickEvent event) {
-        if (event.cancelled()) return;
+        if (!visible() || !active() || !event.propagate())
+            return;
         if (mouseOver(event.position()) && event.isLeftButton() && onClick != null && visible() && active() && event.released()) {
             event.consumer(this);
             onClick.accept(event, this);
@@ -121,6 +122,16 @@ public class Button extends AbstractContainer {
 
     public void text(Label text) {
         this.text = text;
+    }
+
+    public void text(String text) {
+        if (this.text == null) {
+            this.text = new Label.Builder(this)
+                    .text(text)
+                    .build();
+        } else {
+            this.text.text(text);
+        }
     }
 
     public static class Builder extends AbstractContainerBuilder<Builder> {

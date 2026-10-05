@@ -12,7 +12,6 @@ import net.minecraft.world.level.block.LayeredCauldronBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.OnDatapackSyncEvent;
-import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
@@ -24,10 +23,8 @@ import net.minecraftforge.fml.event.config.ModConfigEvent;
 import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.MissingMappingsEvent;
-import net.minecraftforge.server.command.ConfigCommand;
 import ninja.crinkle.mod.CrinkleMod;
 import ninja.crinkle.mod.client.textures.Textures;
-import ninja.crinkle.mod.commands.MetabolismCommand;
 import ninja.crinkle.mod.items.CrinkleItems;
 import ninja.crinkle.mod.metabolism.Metabolism;
 import ninja.crinkle.mod.network.CrinkleChannel;
@@ -38,18 +35,6 @@ import org.jetbrains.annotations.NotNull;
 
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE, modid = CrinkleMod.MODID)
 public class CrinkleForgeBusEvents {
-    /**
-     * Hook on when commands are registered. This is used to register the metabolism command.
-     *
-     * @param event The event
-     * @see RegisterCommandsEvent
-     */
-    @SubscribeEvent
-    public static void onCommandsRegister(@NotNull RegisterCommandsEvent event) {
-        new MetabolismCommand(event.getDispatcher());
-        ConfigCommand.register(event.getDispatcher());
-    }
-
     @SubscribeEvent
     public static void onAddReloadListeners(@NotNull AddReloadListenerEvent event) {
         event.addListener(new DiaperDesignRegistry());
@@ -68,7 +53,8 @@ public class CrinkleForgeBusEvents {
     @SubscribeEvent
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
-            Metabolism.of(player).syncClient();
+            Metabolism.wetOf(player).syncClient();
+            Metabolism.messOf(player).syncClient();
         }
     }
 
@@ -81,9 +67,10 @@ public class CrinkleForgeBusEvents {
      */
     @SubscribeEvent
     public static void onPlayerTick(TickEvent.@NotNull PlayerTickEvent event) {
-        if (event.side.isClient()) return;
+        if (event.side.isServer()) return;
         if (event.phase == TickEvent.Phase.END) {
-            Metabolism.of(event.player).tick(event.player.tickCount);
+            Metabolism.wetOf(event.player).tick(event.player.tickCount);
+            Metabolism.messOf(event.player).tick(event.player.tickCount);
         }
     }
 

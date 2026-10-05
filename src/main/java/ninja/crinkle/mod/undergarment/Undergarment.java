@@ -1,28 +1,35 @@
 package ninja.crinkle.mod.undergarment;
 
+import com.mojang.logging.LogUtils;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import ninja.crinkle.mod.CrinkleMod;
+import ninja.crinkle.mod.api.ServerUpdater;
 import ninja.crinkle.mod.capabilities.IUndergarment;
 import ninja.crinkle.mod.capabilities.UndergarmentImpl;
 import ninja.crinkle.mod.config.UndergarmentConfig;
 import ninja.crinkle.mod.items.custom.DiaperArmorItem;
+import ninja.crinkle.mod.network.CrinkleChannel;
+import ninja.crinkle.mod.network.messages.UndergarmentUpdateMessage;
+import ninja.crinkle.mod.util.ClientUtil;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
 
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
-public class Undergarment {
+public class Undergarment implements ServerUpdater {
     public static final Undergarment EMPTY = new Undergarment(ItemStack.EMPTY);
     public static final String NBT_KEY = CrinkleMod.MODID + ".undergarment";
+    private static final Logger LOGGER = LogUtils.getLogger();
     private final IUndergarment capability;
     private final ItemStack itemStack;
+    private Player player;
 
     private Undergarment(@NotNull ItemStack itemStack) {
         this.itemStack = itemStack;
@@ -56,12 +63,35 @@ public class Undergarment {
         if (provider instanceof ItemStack itemStack) {
             return of(itemStack);
         }
+        if (provider instanceof Player player) {
+            return of(getWornUndergarment(player));
+        }
         return Undergarment.EMPTY;
     }
 
     @Contract(value = "_ -> new", pure = true)
     public static @NotNull Undergarment of(ItemStack item) {
         return item.equals(ItemStack.EMPTY) ? Undergarment.EMPTY : new Undergarment(item);
+    }
+
+    public static @NotNull Undergarment of(ItemStack item, ICapabilityProvider provider) {
+        Undergarment u = item.equals(ItemStack.EMPTY) ? Undergarment.EMPTY : new Undergarment(item);
+        if (provider instanceof Player player) {
+            u.setPlayer(player);
+        }
+        return u;
+    }
+
+    private void setPlayer(Player player) {
+        this.player = player;
+    }
+
+    public Optional<Player> getPlayer() {
+        return Optional.ofNullable(this.player);
+    }
+
+    private Optional<IUndergarment> getUndergarment() {
+        return Optional.ofNullable(capability);
     }
 
     private <T> Optional<T> getCapability(Function<IUndergarment, T> getter) {
@@ -143,4 +173,13 @@ public class Undergarment {
         int newAmount = getSolids() + amount;
         saveCapability(c -> c.setSolids(newAmount));
     }
+
+    @Override
+    public void syncServer() {
+        if (ClientUtil.isClient()) {
+            LOGGER.debug("sending undergarment data");
+            getUndergarment().ifPresent(u -> CrinkleChannel.INSTANCE.sendToServer(new UndergarmentUpdateMessage(u)));
+        }
+    }
+
 }

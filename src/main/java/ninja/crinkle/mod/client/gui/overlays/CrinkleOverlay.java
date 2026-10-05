@@ -3,9 +3,11 @@ package ninja.crinkle.mod.client.gui.overlays;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
+import ninja.crinkle.mod.CrinkleMod;
 import ninja.crinkle.mod.client.gui.properties.Sizing;
 import ninja.crinkle.mod.client.gui.widgets.MetabolismWidget;
 import ninja.crinkle.mod.client.gui.widgets.UndergarmentWidget;
+import ninja.crinkle.mod.events.CrinkleEvent;
 import ninja.crinkle.mod.undergarment.Undergarment;
 import ninja.crinkle.mod.util.ClientUtil;
 
@@ -20,6 +22,8 @@ public class CrinkleOverlay extends AbstractOverlay {
         manager().root().add(metabolismWidget);
         manager().root().add(undergarmentWidget);
         manager().root().verticalSizing(Sizing.Expand);
+        CrinkleMod.EVENT_BUS.register(metabolismWidget);
+        CrinkleMod.EVENT_BUS.register(undergarmentWidget);
     }
 
     @Override

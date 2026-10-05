@@ -2,10 +2,14 @@ package ninja.crinkle.mod.capabilities;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
-import ninja.crinkle.mod.capabilities.versioning.MetabolismVersions;
+import ninja.crinkle.mod.capabilities.versioning.MetabolismVersion;
+import ninja.crinkle.mod.metabolism.Metabolism;
 import ninja.crinkle.mod.metabolism.MetabolismSettings;
+import ninja.crinkle.mod.metabolism.Pang;
+import ninja.crinkle.mod.settings.Setting;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
 import java.util.function.BiConsumer;
 
 /**
@@ -15,33 +19,108 @@ import java.util.function.BiConsumer;
  * @author Galen
  * @see IMetabolism
  */
-public class MetabolismImpl implements IMetabolism {
-    private int indicatorPositionX;
-    private int indicatorPositionY;
-    private double numberOneChance;
-    private boolean numberOneEnabled;
-    private int numberOneRolls;
-    private int numberOneSafeRolls;
-    private double numberTwoChance;
-    private boolean numberTwoEnabled;
-    private int numberTwoRolls;
-    private int numberTwoSafeRolls;
-    private int timer;
-    private MetabolismVersions version;
+public class MetabolismImpl implements IMetabolism, WetCapability, MessCapability {
+    private final Metabolism.Type type;
+    private Pang pang;
+    private double currentFrequency;
+    private double currentTraining;
+    private boolean enabled;
+    private int pangDuration;
+    private int tickCount;
+    private double training;
+    private int ticks;
+    private double slopeDegradation;
+    private double frequencyCompression;
+    private double intensity;
+    private MetabolismVersion version;
 
-    public MetabolismImpl() {
-        version = MetabolismVersions.getLatest();
-        numberOneEnabled = MetabolismSettings.NUMBER_ONE_ENABLED.getDefault();
-        numberTwoEnabled = MetabolismSettings.NUMBER_TWO_ENABLED.getDefault();
-        timer = MetabolismSettings.TIMER.getDefault();
-        numberOneRolls = MetabolismSettings.NUMBER_ONE_ROLLS.getDefault();
-        numberOneSafeRolls = MetabolismSettings.NUMBER_ONE_SAFE_ROLLS.getDefault();
-        numberOneChance = MetabolismSettings.NUMBER_ONE_CHANCE.getDefault();
-        numberTwoRolls = MetabolismSettings.NUMBER_TWO_ROLLS.getDefault();
-        numberTwoSafeRolls = MetabolismSettings.NUMBER_TWO_SAFE_ROLLS.getDefault();
-        numberTwoChance = MetabolismSettings.NUMBER_TWO_CHANCE.getDefault();
-        indicatorPositionX = MetabolismSettings.INDICATOR_POSITION_X.getDefault();
-        indicatorPositionY = MetabolismSettings.INDICATOR_POSITION_Y.getDefault();
+    public MetabolismImpl(Metabolism.Type metabolismType) {
+        version = MetabolismVersion.getLatest();
+        type = metabolismType;
+        reset();
+    }
+
+    public void reset() {
+        // Settings
+        enabled = MetabolismSettings.of(type).enabled().getDefault();
+        training = MetabolismSettings.of(type).training().getDefault();
+        ticks = MetabolismSettings.of(type).ticks().getDefault();
+        slopeDegradation = MetabolismSettings.of(type).slopeDegradation().getDefault();
+        frequencyCompression = MetabolismSettings.of(type).frequencyCompression().getDefault();
+        intensity = MetabolismSettings.of(type).intensity().getDefault();
+
+        // State machine values
+        pang = Pang.None;
+        currentFrequency = ticks;
+        currentTraining = training;
+        pangDuration = 0;
+        tickCount = 0;
+    }
+
+    @Override
+    public Metabolism.Type type() {
+        return type;
+    }
+
+    @Override
+    public String getAsString(Setting<?> setting) {
+        // Handle bool, int, and double as strings
+        if (setting.isInt()) {
+            return setting.formattedString(getAsInt(setting));
+        }
+        if (setting.isDouble()) {
+            return setting.formattedString(getAsDouble(setting));
+        }
+        if (setting.isBoolean()) {
+            return setting.formattedString(getAsBool(setting));
+        }
+        return Optional.of(serializeNBT().getString(setting.key()))
+                .orElse(setting.formattedString(setting.getDefault()));
+    }
+
+    @Override
+    public double getAsDouble(Setting<?> setting) {
+        if (!setting.isDouble()) {
+            throw new IllegalArgumentException("getAsDouble expects a double setting");
+        }
+        Setting.DoubleValue dv = (Setting.DoubleValue) setting;
+        return Optional.of(serializeNBT().getDouble(dv.key()))
+                .orElse(dv.getDefault());
+    }
+
+    @Override
+    public int getAsInt(Setting<?> setting) {
+        if (!setting.isInt()) {
+            throw new IllegalArgumentException("getAsInt expects an integer setting");
+        }
+        Setting.IntValue iv = (Setting.IntValue) setting;
+        return Optional.of(serializeNBT().getInt(iv.key()))
+                .orElse(iv.getDefault());
+    }
+
+    @Override
+    public boolean getAsBool(Setting<?> setting) {
+        if (!setting.isBoolean()) {
+            throw new IllegalArgumentException("getAsBool expects a boolean setting");
+        }
+        Setting.BooleanValue bv = (Setting.BooleanValue) setting;
+        return Optional.of(serializeNBT().getBoolean(bv.key()))
+                .orElse(bv.getDefault());
+    }
+
+    @Override
+    public void updateValue(Setting<?> setting, Object value) {
+        CompoundTag current = serializeNBT();
+        if (setting.isBoolean()) {
+            current.putBoolean(setting.key(), (Boolean) value);
+        } else if (setting.isInt()) {
+            current.putInt(setting.key(), (Integer) value);
+        } else if (setting.isDouble()) {
+            current.putDouble(setting.key(), (Double) value);
+        } else {
+            current.putString(setting.key(), value.toString());
+        }
+        deserializeNBT(current);
     }
 
     /**
@@ -51,19 +130,20 @@ public class MetabolismImpl implements IMetabolism {
      */
     @Override
     public CompoundTag serializeNBT() {
+        MetabolismSettings settings = MetabolismSettings.of(type());
         CompoundTag tag = new CompoundTag();
-        tag.putString(MetabolismVersions.TAG_VERSION, version.name());
-        tag.putBoolean(MetabolismSettings.NUMBER_ONE_ENABLED.key(), isNumberOneEnabled());
-        tag.putBoolean(MetabolismSettings.NUMBER_TWO_ENABLED.key(), isNumberTwoEnabled());
-        tag.putInt(MetabolismSettings.TIMER.key(), getTimer());
-        tag.putInt(MetabolismSettings.NUMBER_ONE_ROLLS.key(), getNumberOneRolls());
-        tag.putInt(MetabolismSettings.NUMBER_ONE_SAFE_ROLLS.key(), this.getNumberOneSafeRolls());
-        tag.putDouble(MetabolismSettings.NUMBER_ONE_CHANCE.key(), getNumberOneChance());
-        tag.putInt(MetabolismSettings.NUMBER_TWO_ROLLS.key(), getNumberTwoRolls());
-        tag.putInt(MetabolismSettings.NUMBER_TWO_SAFE_ROLLS.key(), getNumberTwoSafeRolls());
-        tag.putDouble(MetabolismSettings.NUMBER_TWO_CHANCE.key(), getNumberTwoChance());
-        tag.putInt(MetabolismSettings.INDICATOR_POSITION_X.key(), getIndicatorPositionX());
-        tag.putInt(MetabolismSettings.INDICATOR_POSITION_Y.key(), getIndicatorPositionY());
+        tag.putString(MetabolismVersion.TAG_VERSION, version.name());
+        tag.putBoolean(settings.enabled().key(), enabled);
+        tag.putInt(settings.ticks().key(), ticks);
+        tag.putDouble(settings.training().key(), training);
+        tag.putDouble(settings.slopeDegradation().key(), slopeDegradation);
+        tag.putDouble(settings.frequencyCompression().key(), frequencyCompression);
+        tag.putDouble(settings.intensity().key(), intensity);
+        tag.putString(settings.pang().key(), pang.name());
+        tag.putDouble(settings.currentTraining().key(), currentTraining);
+        tag.putDouble(settings.currentFrequency().key(), currentFrequency);
+        tag.putInt(settings.pangDuration().key(), pangDuration);
+        tag.putInt(settings.tickCount().key(), tickCount);
         return tag;
     }
 
@@ -74,24 +154,19 @@ public class MetabolismImpl implements IMetabolism {
      */
     @Override
     public void deserializeNBT(@NotNull CompoundTag nbt) {
-        version = MetabolismVersions.fromNBT(nbt);
-        safeSet(nbt, MetabolismSettings.NUMBER_ONE_ENABLED.key(),
-                (tag, key) -> setNumberOneEnabled(tag.getBoolean(key)));
-        safeSet(nbt, MetabolismSettings.NUMBER_TWO_ENABLED.key(),
-                (tag, key) -> setNumberTwoEnabled(tag.getBoolean(key)));
-        safeSet(nbt, MetabolismSettings.TIMER.key(), (tag, key) -> setTimer(tag.getInt(key)));
-        safeSet(nbt, MetabolismSettings.NUMBER_ONE_ROLLS.key(), (tag, key) -> setNumberOneRolls(tag.getInt(key)));
-        safeSet(nbt, MetabolismSettings.NUMBER_ONE_SAFE_ROLLS.key(),
-                (tag, key) -> setNumberOneSafeRolls(tag.getInt(key)));
-        safeSet(nbt, MetabolismSettings.NUMBER_ONE_CHANCE.key(), (tag, key) -> setNumberOneChance(tag.getDouble(key)));
-        safeSet(nbt, MetabolismSettings.NUMBER_TWO_ROLLS.key(), (tag, key) -> setNumberTwoRolls(tag.getInt(key)));
-        safeSet(nbt, MetabolismSettings.NUMBER_TWO_SAFE_ROLLS.key(),
-                (tag, key) -> setNumberTwoSafeRolls(tag.getInt(key)));
-        safeSet(nbt, MetabolismSettings.NUMBER_TWO_CHANCE.key(), (tag, key) -> setNumberTwoChance(tag.getDouble(key)));
-        safeSet(nbt, MetabolismSettings.INDICATOR_POSITION_X.key(),
-                (tag, key) -> setIndicatorPositionX(tag.getInt(key)));
-        safeSet(nbt, MetabolismSettings.INDICATOR_POSITION_Y.key(),
-                (tag, key) -> setIndicatorPositionY(tag.getInt(key)));
+        MetabolismSettings settings = MetabolismSettings.of(type());
+        version = MetabolismVersion.fromNBT(nbt);
+        safeSet(nbt, settings.enabled().key(), (tag, key) -> enabled = tag.getBoolean(key));
+        safeSet(nbt, settings.training().key(), (tag, key) -> training = tag.getDouble(key));
+        safeSet(nbt, settings.ticks().key(), (tag, key) -> ticks = tag.getInt(key));
+        safeSet(nbt, settings.slopeDegradation().key(), (tag, key) -> slopeDegradation = tag.getDouble(key));
+        safeSet(nbt, settings.frequencyCompression().key(), (tag, key) -> frequencyCompression = tag.getDouble(key));
+        safeSet(nbt, settings.intensity().key(), (tag, key) -> intensity = tag.getDouble(key));
+        safeSet(nbt, settings.pang().key(), (tag, key) -> pang = Pang.from(tag.getString(key)));
+        safeSet(nbt, settings.currentTraining().key(), (tag, key) -> currentTraining = tag.getDouble(key));
+        safeSet(nbt, settings.currentFrequency().key(), (tag, key) -> currentFrequency = tag.getDouble(key));
+        safeSet(nbt, settings.pangDuration().key(), (tag, key) -> pangDuration = tag.getInt(key));
+        safeSet(nbt, settings.tickCount().key(), (tag, key) -> tickCount = tag.getInt(key));
     }
 
     private void safeSet(CompoundTag nbt, String key, BiConsumer<CompoundTag, String> setter) {
@@ -100,151 +175,54 @@ public class MetabolismImpl implements IMetabolism {
         }
     }
 
-    @Override
-    public int getIndicatorPositionX() {
-        return indicatorPositionX;
-    }
-
-    @Override
-    public void setIndicatorPositionX(int x) {
-        this.indicatorPositionX = x;
-    }
-
-    @Override
-    public int getIndicatorPositionY() {
-        return indicatorPositionY;
-    }
-
-    @Override
-    public void setIndicatorPositionY(int y) {
-        this.indicatorPositionY = y;
-    }
-
-    @Override
-    public double getNumberOneChance() {
-        return numberOneChance;
-    }
-
-    @Override
-    public void setNumberOneChance(double numberOneChance) {
-        this.numberOneChance = numberOneChance;
-    }
-
-    @Override
-    public int getNumberOneRolls() {
-        return numberOneRolls;
-    }
-
-    @Override
-    public void setNumberOneRolls(int rolls) {
-        this.numberOneRolls = rolls;
-    }
-
-    @Override
-    public int getNumberOneSafeRolls() {
-        return numberOneSafeRolls;
-    }
-
-    @Override
-    public void setNumberOneSafeRolls(int safeRolls) {
-        this.numberOneSafeRolls = safeRolls;
-    }
-
-    @Override
-    public double getNumberTwoChance() {
-        return numberTwoChance;
-    }
-
-    @Override
-    public void setNumberTwoChance(double numberTwoChance) {
-        this.numberTwoChance = numberTwoChance;
-    }
-
-    @Override
-    public int getNumberTwoRolls() {
-        return numberTwoRolls;
-    }
-
-    @Override
-    public void setNumberTwoRolls(int numberTwoRolls) {
-        this.numberTwoRolls = numberTwoRolls;
-    }
-
-    @Override
-    public int getNumberTwoSafeRolls() {
-        return numberTwoSafeRolls;
-    }
-
-    @Override
-    public void setNumberTwoSafeRolls(int numberTwoSafeRolls) {
-        this.numberTwoSafeRolls = numberTwoSafeRolls;
-    }
-
-    @Override
-    public int getTimer() {
-        return timer;
-    }
-
-    @Override
-    public void setTimer(int timer) {
-        this.timer = timer;
-    }
-
-    @Override
-    public boolean isNumberOneEnabled() {
-        return numberOneEnabled;
-    }
-
-    @Override
-    public void setNumberOneEnabled(boolean numberOneEnabled) {
-        this.numberOneEnabled = numberOneEnabled;
-    }
-
-    @Override
-    public boolean isNumberTwoEnabled() {
-        return numberTwoEnabled;
-    }
-
-    @Override
-    public void setNumberTwoEnabled(boolean numberTwoEnabled) {
-        this.numberTwoEnabled = numberTwoEnabled;
-    }
-
     /**
      * To string method for debugging
      */
     @Override
     public String toString() {
         return "MetabolismImpl{" +
-                "timer=" + getTimer() +
-                ", indicatorPositionX=" + getIndicatorPositionX() +
-                ", indicatorPositionY=" + getIndicatorPositionY() +
-                ", numberOneEnabled=" + isNumberOneEnabled() +
-                ", numberOneRolls=" + getNumberOneRolls() +
-                ", numberOneSafeRolls=" + getNumberOneSafeRolls() +
-                ", numberOneChance=" + getNumberOneChance() +
-                ", numberTwoEnabled=" + isNumberTwoEnabled() +
-                ", numberTwoRolls=" + getNumberTwoRolls() +
-                ", numberTwoChance=" + getNumberTwoChance() +
-                ", numberTwoSafeRolls=" + getNumberTwoSafeRolls() +
+                "type=" + type().name() +
+                ", enabled=" + enabled +
+                ", training=" + training +
+                ", ticks=" + ticks +
+                ", slopeDegradation=" + slopeDegradation +
+                ", frequencyCompression=" + frequencyCompression +
+                ", intensity=" + intensity +
+                ", currentDesperation=" + pang +
+                ", currentFrequency=" + currentFrequency +
+                ", currentTraining=" + currentTraining +
+                ", pangDuration=" + pangDuration +
+                ", tickCount=" + tickCount +
                 '}';
     }
 
     @Override
     public void writeSpawnData(FriendlyByteBuf buffer) {
-        buffer.writeInt(getTimer());
-        buffer.writeInt(getNumberOneRolls());
-        buffer.writeInt(this.getNumberOneSafeRolls());
-        buffer.writeDouble(getNumberOneChance());
-        buffer.writeDouble(getNumberTwoChance());
+        buffer.writeBoolean(enabled);
+        buffer.writeDouble(training);
+        buffer.writeInt(ticks);
+        buffer.writeDouble(slopeDegradation);
+        buffer.writeDouble(frequencyCompression);
+        buffer.writeDouble(intensity);
+        buffer.writeUtf(pang.name());
+        buffer.writeDouble(currentFrequency);
+        buffer.writeDouble(currentTraining);
+        buffer.writeInt(pangDuration);
+        buffer.writeInt(tickCount);
     }
 
     @Override
     public void readSpawnData(FriendlyByteBuf additionalData) {
-        setTimer(additionalData.readInt());
-        setNumberOneRolls(additionalData.readInt());
-        setNumberOneSafeRolls(additionalData.readInt());
-        setNumberOneChance(additionalData.readDouble());
-        setNumberTwoChance(additionalData.readDouble());
+        enabled = additionalData.readBoolean();
+        training = additionalData.readDouble();
+        ticks = additionalData.readInt();
+        slopeDegradation = additionalData.readDouble();
+        frequencyCompression = additionalData.readDouble();
+        intensity = additionalData.readDouble();
+        pang = Pang.from(additionalData.readUtf());
+        currentFrequency = additionalData.readDouble();
+        currentTraining = additionalData.readDouble();
+        pangDuration = additionalData.readInt();
+        tickCount = additionalData.readInt();
     }
 }

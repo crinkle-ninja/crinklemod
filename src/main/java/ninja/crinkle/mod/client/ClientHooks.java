@@ -19,6 +19,10 @@ public class ClientHooks {
         return Minecraft.getInstance();
     }
 
+    public static boolean isClient() {
+        return true;
+    }
+
     public static void registerEvents() {
         MinecraftForge.EVENT_BUS.register(new CrinkleForgeBusClientEvents());
     }

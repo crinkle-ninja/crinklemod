@@ -15,9 +15,12 @@ import ninja.crinkle.mod.client.gui.textures.TextureSize;
 import ninja.crinkle.mod.util.ClientUtil;
 import org.slf4j.Logger;
 
+import java.text.DecimalFormat;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 
 public class TextBox extends AbstractWidget {
@@ -32,6 +35,7 @@ public class TextBox extends AbstractWidget {
     private String text;
     private int visibleStart = 0;
     private final BiConsumer<TextChangedEvent, TextBox> onTextChanged;
+    private final Supplier<?> getter;
 
     protected TextBox(Builder builder) {
         super(builder);
@@ -40,6 +44,10 @@ public class TextBox extends AbstractWidget {
         this.shadow = builder.shadow();
         this.readOnly = builder.readOnly();
         this.onTextChanged = builder.onTextChanged();
+        this.getter = builder.getter();
+        if (style() == null) {
+            style("textbox");
+        }
     }
 
     public void cursorPos(int cursorPos) {
@@ -277,7 +285,7 @@ public class TextBox extends AbstractWidget {
     }
 
     public void onClick(ClickEvent event) {
-        if (!active() || event.consumed()) {
+        if (!visible() || !active() || event.consumed()) {
             return;
         }
         if (event.button() == MouseEvent.Button.LEFT) {
@@ -297,7 +305,7 @@ public class TextBox extends AbstractWidget {
     }
 
     public void onDoubleClick(DoubleClickEvent event) {
-        if (!active() || event.consumed()) {
+        if (!active() || event.consumed() || !rect().contains(event.x(), event.y())) {
             return;
         }
         if (selection() != null && !selection().isEmpty()
@@ -516,11 +524,53 @@ public class TextBox extends AbstractWidget {
     }
 
     public void text(String text) {
+        text(text, false);
+    }
+
+    public void text(int value, String format, boolean quiet) {
+        text(new DecimalFormat(format).format(value), quiet);
+    }
+
+    public void text(int value, String format) {
+        text(new DecimalFormat(format).format(value), false);
+    }
+
+    public void text(int value) {
+        text(new DecimalFormat("#,###").format(value));
+    }
+
+    public void text(Object value, boolean quiet) {
+        if (value instanceof Integer i) {
+            text(i, "#,###", quiet);
+        } else if (value instanceof Double d) {
+            text(d, "#.##", quiet);
+        } else {
+            text(value.toString(), quiet);
+        }
+    }
+
+    public void text(Object value) {
+        text(value, false);
+    }
+
+    public void text(String text, boolean quiet) {
         String previous = this.text;
         this.text = text;
-        if (!previous.equals(text) && onTextChanged != null) {
+        if (!previous.equals(text) && onTextChanged != null && !quiet) {
             onTextChanged.accept(new TextChangedEvent(this, previous), this);
         }
+    }
+
+    public void text(double value, String format, boolean quiet) {
+        text(new DecimalFormat(format).format(value), quiet);
+    }
+
+    public void text(double value, String format) {
+        text(value, format, false);
+    }
+
+    public void text(double value) {
+        text(value, new DecimalFormat("#.##").format(value));
     }
 
     public void visibleStart(int visibleStart) {
@@ -534,6 +584,16 @@ public class TextBox extends AbstractWidget {
         private boolean shadow = false;
         private String text = "";
         private BiConsumer<TextChangedEvent, TextBox> onTextChanged;
+        private Supplier<?> getter;
+
+        public Builder getter(Supplier<?> getter) {
+            this.getter = getter;
+            return self();
+        }
+
+        public Supplier<?> getter() {
+            return getter;
+        }
 
         public BiConsumer<TextChangedEvent, TextBox> onTextChanged() {
             return onTextChanged;
@@ -545,7 +605,7 @@ public class TextBox extends AbstractWidget {
         }
 
 
-        protected Builder(AbstractContainer parent) {
+        public Builder(AbstractContainer parent) {
             super(parent);
             active(true);
             focusable(true);

@@ -30,10 +30,7 @@ import ninja.crinkle.mod.util.ClientUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Comparator;
-import java.util.EnumSet;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Predicate;
 
 public abstract class AbstractWidget implements Renderable, Widget, EventNode,
@@ -506,7 +503,7 @@ public abstract class AbstractWidget implements Renderable, Widget, EventNode,
      */
     @Override
     public void render(@NotNull GuiGraphics graphics, int pMouseX, int pMouseY, float pPartialTick) {
-        render(new ThemeGraphics(graphics, ThemeAtlas.getAtlas()), new Point(pMouseX, pMouseY), pPartialTick);
+        render(new ThemeGraphics(graphics, ThemeAtlas.getAtlas(), ThemeRegistry.current()), new Point(pMouseX, pMouseY), pPartialTick);
     }
 
     @Override
@@ -620,7 +617,7 @@ public abstract class AbstractWidget implements Renderable, Widget, EventNode,
         private EnumSet<Sizing> horizontalSizing = EnumSet.of(Sizing.Fill);
         private int minHeight = 0;
         private int minWidth = 0;
-        private String name = "Unnamed_" + hashCode();
+        private String name = "Unnamed_" + Math.round((Math.random() * hashCode()));
         private int priority = 0;
         private float stretchRatio = 1.0f;
         private String styleId = null;

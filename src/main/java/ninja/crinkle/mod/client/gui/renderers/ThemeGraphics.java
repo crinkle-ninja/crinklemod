@@ -3,6 +3,7 @@ package ninja.crinkle.mod.client.gui.renderers;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.gui.Font;
+import ninja.crinkle.mod.client.gui.themes.Theme;
 import org.lwjgl.opengl.GL11;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.GameRenderer;
@@ -28,11 +29,17 @@ public class ThemeGraphics extends GuiGraphics {
     private final GuiGraphics graphics;
     private final Deque<Rect> scissorStack = new ArrayDeque<>();
     private Rect scissorRect;
+    private final Theme currentTheme;
 
-    public ThemeGraphics(GuiGraphics guiGraphics, Atlas atlas) {
+    public ThemeGraphics(GuiGraphics guiGraphics, Atlas atlas, Theme theme) {
         super(ClientUtil.getMinecraft(), guiGraphics.bufferSource());
         this.graphics = guiGraphics;
         this.atlas = atlas;
+        this.currentTheme = theme;
+    }
+
+    public Theme theme() {
+        return currentTheme;
     }
 
     public void renderTooltip(Component tooltip, Point mouse) {

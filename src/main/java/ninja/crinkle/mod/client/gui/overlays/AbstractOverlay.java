@@ -10,6 +10,7 @@ import ninja.crinkle.mod.client.gui.properties.Point;
 import ninja.crinkle.mod.client.gui.properties.Rect;
 import ninja.crinkle.mod.client.gui.renderers.ThemeGraphics;
 import ninja.crinkle.mod.client.gui.textures.ThemeAtlas;
+import ninja.crinkle.mod.client.gui.themes.ThemeRegistry;
 import org.slf4j.Logger;
 
 public abstract class AbstractOverlay implements IGuiOverlay, IManagedGUI {
@@ -39,7 +40,7 @@ public abstract class AbstractOverlay implements IGuiOverlay, IManagedGUI {
         if (!ready) {
             init();
         }
-        ThemeGraphics themeGraphics = new ThemeGraphics(guiGraphics, ThemeAtlas.getAtlas());
+        ThemeGraphics themeGraphics = new ThemeGraphics(guiGraphics, ThemeAtlas.getAtlas(), ThemeRegistry.current());
         Point point = Point.of(screenWidth / 2, screenHeight / 2);
         manager().root().render(themeGraphics, point, partialTick);
     }

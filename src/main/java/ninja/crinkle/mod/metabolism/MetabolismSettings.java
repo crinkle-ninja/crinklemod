@@ -4,99 +4,167 @@ import net.minecraft.network.chat.Component;
 import ninja.crinkle.mod.settings.Setting;
 
 public class MetabolismSettings {
-    public static final Setting<Integer> INDICATOR_POSITION_X = Setting.intBuilder("indicatorPositionX")
-            .label(Component.translatable("setting.crinklemod.metabolism.indicatorPositionX.label"))
-            .tooltip(Component.translatable("setting.crinklemod.metabolism.indicatorPositionX.tooltip"))
-            .defaultValue(0)
-            .getter(p -> Metabolism.of(p).getIndicatorPositionX())
-            .setter((p, v) -> Metabolism.of(p).setIndicatorPositionX(v))
-            .synchronizer(Metabolism::of)
-            .build();
-    public static final Setting<Integer> INDICATOR_POSITION_Y = Setting.intBuilder("indicatorPositionY")
-            .label(Component.translatable("setting.crinklemod.metabolism.indicatorPositionY.label"))
-            .tooltip(Component.translatable("setting.crinklemod.metabolism.indicatorPositionY.tooltip"))
-            .defaultValue(0)
-            .getter(p -> Metabolism.of(p).getIndicatorPositionY())
-            .setter((p, v) -> Metabolism.of(p).setIndicatorPositionY(v))
-            .synchronizer(Metabolism::of)
-            .build();
-    public static final Setting<Double> NUMBER_ONE_CHANCE = Setting.doubleBuilder("numberOneChance")
-            .range(p -> 0.0, p -> 1.0)
-            .label(Component.translatable("setting.crinklemod.metabolism.numberOneChance.label"))
-            .tooltip(Component.translatable("setting.crinklemod.metabolism.numberOneChance.tooltip"))
-            .defaultValue(0.25)
-            .getter(p -> Metabolism.of(p).getNumberOneChance())
-            .setter((p, v) -> Metabolism.of(p).setNumberOneChance(v))
-            .synchronizer(Metabolism::of)
-            .build();
-    public static final Setting<Boolean> NUMBER_ONE_ENABLED = Setting.booleanBuilder("numberOneEnabled")
-            .label(Component.translatable("setting.crinklemod.metabolism.numberOneEnabled.label"))
-            .tooltip(Component.translatable("setting.crinklemod.metabolism.numberOneEnabled.tooltip"))
-            .defaultValue(false)
-            .getter(p -> Metabolism.of(p).isNumberOneEnabled())
-            .setter((p, v) -> Metabolism.of(p).setNumberOneEnabled(v))
-            .synchronizer(Metabolism::of)
-            .build();
-    public static final Setting<Integer> NUMBER_ONE_ROLLS = Setting.intBuilder("numberOneRolls")
-            .range(p -> 0, p -> Integer.MAX_VALUE)
-            .label(Component.translatable("setting.crinklemod.metabolism.numberOneRolls.label"))
-            .tooltip(Component.translatable("setting.crinklemod.metabolism.numberOneRolls.tooltip"))
-            .defaultValue(0)
-            .getter(p -> Metabolism.of(p).getNumberOneRolls())
-            .setter((p, v) -> Metabolism.of(p).setNumberOneRolls(v))
-            .synchronizer(Metabolism::of)
-            .build();
-    public static final Setting<Integer> NUMBER_ONE_SAFE_ROLLS = Setting.intBuilder("numberOneSafeRolls")
-            .range(p -> 0, p -> Integer.MAX_VALUE)
-            .label(Component.translatable("setting.crinklemod.metabolism.numberOneSafeRolls.label"))
-            .tooltip(Component.translatable("setting.crinklemod.metabolism.numberOneSafeRolls.tooltip"))
-            .defaultValue(3)
-            .getter(p -> Metabolism.of(p).getNumberOneSafeRolls())
-            .setter((p, v) -> Metabolism.of(p).setNumberOneSafeRolls(v))
-            .synchronizer(Metabolism::of)
-            .build();
-    public static final Setting<Double> NUMBER_TWO_CHANCE = Setting.doubleBuilder("numberTwoChance")
-            .range(p -> 0.0, p -> 1.0)
-            .label(Component.translatable("setting.crinklemod.metabolism.numberTwoChance.label"))
-            .tooltip(Component.translatable("setting.crinklemod.metabolism.numberTwoChance.tooltip"))
-            .defaultValue(0.25)
-            .getter(p -> Metabolism.of(p).getNumberTwoChance())
-            .setter((p, v) -> Metabolism.of(p).setNumberTwoChance(v))
-            .synchronizer(Metabolism::of)
-            .build();
-    public static final Setting<Boolean> NUMBER_TWO_ENABLED = Setting.booleanBuilder("numberTwoEnabled")
-            .label(Component.translatable("setting.crinklemod.metabolism.numberTwoEnabled.label"))
-            .tooltip(Component.translatable("setting.crinklemod.metabolism.numberTwoEnabled.tooltip"))
-            .defaultValue(false)
-            .getter(p -> Metabolism.of(p).isNumberTwoEnabled())
-            .setter((p, v) -> Metabolism.of(p).setNumberTwoEnabled(v))
-            .synchronizer(Metabolism::of)
-            .build();
-    public static final Setting<Integer> NUMBER_TWO_ROLLS = Setting.intBuilder("numberTwoRolls")
-            .range(p -> 0, p -> Integer.MAX_VALUE)
-            .label(Component.translatable("setting.crinklemod.metabolism.numberTwoRolls.label"))
-            .tooltip(Component.translatable("setting.crinklemod.metabolism.numberTwoRolls.tooltip"))
-            .defaultValue(0)
-            .getter(p -> Metabolism.of(p).getNumberTwoRolls())
-            .setter((p, v) -> Metabolism.of(p).setNumberTwoRolls(v))
-            .synchronizer(Metabolism::of)
-            .build();
-    public static final Setting<Integer> NUMBER_TWO_SAFE_ROLLS = Setting.intBuilder("numberTwoSafeRolls")
-            .range(p -> 0, p -> Integer.MAX_VALUE)
-            .label(Component.translatable("setting.crinklemod.metabolism.numberTwoSafeRolls.label"))
-            .tooltip(Component.translatable("setting.crinklemod.metabolism.numberTwoSafeRolls.tooltip"))
-            .defaultValue(5)
-            .getter(p -> Metabolism.of(p).getNumberTwoSafeRolls())
-            .setter((p, v) -> Metabolism.of(p).setNumberTwoSafeRolls(v))
-            .synchronizer(Metabolism::of)
-            .build();
-    public static final Setting<Integer> TIMER = Setting.intBuilder("timer")
-            .range(p -> 10, p -> Integer.MAX_VALUE)
-            .label(Component.translatable("setting.crinklemod.metabolism.timer.label"))
-            .tooltip(Component.translatable("setting.crinklemod.metabolism.timer.tooltip"))
-            .defaultValue(60)
-            .getter(p -> Metabolism.of(p).getTimer())
-            .setter((p, v) -> Metabolism.of(p).setTimer(v))
-            .synchronizer(Metabolism::of)
-            .build();
+    public static final MetabolismSettings WET = new MetabolismSettings(Metabolism.Type.Wet);
+    public static final MetabolismSettings MESS = new MetabolismSettings(Metabolism.Type.Mess);
+    private final Component label;
+    private final Metabolism.Type type;
+    private final Setting<Boolean> enabled;
+    private final Setting<Double> training;
+    private final Setting<Integer> ticks;
+    private final Setting<Double> slopeDegradation;
+    private final Setting<Double> frequencyCompression;
+    private final Setting<Double> intensity;
+    private final Setting<String> pang;
+    private final Setting<Double> currentTraining;
+    private final Setting<Double> currentFrequency;
+    private final Setting<Integer> pangDuration;
+    private final Setting<Integer> tickCount;
+
+    public MetabolismSettings(Metabolism.Type type) {
+        this.type = type;
+        this.label = Component.translatable("setting.crinklemod.metabolism.%s.label".formatted(type()));
+        this.enabled = Setting.booleanBuilder(type() + ".enabled")
+                .label(Component.translatable("setting.crinklemod.metabolism.%s.enabled.label".formatted(type())))
+                .tooltip(Component.translatable("setting.crinklemod.metabolism.%s.enabled.tooltip".formatted(type())))
+                .defaultValue(false)
+                .build();
+        this.training = Setting.doubleBuilder(type() + ".training")
+                .range(0.0, 1.0)
+                .label(Component.translatable("setting.crinklemod.metabolism.%s.training.label".formatted(type())))
+                .tooltip(Component.translatable("setting.crinklemod.metabolism.%s.training.tooltip".formatted(type())))
+                .numberFormat("#.##")
+                .defaultValue(0.60)
+                .modifierValue(Setting.ModifierValue.Ctrl, 0.1)
+                .modifierValue(Setting.ModifierValue.Shift, 0.05)
+                .modifierValue(Setting.ModifierValue.None, 0.01)
+                .build();
+        this.ticks = Setting.intBuilder(type() + ".ticks")
+                .range(10, 3600)
+                .label(Component.translatable("setting.crinklemod.metabolism.%s.ticks.label".formatted(type())))
+                .tooltip(Component.translatable("setting.crinklemod.metabolism.%s.ticks.tooltip".formatted(type())))
+                .defaultValue(30)
+                .modifierValue(Setting.ModifierValue.Alt, 100)
+                .modifierValue(Setting.ModifierValue.Ctrl, 10)
+                .modifierValue(Setting.ModifierValue.Shift, 5)
+                .modifierValue(Setting.ModifierValue.None, 1)
+                .build();
+        this.slopeDegradation = Setting.doubleBuilder(type() + ".slopeDegradation")
+                .range(-1.0, 0.0)
+                .label(Component.translatable("setting.crinklemod.metabolism.%s.slopeDegradation.label".formatted(type())))
+                .tooltip(Component.translatable("setting.crinklemod.metabolism.%s.slopeDegradation.tooltip".formatted(type())))
+                .numberFormat("#.#####")
+                .defaultValue(-0.0005)
+                .modifierValue(Setting.ModifierValue.Ctrl, -0.001)
+                .modifierValue(Setting.ModifierValue.Shift, -0.0005)
+                .modifierValue(Setting.ModifierValue.None, -0.0001)
+                .build();
+        this.frequencyCompression = Setting.doubleBuilder(type() + ".frequencyCompression")
+                .range(0.0, 1.0)
+                .label(Component.translatable("setting.crinklemod.metabolism.%s.frequencyCompression.label".formatted(type())))
+                .tooltip(Component.translatable("setting.crinklemod.metabolism.%s.frequencyCompression.tooltip".formatted(type())))
+                .numberFormat("#.###")
+                .defaultValue(0.025)
+                .modifierValue(Setting.ModifierValue.Ctrl, 0.01)
+                .modifierValue(Setting.ModifierValue.Shift, 0.005)
+                .modifierValue(Setting.ModifierValue.None, 0.001)
+                .build();
+        this.intensity = Setting.doubleBuilder(type() + ".intensity")
+                .range(0.0, 1.0)
+                .label(Component.translatable("setting.crinklemod.metabolism.%s.intensity.label".formatted(type())))
+                .tooltip(Component.translatable("setting.crinklemod.metabolism.%s.intensity.tooltip".formatted(type())))
+                .numberFormat("#.##")
+                .defaultValue(0.50)
+                .modifierValue(Setting.ModifierValue.Ctrl, 0.1)
+                .modifierValue(Setting.ModifierValue.Shift, 0.05)
+                .modifierValue(Setting.ModifierValue.None, 0.01)
+                .build();
+        this.currentFrequency = Setting.doubleBuilder(type() + ".currentFrequency")
+                .range(1.0, 3600.0)
+                .label(Component.translatable("setting.crinklemod.metabolism.%s.currentFrequency.label".formatted(type())))
+                .tooltip(Component.translatable("setting.crinklemod.metabolism.%s.currentFrequency.tooltip".formatted(type())))
+                .defaultValue(Double.valueOf(ticks().getDefault()))
+                .build();
+        this.pang = Setting.stringBuilder(type() + ".pang")
+                .label(Component.translatable("setting.crinklemod.metabolism.%s.pang.label".formatted(type())))
+                .tooltip(Component.translatable("setting.crinklemod.metabolism.%s.pang.tooltip".formatted(type())))
+                .defaultValue("None")
+                .build();
+        this.pangDuration = Setting.intBuilder(type() + ".pangDuration")
+                .range(0, 3600)
+                .label(Component.translatable("setting.crinklemod.metabolism.%s.pangDuration.label".formatted(type())))
+                .tooltip(Component.translatable("setting.crinklemod.metabolism.%s.pangDuration.tooltip".formatted(type())))
+                .defaultValue(0)
+                .build();
+        this.currentTraining = Setting.doubleBuilder(type() + ".currentTraining")
+                .range(0.0, 1.0)
+                .label(Component.translatable("setting.crinklemod.metabolism.%s.currentTraining.label".formatted(type())))
+                .tooltip(Component.translatable("setting.crinklemod.metabolism.%s.currentTraining.tooltip".formatted(type())))
+                .numberFormat("#.###")
+                .defaultValue(training().getDefault())
+                .build();
+        this.tickCount = Setting.intBuilder(type() + ".tickCount")
+                .label(Component.translatable("setting.crinklemod.metabolism.%s.tickCount.label".formatted(type())))
+                .tooltip(Component.translatable("setting.crinklemod.metabolism.%s.tickCount.tooltip".formatted(type())))
+                .defaultValue(0)
+                .build();
+    }
+
+    public static MetabolismSettings of(Metabolism.Type type) {
+        return switch (type) {
+            case Wet -> WET;
+            case Mess -> MESS;
+        };
+    }
+
+    public Setting<String> pang() {
+        return pang;
+    }
+
+    public Setting<Double> currentFrequency() {
+        return currentFrequency;
+    }
+
+    public Setting<Double> currentTraining() {
+        return currentTraining;
+    }
+
+    public Setting<Boolean> enabled() {
+        return enabled;
+    }
+
+    public Setting<Double> frequencyCompression() {
+        return frequencyCompression;
+    }
+
+    public Setting<Double> intensity() {
+        return intensity;
+    }
+
+    public Component label() {
+        return label;
+    }
+
+    public Setting<Integer> pangDuration() {
+        return pangDuration;
+    }
+
+    public Setting<Integer> tickCount() {
+        return tickCount;
+    }
+
+    public Setting<Double> training() {
+        return training;
+    }
+
+    public Setting<Double> slopeDegradation() {
+        return slopeDegradation;
+    }
+
+    public Setting<Integer> ticks() {
+        return ticks;
+    }
+
+    public Metabolism.Type type() {
+        return type;
+    }
 }

@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "crinklemod:item/diaper"
+    "layer0": "crinklemod:item/diaper_white"
   }
 }

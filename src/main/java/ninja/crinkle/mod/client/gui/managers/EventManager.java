@@ -6,6 +6,7 @@ import ninja.crinkle.mod.client.gui.events.EventNode;
 import org.slf4j.Logger;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -14,7 +15,7 @@ public class EventManager {
     public static final int PRIORITY_IGNORE = Integer.MAX_VALUE;
     public static final int PRIORITY_OVERRIDE = Integer.MIN_VALUE;
     public static final int PRIORITY_STEP = 10;
-    private final Map<Event.Key<?>, List<PrioritizedListener<?>>> keyListeners = new HashMap<>();
+    private final Map<Event.Key<?>, List<PrioritizedListener<?>>> keyListeners = new ConcurrentHashMap<>();
     private final List<EventNode> listeners = new ArrayList<>();
 
     public void addListener(EventNode listener) {
@@ -46,14 +47,14 @@ public class EventManager {
             return;
         }
         event.dispatched(true);
-        var list = keyListeners.get(event.key());
-        if (list != null) {
+        Optional.ofNullable(keyListeners.get(event.key())).ifPresent(l -> {
+            List<PrioritizedListener<?>> list = List.copyOf(l);
             for (var pl : list) {
                 if (!event.propagate()) break;
                 if (pl.priority() == PRIORITY_IGNORE) continue;
                 ((Consumer<Event>) pl.handler()).accept(event);
             }
-        }
+        });
     }
 
     public List<EventNode> listeners(Predicate<EventNode> predicate) {

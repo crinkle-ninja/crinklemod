@@ -2,6 +2,7 @@ package ninja.crinkle.mod.client.textures.generators;
 
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.logging.LogUtils;
+import net.minecraft.world.entity.player.Player;
 import ninja.crinkle.mod.client.color.Color;
 import ninja.crinkle.mod.client.models.DiaperArmorModel;
 import ninja.crinkle.mod.config.ClientConfig;
@@ -209,8 +210,12 @@ public class DiaperTextureGenerator implements TextureGenerator<Undergarment> {
                     MathUtil.twenties((int) (undergarment.getLiquidsPercent() * 100)), 0, 100);
             int pctS = MathUtil.clamp(
                     MathUtil.twenties((int) (undergarment.getSolidsPercent() * 100)), 0, 100);
-            return String.format("%s_l%d_s%d", name.replace(':', '_')
-                    .replace('/', '.'), pctL, pctS);
+            return String.format("%s%s_l%d_s%d",
+                    undergarment().getPlayer().map(Player::getEncodeId).orElse("")
+                            .replace("-", ""),
+                    name.replace(':', '_')
+                            .replace('/', '.'),
+                    pctL, pctS);
         }
     }
 }

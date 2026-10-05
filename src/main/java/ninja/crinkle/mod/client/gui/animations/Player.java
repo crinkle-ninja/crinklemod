@@ -28,6 +28,7 @@ public class Player implements ThemeRenderable {
     private double startTime;
     private double totalTime;
     private int zIndex = 0;
+    private boolean shouldClear = false;
 
     public Player() {
         clear();
@@ -39,6 +40,7 @@ public class Player implements ThemeRenderable {
         this.startTime = 0;
         this.elapsedTime = 0;
         this.animationSize = TextureSize.of(0, 0);
+        shouldClear(false);
     }
 
     public TextureSize animationSize() {
@@ -74,6 +76,14 @@ public class Player implements ThemeRenderable {
         return (int) (20.0 / speed);
     }
 
+    public boolean shouldClear() {
+        return shouldClear;
+    }
+
+    public void shouldClear(boolean shouldClear) {
+        this.shouldClear = shouldClear;
+    }
+
     public int size() {
         return size;
     }
@@ -96,6 +106,9 @@ public class Player implements ThemeRenderable {
                 LOGGER.error("No frame for animation: {} and sprite {}", animation, animations.get(animation));
             }
         }
+        // End of frame, were we asked to clear?
+        if (shouldClear())
+            clear();
     }
 
     protected Frame currentFrame(double gameTime, Animation animation) {

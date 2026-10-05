@@ -1,5 +1,7 @@
 package ninja.crinkle.mod.util;
 
+import ninja.crinkle.mod.metabolism.Pang;
+
 public class MathUtil {
 
     public static int clamp(int value, int min, int max) {
