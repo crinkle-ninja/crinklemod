@@ -19,7 +19,7 @@ import org.slf4j.Logger;
 import java.util.Random;
 
 public class Metabolism {
-    private static final int ACCIDENT_DURATION = 5;
+    private static final int ACCIDENT_DURATION = 2;
     private static final int SYNC_SERVER_TICK_FREQUENCY = 20 * 60; // ticks per second * seconds
     private static final Logger LOGGER = LogUtils.getLogger();
     private static final int TICK_FREQ = 20;
@@ -193,9 +193,21 @@ public class Metabolism {
         if (isDelayed()) return;
         Random random = new Random();
         switch(pang()) {
-            case Accident -> {
+            case Relief -> {
                 if (pangDuration() <= 0) {
                     reset();
+                    LOGGER.trace(LogMarkers.MET, "({}) [{}] relief stop: pang={} pangDuration={}, currentFrequency={}",
+                            CrinkleEvent.side(), metabolismType, pang(), pangDuration(), currentFrequency());
+                } else {
+                    pangDuration(pangDuration() - 1);
+                    LOGGER.trace(LogMarkers.MET, "({}) [{}] relief tick: pang={} pangDuration={}, currentFrequency={}",
+                            CrinkleEvent.side(), metabolismType, pang(), pangDuration(), currentFrequency());
+                }
+            }
+            case Accident -> {
+                if (pangDuration() <= 0) {
+                    pang(Pang.Relief);
+                    pangDuration(ACCIDENT_DURATION);
                     LOGGER.trace(LogMarkers.MET, "({}) [{}] accident stop: pang={} pangDuration={}, currentFrequency={}",
                             CrinkleEvent.side(), metabolismType, pang(), pangDuration(), currentFrequency());
                 } else {
@@ -318,5 +330,21 @@ public class Metabolism {
 
     public double currentTraining() {
         return capability().getAsDouble(MetabolismSettings.of(metabolismType).currentTraining());
+    }
+
+    public boolean isNormal() {
+        return pang() == Pang.None;
+    }
+
+    public boolean isPang() {
+        return pang().compareTo(Pang.Relief) > 0;
+    }
+
+    public boolean isRelief() {
+        return pang() == Pang.Relief;
+    }
+
+    public boolean isAccident() {
+        return pang() == Pang.Accident;
     }
 }

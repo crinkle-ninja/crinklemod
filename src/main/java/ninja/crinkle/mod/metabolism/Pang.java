@@ -1,12 +1,12 @@
 package ninja.crinkle.mod.metabolism;
 
-import ninja.crinkle.mod.capabilities.IMetabolism;
-
 public enum Pang {
     None,
+    Relief,
     Minor,
     Major,
-    Accident;
+    Accident,
+    ;
 
     public static Pang from(String stringValue) {
         if (stringValue.isBlank()) {

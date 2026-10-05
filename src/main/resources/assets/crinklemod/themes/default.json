@@ -627,6 +627,12 @@
           "mess": [
             "messy1",
             "messy2"
+          ],
+          "both": [
+            "wet1",
+            "wet2",
+            "messy1",
+            "messy2"
           ]
         }
       },
@@ -654,12 +660,6 @@
             "very_desperate2"
           ],
           "accident": [
-            "accident1",
-            "accident2",
-            "accident1",
-            "accident2",
-            "accident1",
-            "accident2",
             "accident1",
             "accident2"
           ],
