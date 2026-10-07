@@ -2,6 +2,7 @@ package ninja.crinkle.mod.metabolism;
 
 public enum Pang {
     None,
+    Delay,
     Relief,
     Minor,
     Major,
@@ -13,13 +14,5 @@ public enum Pang {
             return None;
         }
         return Pang.valueOf(Pang.class, stringValue);
-    }
-
-    public static Pang from(Metabolism metabolism) {
-        if (metabolism.currentTraining() > metabolism.intensity())
-            return Pang.Minor;
-        else if (metabolism.currentTraining() <= metabolism.intensity())
-            return Pang.Major;
-        return Pang.None;
     }
 }

@@ -6,6 +6,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.ItemStack;
@@ -19,6 +20,7 @@ import ninja.crinkle.mod.client.textures.generators.DiaperTextureGenerator;
 import ninja.crinkle.mod.undergarment.DiaperDesign;
 import ninja.crinkle.mod.undergarment.DiaperDesignRegistry;
 import ninja.crinkle.mod.undergarment.Undergarment;
+import ninja.crinkle.mod.util.ClientUtil;
 import ninja.crinkle.mod.util.MathUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,6 +37,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.function.Consumer;
 
 public class DiaperArmorItem extends ArmorItem implements GeoItem {
+
     private static final String DESIGN_TAG = CrinkleMod.MODID + ".design";
     private static final ResourceLocation DEFAULT_TEXTURE = CrinkleMod.loc("armor/diaper_white");
     private static final DiaperArmorModel SHARED_MODEL = new DiaperArmorModel();
@@ -103,14 +106,18 @@ public class DiaperArmorItem extends ArmorItem implements GeoItem {
     }
 
     private PlayState predicate(AnimationState<DiaperArmorItem> state) {
-        ItemStack stack = state.getData(DataTickets.ITEMSTACK);
-        Undergarment undergarment = Undergarment.of(stack);
+        Undergarment undergarment = Undergarment.EMPTY;
+        if (state.getData(DataTickets.ENTITY) instanceof Player p && p == ClientUtil.getPlayer()) {
+            undergarment = Undergarment.of(p);
+        }
+        if (undergarment == Undergarment.EMPTY) return PlayState.STOP;
+
         int pctL = MathUtil.twenties((int) (undergarment.getLiquidsPercent() * 100));
         int pctS = MathUtil.twenties((int) (undergarment.getSolidsPercent() * 100));
 
         // Only regenerate texture when fullness bucket or design changes
         int[] last = lastPct;
-        DiaperDesign design = undergarment.getDesign().orElse(DiaperArmorItem.getDesign(stack, true));
+        DiaperDesign design = undergarment.getDesign().orElse(DiaperArmorItem.getDesign(undergarment.getItemStack(), true));
         ResourceLocation designId = design != null ? design.id() : DEFAULT_TEXTURE;
         if (last[0] != pctL || last[1] != pctS || !designId.equals(lastDesign)) {
             last[0] = pctL;

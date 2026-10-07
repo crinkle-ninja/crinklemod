@@ -9,8 +9,13 @@ import ninja.crinkle.mod.metabolism.Pang;
 import ninja.crinkle.mod.settings.Setting;
 import org.jetbrains.annotations.NotNull;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 
 /**
  * Metabolism capability implementation.
@@ -20,17 +25,18 @@ import java.util.function.BiConsumer;
  * @see IMetabolism
  */
 public class MetabolismImpl implements IMetabolism, WetCapability, MessCapability {
+    private static final List<String> omitCSVFields = List.of("enabled", "version");
     private final Metabolism.Type type;
     private Pang pang;
-    private double currentFrequency;
-    private double currentTraining;
+    private double currentInterval;
+    private double currentControl;
     private boolean enabled;
     private int pangDuration;
     private int tickCount;
-    private double training;
-    private int ticks;
-    private double slopeDegradation;
-    private double frequencyCompression;
+    private double control;
+    private int interval;
+    private double controlDecay;
+    private double intervalDecay;
     private double intensity;
     private MetabolismVersion version;
 
@@ -43,16 +49,16 @@ public class MetabolismImpl implements IMetabolism, WetCapability, MessCapabilit
     public void reset() {
         // Settings
         enabled = MetabolismSettings.of(type).enabled().getDefault();
-        training = MetabolismSettings.of(type).training().getDefault();
-        ticks = MetabolismSettings.of(type).ticks().getDefault();
-        slopeDegradation = MetabolismSettings.of(type).slopeDegradation().getDefault();
-        frequencyCompression = MetabolismSettings.of(type).frequencyCompression().getDefault();
+        control = MetabolismSettings.of(type).control().getDefault();
+        interval = MetabolismSettings.of(type).interval().getDefault();
+        controlDecay = MetabolismSettings.of(type).controlDecay().getDefault();
+        intervalDecay = MetabolismSettings.of(type).intervalDecay().getDefault();
         intensity = MetabolismSettings.of(type).intensity().getDefault();
 
         // State machine values
         pang = Pang.None;
-        currentFrequency = ticks;
-        currentTraining = training;
+        currentInterval = interval;
+        currentControl = control;
         pangDuration = 0;
         tickCount = 0;
     }
@@ -108,6 +114,33 @@ public class MetabolismImpl implements IMetabolism, WetCapability, MessCapabilit
                 .orElse(bv.getDefault());
     }
 
+    private String getHeaderName(Setting<?> setting) {
+        return setting.key().substring(setting.key().lastIndexOf(".") + 1);
+    }
+
+    @Override
+    public String getCSVRow() {
+        CompoundTag data = serializeNBT();
+        List<String> sortedKeys = data.getAllKeys().stream().sorted().toList();
+        String row = sortedKeys.stream()
+                .map((k) -> MetabolismSettings.of(type()).byKey(k))
+                .filter((s) -> s != null && !omitCSVFields.contains(getHeaderName(s)))
+                .map(this::getAsString)
+                .collect(Collectors.joining(","));
+        return (int) (System.currentTimeMillis() / 1000) + "," + type().name().toLowerCase() + "," + row;
+    }
+
+    @Override
+    public String getCSVHeaders() {
+        return "timestamp,type," + serializeNBT().getAllKeys().stream()
+                .map((k) -> MetabolismSettings.of(type()).byKey(k))
+                .filter(Objects::nonNull)
+                .map(this::getHeaderName)
+                .filter((k) -> !omitCSVFields.contains(k))
+                .sorted()
+                .collect(Collectors.joining(","));
+    }
+
     @Override
     public void updateValue(Setting<?> setting, Object value) {
         CompoundTag current = serializeNBT();
@@ -134,14 +167,14 @@ public class MetabolismImpl implements IMetabolism, WetCapability, MessCapabilit
         CompoundTag tag = new CompoundTag();
         tag.putString(MetabolismVersion.TAG_VERSION, version.name());
         tag.putBoolean(settings.enabled().key(), enabled);
-        tag.putInt(settings.ticks().key(), ticks);
-        tag.putDouble(settings.training().key(), training);
-        tag.putDouble(settings.slopeDegradation().key(), slopeDegradation);
-        tag.putDouble(settings.frequencyCompression().key(), frequencyCompression);
+        tag.putInt(settings.interval().key(), interval);
+        tag.putDouble(settings.control().key(), control);
+        tag.putDouble(settings.controlDecay().key(), controlDecay);
+        tag.putDouble(settings.intervalDecay().key(), intervalDecay);
         tag.putDouble(settings.intensity().key(), intensity);
         tag.putString(settings.pang().key(), pang.name());
-        tag.putDouble(settings.currentTraining().key(), currentTraining);
-        tag.putDouble(settings.currentFrequency().key(), currentFrequency);
+        tag.putDouble(settings.currentControl().key(), currentControl);
+        tag.putDouble(settings.currentInterval().key(), currentInterval);
         tag.putInt(settings.pangDuration().key(), pangDuration);
         tag.putInt(settings.tickCount().key(), tickCount);
         return tag;
@@ -157,14 +190,14 @@ public class MetabolismImpl implements IMetabolism, WetCapability, MessCapabilit
         MetabolismSettings settings = MetabolismSettings.of(type());
         version = MetabolismVersion.fromNBT(nbt);
         safeSet(nbt, settings.enabled().key(), (tag, key) -> enabled = tag.getBoolean(key));
-        safeSet(nbt, settings.training().key(), (tag, key) -> training = tag.getDouble(key));
-        safeSet(nbt, settings.ticks().key(), (tag, key) -> ticks = tag.getInt(key));
-        safeSet(nbt, settings.slopeDegradation().key(), (tag, key) -> slopeDegradation = tag.getDouble(key));
-        safeSet(nbt, settings.frequencyCompression().key(), (tag, key) -> frequencyCompression = tag.getDouble(key));
+        safeSet(nbt, settings.control().key(), (tag, key) -> control = tag.getDouble(key));
+        safeSet(nbt, settings.interval().key(), (tag, key) -> interval = tag.getInt(key));
+        safeSet(nbt, settings.controlDecay().key(), (tag, key) -> controlDecay = tag.getDouble(key));
+        safeSet(nbt, settings.intervalDecay().key(), (tag, key) -> intervalDecay = tag.getDouble(key));
         safeSet(nbt, settings.intensity().key(), (tag, key) -> intensity = tag.getDouble(key));
         safeSet(nbt, settings.pang().key(), (tag, key) -> pang = Pang.from(tag.getString(key)));
-        safeSet(nbt, settings.currentTraining().key(), (tag, key) -> currentTraining = tag.getDouble(key));
-        safeSet(nbt, settings.currentFrequency().key(), (tag, key) -> currentFrequency = tag.getDouble(key));
+        safeSet(nbt, settings.currentControl().key(), (tag, key) -> currentControl = tag.getDouble(key));
+        safeSet(nbt, settings.currentInterval().key(), (tag, key) -> currentInterval = tag.getDouble(key));
         safeSet(nbt, settings.pangDuration().key(), (tag, key) -> pangDuration = tag.getInt(key));
         safeSet(nbt, settings.tickCount().key(), (tag, key) -> tickCount = tag.getInt(key));
     }
@@ -183,14 +216,14 @@ public class MetabolismImpl implements IMetabolism, WetCapability, MessCapabilit
         return "MetabolismImpl{" +
                 "type=" + type().name() +
                 ", enabled=" + enabled +
-                ", training=" + training +
-                ", ticks=" + ticks +
-                ", slopeDegradation=" + slopeDegradation +
-                ", frequencyCompression=" + frequencyCompression +
+                ", control=" + control +
+                ", interval=" + interval +
+                ", controlDecay=" + controlDecay +
+                ", intervalDecay=" + intervalDecay +
                 ", intensity=" + intensity +
-                ", currentDesperation=" + pang +
-                ", currentFrequency=" + currentFrequency +
-                ", currentTraining=" + currentTraining +
+                ", pang=" + pang +
+                ", currentInterval=" + currentInterval +
+                ", currentControl=" + currentControl +
                 ", pangDuration=" + pangDuration +
                 ", tickCount=" + tickCount +
                 '}';
@@ -199,14 +232,14 @@ public class MetabolismImpl implements IMetabolism, WetCapability, MessCapabilit
     @Override
     public void writeSpawnData(FriendlyByteBuf buffer) {
         buffer.writeBoolean(enabled);
-        buffer.writeDouble(training);
-        buffer.writeInt(ticks);
-        buffer.writeDouble(slopeDegradation);
-        buffer.writeDouble(frequencyCompression);
+        buffer.writeDouble(control);
+        buffer.writeInt(interval);
+        buffer.writeDouble(controlDecay);
+        buffer.writeDouble(intervalDecay);
         buffer.writeDouble(intensity);
         buffer.writeUtf(pang.name());
-        buffer.writeDouble(currentFrequency);
-        buffer.writeDouble(currentTraining);
+        buffer.writeDouble(currentInterval);
+        buffer.writeDouble(currentControl);
         buffer.writeInt(pangDuration);
         buffer.writeInt(tickCount);
     }
@@ -214,14 +247,14 @@ public class MetabolismImpl implements IMetabolism, WetCapability, MessCapabilit
     @Override
     public void readSpawnData(FriendlyByteBuf additionalData) {
         enabled = additionalData.readBoolean();
-        training = additionalData.readDouble();
-        ticks = additionalData.readInt();
-        slopeDegradation = additionalData.readDouble();
-        frequencyCompression = additionalData.readDouble();
+        control = additionalData.readDouble();
+        interval = additionalData.readInt();
+        controlDecay = additionalData.readDouble();
+        intervalDecay = additionalData.readDouble();
         intensity = additionalData.readDouble();
         pang = Pang.from(additionalData.readUtf());
-        currentFrequency = additionalData.readDouble();
-        currentTraining = additionalData.readDouble();
+        currentInterval = additionalData.readDouble();
+        currentControl = additionalData.readDouble();
         pangDuration = additionalData.readInt();
         tickCount = additionalData.readInt();
     }

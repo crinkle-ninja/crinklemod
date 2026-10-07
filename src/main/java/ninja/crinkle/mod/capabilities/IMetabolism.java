@@ -11,7 +11,8 @@ public interface IMetabolism extends INBTSerializable<CompoundTag>, IEntityAddit
     double getAsDouble(Setting<?> setting);
     int getAsInt(Setting<?> setting);
     boolean getAsBool(Setting<?> setting);
-
+    String getCSVRow();
+    String getCSVHeaders();
     void reset();
 
     Metabolism.Type type();

@@ -334,7 +334,6 @@ public class TextBox extends AbstractWidget {
         shiftDown(event.isShiftDown());
 
         if (event.pressed()) {
-            LOGGER.debug("Key pressed: {}, modifiers: {}", event.keyCode(), event.modifiers());
             switch (event.keyCode()) {
                 case InputConstants.KEY_ESCAPE -> handleEscape(event);
                 case InputConstants.KEY_LEFT -> handleLeft(event);

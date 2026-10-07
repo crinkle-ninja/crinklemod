@@ -171,6 +171,9 @@ dependencies {
     testImplementation("org.mockito:mockito-core:${mockito_version}")
     testImplementation("org.mockito:mockito-junit-jupiter:${mockito_version}")
 
+    // Source: https://mvnrepository.com/artifact/com.opencsv/opencsv
+    implementation("com.opencsv:opencsv:5.12.0")
+
     // Example mod dependency using a mod jar from ./libs with a flat dir repository
     // This maps to ./libs/coolmod-${mc_version}-${coolmod_version}.jar
     // The group id is ignored when searching -- in this case, it is "blank"

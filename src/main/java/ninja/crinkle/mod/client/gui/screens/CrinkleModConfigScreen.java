@@ -506,14 +506,14 @@ public class CrinkleModConfigScreen extends AbstractScreen {
                     })
                     .pushAndReturn();
 
-            // training
-            buildSettingRow(parent, rowHeight, settings().training());
+            // control
+            buildSettingRow(parent, rowHeight, settings().control());
             // ticks
-            buildSettingRow(parent, rowHeight, settings().ticks());
+            buildSettingRow(parent, rowHeight, settings().interval());
             // slopeDegradation
-            buildSettingRow(parent, rowHeight, settings().slopeDegradation());
+            buildSettingRow(parent, rowHeight, settings().controlDecay());
             // frequencyCompression
-            buildSettingRow(parent, rowHeight, settings().frequencyCompression());
+            buildSettingRow(parent, rowHeight, settings().intervalDecay());
             // intensity
             buildSettingRow(parent, rowHeight, settings().intensity());
 

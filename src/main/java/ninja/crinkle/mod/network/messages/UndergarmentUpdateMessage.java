@@ -96,7 +96,7 @@ public class UndergarmentUpdateMessage {
     }
 
     public void messageConsumer(@NotNull Supplier<NetworkEvent.Context> ctx) {
-        Player player = ctx.get().getSender() != null ? ctx.get().getSender() : ClientUtil.getPlayer();
+        Player player = ctx.get().getSender();
         if (player == null) {
             LOGGER.warn("Failed to update undergarment of player");
             ctx.get().setPacketHandled(false);

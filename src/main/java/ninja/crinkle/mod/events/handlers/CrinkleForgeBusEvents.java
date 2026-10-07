@@ -1,5 +1,6 @@
 package ninja.crinkle.mod.events.handlers;
 
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
@@ -55,6 +56,14 @@ public class CrinkleForgeBusEvents {
         if (event.getEntity() instanceof ServerPlayer player) {
             Metabolism.wetOf(player).syncClient();
             Metabolism.messOf(player).syncClient();
+        }
+    }
+
+    @SubscribeEvent
+    public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
+        if (event.getEntity() instanceof LocalPlayer player) {
+            Metabolism.wetOf(player).syncServer();
+            Metabolism.messOf(player).syncServer();
         }
     }
 

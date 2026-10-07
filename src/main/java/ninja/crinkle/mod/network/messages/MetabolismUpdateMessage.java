@@ -25,15 +25,15 @@ public class MetabolismUpdateMessage {
     private static final Logger LOGGER = LogUtils.getLogger();
     private final Metabolism.Type type;
     private final boolean enabled;
-    private final double training;
-    private final int ticks;
-    private final double slopeDegradation;
-    private final double frequencyCompression;
+    private final double control;
+    private final int interval;
+    private final double controlDecay;
+    private final double intervalDecay;
     private final double intensity;
-    private final double currentTraining;
+    private final double currentControl;
     private final Pang pang;
     private final int pangDuration;
-    private final double currentFrequency;
+    private final double currentInterval;
     private final int tickCount;
 
     /**
@@ -45,15 +45,15 @@ public class MetabolismUpdateMessage {
     public MetabolismUpdateMessage(@NotNull Metabolism metabolism) {
         this.type = metabolism.type();
         this.enabled = metabolism.enabled();
-        this.training = metabolism.training();
-        this.ticks = metabolism.ticks();
-        this.slopeDegradation = metabolism.slopeDegradation();
-        this.frequencyCompression = metabolism.frequencyCompression();
+        this.control = metabolism.control();
+        this.interval = metabolism.interval();
+        this.controlDecay = metabolism.controlDecay();
+        this.intervalDecay = metabolism.intervalDecay();
         this.intensity = metabolism.intensity();
-        this.currentTraining = metabolism.currentTraining();
+        this.currentControl = metabolism.currentControl();
         this.pang = metabolism.pang();
         this.pangDuration = metabolism.pangDuration();
-        this.currentFrequency = metabolism.currentFrequency();
+        this.currentInterval = metabolism.currentInterval();
         this.tickCount = metabolism.tickCount();
     }
 
@@ -66,15 +66,15 @@ public class MetabolismUpdateMessage {
     public MetabolismUpdateMessage(@NotNull FriendlyByteBuf buffer) {
         this.type = buffer.readEnum(Metabolism.Type.class);
         this.enabled = buffer.readBoolean();
-        this.training = buffer.readDouble();
-        this.ticks = buffer.readInt();
-        this.slopeDegradation = buffer.readDouble();
-        this.frequencyCompression = buffer.readDouble();
+        this.control = buffer.readDouble();
+        this.interval = buffer.readInt();
+        this.controlDecay = buffer.readDouble();
+        this.intervalDecay = buffer.readDouble();
         this.intensity = buffer.readDouble();
-        this.currentTraining = buffer.readDouble();
+        this.currentControl = buffer.readDouble();
         this.pang = buffer.readEnum(Pang.class);
         this.pangDuration = buffer.readInt();
-        this.currentFrequency = buffer.readDouble();
+        this.currentInterval = buffer.readDouble();
         this.tickCount = buffer.readInt();
     }
 
@@ -98,15 +98,15 @@ public class MetabolismUpdateMessage {
     public void encoder(@NotNull FriendlyByteBuf buffer) {
         buffer.writeEnum(this.type);
         buffer.writeBoolean(this.enabled);
-        buffer.writeDouble(this.training);
-        buffer.writeInt(this.ticks);
-        buffer.writeDouble(this.slopeDegradation);
-        buffer.writeDouble(this.frequencyCompression);
+        buffer.writeDouble(this.control);
+        buffer.writeInt(this.interval);
+        buffer.writeDouble(this.controlDecay);
+        buffer.writeDouble(this.intervalDecay);
         buffer.writeDouble(this.intensity);
-        buffer.writeDouble(this.currentTraining);
+        buffer.writeDouble(this.currentControl);
         buffer.writeEnum(this.pang);
         buffer.writeInt(this.pangDuration);
-        buffer.writeDouble(this.currentFrequency);
+        buffer.writeDouble(this.currentInterval);
         buffer.writeInt(this.tickCount);
     }
 
@@ -124,14 +124,14 @@ public class MetabolismUpdateMessage {
         }
         Metabolism metabolism = Metabolism.of(player, type);
         metabolism.enabled(enabled);
-        metabolism.training(training);
-        metabolism.ticks(ticks);
-        metabolism.slopeDegradation(slopeDegradation);
-        metabolism.frequencyCompression(frequencyCompression);
+        metabolism.control(control);
+        metabolism.interval(interval);
+        metabolism.controlDecay(controlDecay);
+        metabolism.intervalDecay(intervalDecay);
         metabolism.intensity(intensity);
-        metabolism.currentTraining(currentTraining);
+        metabolism.currentControl(currentControl);
         metabolism.pang(pang);
-        metabolism.currentFrequency(currentFrequency);
+        metabolism.currentInterval(currentInterval);
         metabolism.pangDuration(pangDuration);
         metabolism.tickCount(tickCount);
         ctx.get().setPacketHandled(true);

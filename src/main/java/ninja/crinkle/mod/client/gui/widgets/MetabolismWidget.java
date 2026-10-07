@@ -26,7 +26,13 @@ public class MetabolismWidget extends AnimatedWidget {
     }
 
     private String characterSpriteId(Metabolism metabolism) {
-        return metabolism.pang().name().toLowerCase();
+        return switch(metabolism.pang()) {
+            case None, Delay -> "none";
+            case Relief -> "relief";
+            case Minor -> "minor";
+            case Major -> "major";
+            case Accident -> "accident";
+        };
     }
 
     private void updateAnimations() {
@@ -59,8 +65,8 @@ public class MetabolismWidget extends AnimatedWidget {
 
     private double animationSpeed(Metabolism metabolism) {
         return switch(metabolism.pang()) {
+            case Delay, None -> 1.0;
             case Relief -> 0.75;
-            case None -> 1.0;
             case Minor -> 1.5;
             case Major -> 2.0;
             case Accident -> 3.0;

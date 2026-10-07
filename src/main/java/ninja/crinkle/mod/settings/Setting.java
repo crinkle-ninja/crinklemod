@@ -109,7 +109,7 @@ public abstract class Setting<T extends Comparable<? super T>> {
     }
 
     public String formattedString(Object value) {
-        if (numberFormat().isBlank() || value == null) {
+        if (numberFormat() == null || numberFormat().isBlank() || value == null) {
             return String.valueOf(value);
         }
         if (isDouble() || isInt() || !String.valueOf(value).isBlank()) {

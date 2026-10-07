@@ -1,5 +1,6 @@
 package ninja.crinkle.mod;
 
+import com.mojang.logging.LogUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraftforge.common.MinecraftForge;
@@ -13,12 +14,15 @@ import ninja.crinkle.mod.capabilities.WetProvider;
 import ninja.crinkle.mod.config.ClientConfig;
 import ninja.crinkle.mod.config.UndergarmentConfig;
 import ninja.crinkle.mod.datagen.CrinkleDataGeneration;
+import ninja.crinkle.mod.events.handlers.PangEventHandler;
 import ninja.crinkle.mod.items.CrinkleItems;
 import ninja.crinkle.mod.items.CrinkleTabs;
 import ninja.crinkle.mod.menus.CrinkleMenus;
 import ninja.crinkle.mod.network.CrinkleChannel;
 import ninja.crinkle.mod.sounds.CrinkleSounds;
 import software.bernie.geckolib.GeckoLib;
+
+import java.time.LocalDateTime;
 
 /**
  * The main class of the mod.
@@ -36,6 +40,11 @@ public class CrinkleMod {
      * <pre>src/main/resources/assets/[mod_id]</pre>
      */
     public static final String MODID = "crinklemod";
+    private static final LocalDateTime startTime;
+
+    static {
+        startTime = LocalDateTime.now();
+    }
 
     public CrinkleMod() {
         // Metabolism
@@ -60,7 +69,14 @@ public class CrinkleMod {
         // DataGen
         modEventBus.addListener(CrinkleDataGeneration::generate);
 
+        // Internal
+        EVENT_BUS.register(new PangEventHandler());
+
         GeckoLib.initialize();
+    }
+
+    public static LocalDateTime getStartTime() {
+        return startTime;
     }
 
     public static ResourceLocation loc(String path) {
