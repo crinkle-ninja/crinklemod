@@ -1,0 +1,23 @@
+{
+  "display_name": "Peekabu Dragon",
+  "armor_texture": "crinklemod:armor/diaper_peekabudragon",
+  "item_texture": "crinklemod:item/diaper_peekabudragon",
+  "stats": {
+    "max_liquids": 5,
+    "max_solids": 3
+  },
+  "texture_overlays": {
+    "wet": {
+      "parts": [
+        "FRONT_BOTTOM",
+        "BOTTOM"
+      ]
+    },
+    "mess": {
+      "parts": [
+        "BACK",
+        "BACK_BOTTOM"
+      ]
+    }
+  }
+}

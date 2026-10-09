@@ -1,0 +1,498 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "integer",
+      "title": "JSON Version",
+      "description": "Used for backwards compatibility"
+    },
+    "theme": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "title": "ID of the theme",
+          "description": "The ID used to register the theme. Themes with the same ID will override each other."
+        },
+        "name": {
+          "type": "string",
+          "title": "Name of the theme",
+          "description": "User-friendly name"
+        },
+        "description": {
+          "type": "string",
+          "title": "Description"
+        },
+        "version": {
+          "type": "string",
+          "title": "Verison of Theme",
+          "description": "Version string for this theme, informational only"
+        },
+        "author": {
+          "type": "string",
+          "title": "Author(s) of theme"
+        },
+        "colors": {
+          "type": "object",
+          "patternProperties": {
+            "^.*$": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "properties": {},
+          "title": "Color definitions",
+          "description": "Key/value pairs of color names to codes. Supports hex, and rgba(r,g,b,a)"
+        },
+        "textures": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "title": "ID used in the Styles section",
+                "description": "Unique identifier for the texture, for reference in other sections"
+              },
+              "texture": {
+                "type": "string",
+                "title": "Location of the texture in the atlas"
+              },
+              "slices": {
+                "type": "object",
+                "properties": {
+                  "topLeft": {
+                    "type": "object",
+                    "properties": {
+                      "start": {
+                        "type": "object",
+                        "properties": {
+                          "x": {
+                            "type": "integer"
+                          },
+                          "y": {
+                            "type": "integer"
+                          }
+                        }
+                      },
+                      "size": {
+                        "type": "object",
+                        "properties": {
+                          "width": {
+                            "type": "integer"
+                          },
+                          "height": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "topRight": {
+                    "type": "object",
+                    "properties": {
+                      "start": {
+                        "type": "object",
+                        "properties": {
+                          "x": {
+                            "type": "integer"
+                          },
+                          "y": {
+                            "type": "integer"
+                          }
+                        }
+                      },
+                      "size": {
+                        "type": "object",
+                        "properties": {
+                          "width": {
+                            "type": "integer"
+                          },
+                          "height": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "bottomLeft": {
+                    "type": "object",
+                    "properties": {
+                      "start": {
+                        "type": "object",
+                        "properties": {
+                          "x": {
+                            "type": "integer"
+                          },
+                          "y": {
+                            "type": "integer"
+                          }
+                        }
+                      },
+                      "size": {
+                        "type": "object",
+                        "properties": {
+                          "width": {
+                            "type": "integer"
+                          },
+                          "height": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "bottomRight": {
+                    "type": "object",
+                    "properties": {
+                      "start": {
+                        "type": "object",
+                        "properties": {
+                          "x": {
+                            "type": "integer"
+                          },
+                          "y": {
+                            "type": "integer"
+                          }
+                        }
+                      },
+                      "size": {
+                        "type": "object",
+                        "properties": {
+                          "width": {
+                            "type": "integer"
+                          },
+                          "height": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "top": {
+                    "type": "object",
+                    "properties": {
+                      "start": {
+                        "type": "object",
+                        "properties": {
+                          "x": {
+                            "type": "integer"
+                          },
+                          "y": {
+                            "type": "integer"
+                          }
+                        }
+                      },
+                      "size": {
+                        "type": "object",
+                        "properties": {
+                          "width": {
+                            "type": "integer"
+                          },
+                          "height": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "right": {
+                    "type": "object",
+                    "properties": {
+                      "start": {
+                        "type": "object",
+                        "properties": {
+                          "x": {
+                            "type": "integer"
+                          },
+                          "y": {
+                            "type": "integer"
+                          }
+                        }
+                      },
+                      "size": {
+                        "type": "object",
+                        "properties": {
+                          "width": {
+                            "type": "integer"
+                          },
+                          "height": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "bottom": {
+                    "type": "object",
+                    "properties": {
+                      "start": {
+                        "type": "object",
+                        "properties": {
+                          "x": {
+                            "type": "integer"
+                          },
+                          "y": {
+                            "type": "integer"
+                          }
+                        }
+                      },
+                      "size": {
+                        "type": "object",
+                        "properties": {
+                          "width": {
+                            "type": "integer"
+                          },
+                          "height": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "left": {
+                    "type": "object",
+                    "properties": {
+                      "start": {
+                        "type": "object",
+                        "properties": {
+                          "x": {
+                            "type": "integer"
+                          },
+                          "y": {
+                            "type": "integer"
+                          }
+                        }
+                      },
+                      "size": {
+                        "type": "object",
+                        "properties": {
+                          "width": {
+                            "type": "integer"
+                          },
+                          "height": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "center": {
+                    "type": "object",
+                    "properties": {
+                      "start": {
+                        "type": "object",
+                        "properties": {
+                          "x": {
+                            "type": "integer"
+                          },
+                          "y": {
+                            "type": "integer"
+                          }
+                        }
+                      },
+                      "size": {
+                        "type": "object",
+                        "properties": {
+                          "width": {
+                            "type": "integer"
+                          },
+                          "height": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "additionalProperties": false,
+                "title": "9-slice configuration",
+                "required": [
+                  "topLeft",
+                  "topRight",
+                  "bottomLeft",
+                  "bottomRight",
+                  "top",
+                  "right",
+                  "bottom",
+                  "left",
+                  "center"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "location"
+            ]
+          },
+          "title": "Textures used by GUI",
+          "description": "Textures and slicing data"
+        },
+        "styles": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "title": "ID of the style"
+              },
+              "variants": {
+                "type": "object",
+                "properties": {
+                  "active": {
+                    "type": "object",
+                    "properties": {
+                      "background": {
+                        "type": "object",
+                        "properties": {
+                          "texture": {
+                            "type": "string"
+                          },
+                          "color": {
+                            "type": "string"
+                          }
+                        },
+                        "anyOf": [
+                          {
+                            "required": [
+                              "texture"
+                            ]
+                          },
+                          {
+                            "required": [
+                              "color"
+                            ]
+                          }
+                        ]
+                      },
+                      "foreground": {
+                        "type": "object",
+                        "properties": {
+                          "texture": {
+                            "type": "string"
+                          },
+                          "color": {
+                            "type": "string"
+                          },
+                          "shadow": {
+                            "type": "string"
+                          },
+                          "filters": {
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "enum": [
+                                "grayscale",
+                                "invert",
+                                "sepia"
+                              ]
+                            }
+                          }
+                        },
+                        "anyOf": [
+                          {
+                            "required": [
+                              "texture"
+                            ]
+                          },
+                          {
+                            "required": [
+                              "color"
+                            ]
+                          }
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  }
+                },
+                "additionalProperties": true
+              }
+            },
+            "required": [
+              "id",
+              "variants"
+            ]
+          },
+          "title": "Styles used by the GUI",
+          "description": "Styles are used by the GUI to represent different UI components"
+        },
+        "animations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "title": "Unique ID for the animation",
+                "description": "Must be unique, also determines the sub path in the atlas for all contained sprites"
+              },
+              "offset": {
+                "type": "object",
+                "properties": {},
+                "title": "Position offset",
+                "description": "Relative to the top left of the animation widget"
+              },
+              "sizes": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                },
+                "title": "Supported sprite sizes",
+                "description": "Example: [32, 64]"
+              },
+              "sprites": {
+                "type": "object",
+                "patternProperties": {
+                  "^.*$": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "title": "Sprites that contain frames of the animation",
+                "description": "Key/value pairs, where the value is an array of specific frame names. \n\nNames reference the frame name in the resource pack location: assets/crinklemod/textures/atlas/animations/<animation name>/<size>/<frame name>.png"
+              }
+            },
+            "required": [
+              "id",
+              "sizes",
+              "offset",
+              "sprites"
+            ]
+          },
+          "title": "Sprites",
+          "description": "Used in animations"
+        },
+        "icons": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "texture": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name"
+      ],
+      "title": "Theme Definition"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "theme",
+    "version"
+  ]
+}

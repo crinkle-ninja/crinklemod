@@ -1,0 +1,33 @@
+{
+  "display_name": "Petals (Striped)",
+  "armor_texture": "crinklemod:armor/diaper_petalsstripe",
+  "item_texture": "crinklemod:item/diaper_petalsstripe",
+  "stats": {
+    "max_liquids": 5,
+    "max_solids": 3
+  },
+  "texture_overlays": {
+    "wet": {
+      "parts": [
+        "FRONT",
+        "FRONT_BOTTOM",
+        "BOTTOM"
+      ],
+      "fade_colors": [
+        "#fff4ff", 
+        "#fdceff", 
+        "#fee3ff"
+      ]
+    },
+    "mess": {
+      "parts": [
+        "BACK",
+        "BACK_BOTTOM"
+      ],
+      "fade_colors": [
+        "#fdceff", 
+        "#fee3ff"
+      ]
+    }
+  }
+}

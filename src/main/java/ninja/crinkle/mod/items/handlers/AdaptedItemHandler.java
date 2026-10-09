@@ -13,11 +13,6 @@ public class AdaptedItemHandler implements IItemHandlerModifiable {
     }
 
     @Override
-    public void setStackInSlot(int slot, @NotNull ItemStack stack) {
-        handler.setStackInSlot(slot, stack);
-    }
-
-    @Override
     public int getSlots() {
         return handler.getSlots();
     }
@@ -45,5 +40,10 @@ public class AdaptedItemHandler implements IItemHandlerModifiable {
     @Override
     public boolean isItemValid(int slot, @NotNull ItemStack stack) {
         return handler.isItemValid(slot, stack);
+    }
+
+    @Override
+    public void setStackInSlot(int slot, @NotNull ItemStack stack) {
+        handler.setStackInSlot(slot, stack);
     }
 }

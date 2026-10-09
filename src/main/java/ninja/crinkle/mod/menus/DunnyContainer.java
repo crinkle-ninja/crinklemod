@@ -32,23 +32,6 @@ public class DunnyContainer extends AbstractContainerMenu {
         layoutPlayerInventorySlots(player.getInventory(), 10, 70);
     }
 
-    private int addSlotRange(Container playerInventory, int index, int x, int y, int amount, int dx) {
-        for (int i = 0; i < amount; i++) {
-            addSlot(new Slot(playerInventory, index, x, y));
-            x += dx;
-            index++;
-        }
-        return index;
-    }
-
-    private int addSlotBox(Container playerInventory, int index, int x, int y, int horAmount, int dx, int verAmount, int dy) {
-        for (int j = 0; j < verAmount; j++) {
-            index = addSlotRange(playerInventory, index, x, y, horAmount, dx);
-            y += dy;
-        }
-        return index;
-    }
-
     private void layoutPlayerInventorySlots(Container playerInventory, int leftCol, int topRow) {
         // Player inventory
         addSlotBox(playerInventory, 9, leftCol, topRow, 9, 18, 3, 18);
@@ -56,6 +39,24 @@ public class DunnyContainer extends AbstractContainerMenu {
         // Hotbar
         topRow += 58;
         addSlotRange(playerInventory, 0, leftCol, topRow, 9, 18);
+    }
+
+    private int addSlotBox(Container playerInventory, int index, int x, int y, int horAmount, int dx, int verAmount,
+                           int dy) {
+        for (int j = 0; j < verAmount; j++) {
+            index = addSlotRange(playerInventory, index, x, y, horAmount, dx);
+            y += dy;
+        }
+        return index;
+    }
+
+    private int addSlotRange(Container playerInventory, int index, int x, int y, int amount, int dx) {
+        for (int i = 0; i < amount; i++) {
+            addSlot(new Slot(playerInventory, index, x, y));
+            x += dx;
+            index++;
+        }
+        return index;
     }
 
     @Override
@@ -66,13 +67,15 @@ public class DunnyContainer extends AbstractContainerMenu {
             ItemStack stack = slot.getItem();
             itemstack = stack.copy();
             if (index < DunnyBlockEntity.SLOT_COUNT) {
-                if (!this.moveItemStackTo(stack, DunnyBlockEntity.SLOT_COUNT, Inventory.INVENTORY_SIZE + DunnyBlockEntity.SLOT_COUNT, true)) {
+                if (!this.moveItemStackTo(stack, DunnyBlockEntity.SLOT_COUNT,
+                        Inventory.INVENTORY_SIZE + DunnyBlockEntity.SLOT_COUNT, true)) {
                     return ItemStack.EMPTY;
                 }
             }
             if (!this.moveItemStackTo(stack, DunnyBlockEntity.SLOT_INPUT, DunnyBlockEntity.SLOT_INPUT + 1, false)) {
                 if (index < 27 + DunnyBlockEntity.SLOT_COUNT) {
-                    if (!this.moveItemStackTo(stack, 27 + DunnyBlockEntity.SLOT_COUNT, 36 + DunnyBlockEntity.SLOT_COUNT, false)) {
+                    if (!this.moveItemStackTo(stack, 27 + DunnyBlockEntity.SLOT_COUNT,
+                            36 + DunnyBlockEntity.SLOT_COUNT, false)) {
                         return ItemStack.EMPTY;
                     }
                 } else if (index < Inventory.INVENTORY_SIZE + DunnyBlockEntity.SLOT_COUNT && !this.moveItemStackTo(stack, DunnyBlockEntity.SLOT_COUNT, 27 + DunnyBlockEntity.SLOT_COUNT, false)) {

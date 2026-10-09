@@ -12,8 +12,9 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 public class CrinkleSoundProvider extends SoundDefinitionsProvider {
-    private static final String PREFIX="crinkle";
     private static final int COUNT = 6;
+    private static final String PREFIX = "crinkle";
+
     /**
      * Creates a new instance of this data provider.
      *

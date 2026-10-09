@@ -40,18 +40,6 @@ public class DunnyBlock extends Block implements EntityBlock {
                 .sound(SoundType.GLASS));
     }
 
-    @SuppressWarnings("deprecation")
-    @Override
-    public @NotNull RenderShape getRenderShape(@NotNull BlockState state) {
-        return RenderShape.ENTITYBLOCK_ANIMATED;
-    }
-
-    @Nullable
-    @Override
-    public BlockEntity newBlockEntity(@NotNull BlockPos pos, @NotNull BlockState state) {
-        return CrinkleBlocks.DUNNY_BLOCK_ENTITY.get().create(pos, state);
-    }
-
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
@@ -63,6 +51,12 @@ public class DunnyBlock extends Block implements EntityBlock {
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(FACING, OPEN);
+    }
+
+    @Nullable
+    @Override
+    public BlockEntity newBlockEntity(@NotNull BlockPos pos, @NotNull BlockState state) {
+        return CrinkleBlocks.DUNNY_BLOCK_ENTITY.get().create(pos, state);
     }
 
     @Override
@@ -80,13 +74,14 @@ public class DunnyBlock extends Block implements EntityBlock {
             if (be instanceof DunnyBlockEntity) {
                 MenuProvider containerProvider = new MenuProvider() {
                     @Override
-                    public @NotNull Component getDisplayName() {
-                        return Component.translatable("block.crinklemod.dunny");
+                    public AbstractContainerMenu createMenu(int windowId, @NotNull Inventory playerInventory,
+                                                            @NotNull Player playerEntity) {
+                        return new DunnyContainer(windowId, playerEntity, pos);
                     }
 
                     @Override
-                    public AbstractContainerMenu createMenu(int windowId, @NotNull Inventory playerInventory, @NotNull Player playerEntity) {
-                        return new DunnyContainer(windowId, playerEntity, pos);
+                    public @NotNull Component getDisplayName() {
+                        return Component.translatable("block.crinklemod.dunny");
                     }
                 };
                 NetworkHooks.openScreen((ServerPlayer) player, containerProvider, be.getBlockPos());
@@ -95,5 +90,11 @@ public class DunnyBlock extends Block implements EntityBlock {
             }
         }
         return InteractionResult.SUCCESS;
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public @NotNull RenderShape getRenderShape(@NotNull BlockState state) {
+        return RenderShape.ENTITYBLOCK_ANIMATED;
     }
 }

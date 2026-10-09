@@ -4,7 +4,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
 import ninja.crinkle.mod.CrinkleMod;
-import ninja.crinkle.mod.network.messages.AccidentEventMessage;
+import ninja.crinkle.mod.network.messages.DiaperDesignSyncMessage;
 import ninja.crinkle.mod.network.messages.MetabolismUpdateMessage;
 import ninja.crinkle.mod.network.messages.UndergarmentUpdateMessage;
 
@@ -15,8 +15,8 @@ import ninja.crinkle.mod.network.messages.UndergarmentUpdateMessage;
  * @see net.minecraftforge.network.simple.SimpleChannel
  */
 public class CrinkleChannel {
-    private static final String PROTOCOL_VERSION = "1";
     private static final String NAME = "crinklenet";
+    private static final String PROTOCOL_VERSION = "1";
     public static final SimpleChannel INSTANCE = NetworkRegistry.ChannelBuilder
             .named(new ResourceLocation(CrinkleMod.MODID, NAME))
             .clientAcceptedVersions(PROTOCOL_VERSION::equals)
@@ -36,10 +36,10 @@ public class CrinkleChannel {
                 .encoder(UndergarmentUpdateMessage::encoder)
                 .consumerMainThread(UndergarmentUpdateMessage::messageConsumer)
                 .add();
-        INSTANCE.messageBuilder(AccidentEventMessage.class, ++id)
-                .decoder(AccidentEventMessage::decoder)
-                .encoder(AccidentEventMessage::encoder)
-                .consumerMainThread(AccidentEventMessage::messageConsumer)
+        INSTANCE.messageBuilder(DiaperDesignSyncMessage.class, ++id)
+                .decoder(DiaperDesignSyncMessage::decoder)
+                .encoder(DiaperDesignSyncMessage::encoder)
+                .consumerMainThread(DiaperDesignSyncMessage::messageConsumer)
                 .add();
     }
 }

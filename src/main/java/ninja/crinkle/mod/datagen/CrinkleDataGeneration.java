@@ -3,6 +3,7 @@ package ninja.crinkle.mod.datagen;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
+import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraftforge.common.data.ForgeAdvancementProvider;
 import net.minecraftforge.data.event.GatherDataEvent;
 import ninja.crinkle.mod.CrinkleMod;
@@ -15,11 +16,15 @@ public class CrinkleDataGeneration {
         DataGenerator generator = event.getGenerator();
         PackOutput packOutput = generator.getPackOutput();
         CompletableFuture<HolderLookup.Provider> lookupProvider = event.getLookupProvider();
-        CrinkleBlockTags blockTags = new CrinkleBlockTags(packOutput, lookupProvider, CrinkleMod.MODID, event.getExistingFileHelper());
+
+        CrinkleBlockTags blockTags = new CrinkleBlockTags(packOutput, lookupProvider, CrinkleMod.MODID,
+                event.getExistingFileHelper());
         generator.addProvider(event.includeServer(), blockTags);
-        generator.addProvider(event.includeClient(), new CrinkleItemModelProvider(packOutput, event.getExistingFileHelper()));
+        generator.addProvider(event.includeClient(), new CrinkleItemModelProvider(packOutput,
+                event.getExistingFileHelper()));
         generator.addProvider(event.includeServer(), new CrinkleRecipes(packOutput));
-        generator.addProvider(event.includeClient(), new CrinkleSoundProvider(packOutput, event.getExistingFileHelper()));
+        generator.addProvider(event.includeClient(), new CrinkleSoundProvider(packOutput,
+                event.getExistingFileHelper()));
         generator.addProvider(event.includeServer(), new ForgeAdvancementProvider(packOutput,
                 lookupProvider,
                 event.getExistingFileHelper(),

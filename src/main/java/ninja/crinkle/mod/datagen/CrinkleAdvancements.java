@@ -23,10 +23,9 @@ public class CrinkleAdvancements implements ForgeAdvancementProvider.Advancement
 
         Advancement.Builder.advancement()
                 .addCriterion("has_diaper", InventoryChangeTrigger.TriggerInstance.hasItems(
-                        CrinkleItems.DIAPER_PLAIN.get(),
-                        CrinkleItems.DIAPER_LITTLE_PAWZ.get()
+                        CrinkleItems.DIAPER.get()
                 ))
-                .display(new DisplayInfo(CrinkleItems.DIAPER_PLAIN.get().getDefaultInstance(),
+                .display(new DisplayInfo(CrinkleItems.DIAPER.get().getDefaultInstance(),
                         Component.translatable("advancements.crinklemod.wearing_diaper.title"),
                         Component.translatable("advancements.crinklemod.wearing_diaper.description"),
                         new ResourceLocation("minecraft:textures/block/white_wool.png"),

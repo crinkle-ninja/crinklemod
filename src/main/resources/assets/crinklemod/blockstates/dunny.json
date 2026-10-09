@@ -1,5 +1,7 @@
 {
   "variants": {
-    "": { "model":  "crinklemod:block/dunny"}
+    "": {
+      "model": "crinklemod:block/dunny"
+    }
   }
 }

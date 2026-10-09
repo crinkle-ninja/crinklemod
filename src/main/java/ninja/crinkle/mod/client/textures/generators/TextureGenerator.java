@@ -7,10 +7,10 @@ import java.util.Objects;
 
 @FunctionalInterface
 public interface TextureGenerator<T> {
-    @NotNull NativeImage apply(@NotNull NativeImage pImage, @NotNull TextureData pData);
-
     default @NotNull TextureGenerator<T> andThen(@NotNull TextureGenerator<T> pOther) {
         Objects.requireNonNull(pOther);
         return (pImage, pData) -> pOther.apply(apply(pImage, pData), pData);
     }
+
+    @NotNull NativeImage apply(@NotNull NativeImage pImage, @NotNull TextureData pData);
 }

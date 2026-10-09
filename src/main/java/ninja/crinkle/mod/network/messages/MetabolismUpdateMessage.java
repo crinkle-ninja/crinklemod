@@ -5,8 +5,10 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.network.NetworkEvent;
 import ninja.crinkle.mod.capabilities.IMetabolism;
-import ninja.crinkle.mod.capabilities.MetabolismCapabilities;
 import ninja.crinkle.mod.capabilities.MetabolismImpl;
+import ninja.crinkle.mod.events.CrinkleEvent;
+import ninja.crinkle.mod.metabolism.Metabolism;
+import ninja.crinkle.mod.metabolism.Pang;
 import ninja.crinkle.mod.util.ClientUtil;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -21,14 +23,18 @@ import java.util.function.Supplier;
  */
 public class MetabolismUpdateMessage {
     private static final Logger LOGGER = LogUtils.getLogger();
+    private final Metabolism.Type type;
     private final boolean enabled;
-    private final int timer;
-    private final int numberOneRolls;
-    private final int numberOneSafeRolls;
-    private final double numberOneChance;
-    private final int numberTwoRolls;
-    private final int numberTwoSafeRolls;
-    private final double numberTwoChance;
+    private final double control;
+    private final int interval;
+    private final double controlDecay;
+    private final double intervalDecay;
+    private final double intensity;
+    private final double currentControl;
+    private final Pang pang;
+    private final int pangDuration;
+    private final double currentInterval;
+    private final int tickCount;
 
     /**
      * Create a new update message from a metabolism
@@ -36,15 +42,19 @@ public class MetabolismUpdateMessage {
      * @param metabolism The metabolism to create the message from
      * @see IMetabolism
      */
-    public MetabolismUpdateMessage(@NotNull IMetabolism metabolism) {
-        this.enabled = metabolism.isEnabled();
-        this.timer = metabolism.getTimer();
-        this.numberOneRolls = metabolism.getNumberOneRolls();
-        this.numberOneSafeRolls = metabolism.getNumberOneSafeRolls();
-        this.numberOneChance = metabolism.getNumberOneChance();
-        this.numberTwoRolls = metabolism.getNumberTwoRolls();
-        this.numberTwoSafeRolls = metabolism.getNumberTwoSafeRolls();
-        this.numberTwoChance = metabolism.getNumberTwoChance();
+    public MetabolismUpdateMessage(@NotNull Metabolism metabolism) {
+        this.type = metabolism.type();
+        this.enabled = metabolism.enabled();
+        this.control = metabolism.control();
+        this.interval = metabolism.interval();
+        this.controlDecay = metabolism.controlDecay();
+        this.intervalDecay = metabolism.intervalDecay();
+        this.intensity = metabolism.intensity();
+        this.currentControl = metabolism.currentControl();
+        this.pang = metabolism.pang();
+        this.pangDuration = metabolism.pangDuration();
+        this.currentInterval = metabolism.currentInterval();
+        this.tickCount = metabolism.tickCount();
     }
 
     /**
@@ -54,14 +64,18 @@ public class MetabolismUpdateMessage {
      * @see FriendlyByteBuf
      */
     public MetabolismUpdateMessage(@NotNull FriendlyByteBuf buffer) {
+        this.type = buffer.readEnum(Metabolism.Type.class);
         this.enabled = buffer.readBoolean();
-        this.timer = buffer.readInt();
-        this.numberOneRolls = buffer.readInt();
-        this.numberOneSafeRolls = buffer.readInt();
-        this.numberOneChance = buffer.readDouble();
-        this.numberTwoRolls = buffer.readInt();
-        this.numberTwoSafeRolls = buffer.readInt();
-        this.numberTwoChance = buffer.readDouble();
+        this.control = buffer.readDouble();
+        this.interval = buffer.readInt();
+        this.controlDecay = buffer.readDouble();
+        this.intervalDecay = buffer.readDouble();
+        this.intensity = buffer.readDouble();
+        this.currentControl = buffer.readDouble();
+        this.pang = buffer.readEnum(Pang.class);
+        this.pangDuration = buffer.readInt();
+        this.currentInterval = buffer.readDouble();
+        this.tickCount = buffer.readInt();
     }
 
     /**
@@ -82,14 +96,18 @@ public class MetabolismUpdateMessage {
      * @implSpec The order of the encoded values must match the order of the decoded values found in the constructor
      */
     public void encoder(@NotNull FriendlyByteBuf buffer) {
-        buffer.writeBoolean(enabled);
-        buffer.writeInt(timer);
-        buffer.writeInt(numberOneRolls);
-        buffer.writeInt(numberOneSafeRolls);
-        buffer.writeDouble(numberOneChance);
-        buffer.writeInt(numberTwoRolls);
-        buffer.writeInt(numberTwoSafeRolls);
-        buffer.writeDouble(numberTwoChance);
+        buffer.writeEnum(this.type);
+        buffer.writeBoolean(this.enabled);
+        buffer.writeDouble(this.control);
+        buffer.writeInt(this.interval);
+        buffer.writeDouble(this.controlDecay);
+        buffer.writeDouble(this.intervalDecay);
+        buffer.writeDouble(this.intensity);
+        buffer.writeDouble(this.currentControl);
+        buffer.writeEnum(this.pang);
+        buffer.writeInt(this.pangDuration);
+        buffer.writeDouble(this.currentInterval);
+        buffer.writeInt(this.tickCount);
     }
 
     /**
@@ -104,17 +122,19 @@ public class MetabolismUpdateMessage {
             ctx.get().setPacketHandled(false);
             return;
         }
-
-        IMetabolism metabolism = player.getCapability(MetabolismCapabilities.METABOLISM).orElseThrow(() ->
-                new IllegalStateException("Player does not have a metabolism capability"));
-        metabolism.setEnabled(enabled);
-        metabolism.setTimer(timer);
-        metabolism.setNumberOneRolls(numberOneRolls);
-        metabolism.setNumberOneSafeRolls(numberOneSafeRolls);
-        metabolism.setNumberOneChance(numberOneChance);
-        metabolism.setNumberTwoRolls(numberTwoRolls);
-        metabolism.setNumberTwoSafeRolls(numberTwoSafeRolls);
-        metabolism.setNumberTwoChance(numberTwoChance);
+        Metabolism metabolism = Metabolism.of(player, type);
+        metabolism.enabled(enabled);
+        metabolism.control(control);
+        metabolism.interval(interval);
+        metabolism.controlDecay(controlDecay);
+        metabolism.intervalDecay(intervalDecay);
+        metabolism.intensity(intensity);
+        metabolism.currentControl(currentControl);
+        metabolism.pang(pang);
+        metabolism.currentInterval(currentInterval);
+        metabolism.pangDuration(pangDuration);
+        metabolism.tickCount(tickCount);
         ctx.get().setPacketHandled(true);
+        LOGGER.trace("({}) [{}] Consuming message", CrinkleEvent.side().name(), metabolism.type());
     }
 }

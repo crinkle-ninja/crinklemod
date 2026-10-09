@@ -1,34 +1,20 @@
 package ninja.crinkle.mod.capabilities;
 
 import net.minecraft.nbt.CompoundTag;
-import net.minecraftforge.common.capabilities.AutoRegisterCapability;
 import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.entity.IEntityAdditionalSpawnData;
+import ninja.crinkle.mod.metabolism.Metabolism;
+import ninja.crinkle.mod.settings.Setting;
 
-/**
- * Metabolism capability interface.
- * This interface is used to store the metabolism of a player in a compound NBT tag.
- *
- * @author Galen
- * @see MetabolismImpl
- * @see net.minecraftforge.common.util.INBTSerializable
- */
-@AutoRegisterCapability
 public interface IMetabolism extends INBTSerializable<CompoundTag>, IEntityAdditionalSpawnData {
-    int getTimer();
-    void setTimer(int timer);
-    int getNumberOneRolls();
-    void setNumberOneRolls(int rolls);
-    int getNumberOneSafeRolls();
-    void setNumberOneSafeRolls(int safeRolls);
-    double getNumberOneChance();
-    void setNumberOneChance(double numberOneChance);
-    int getNumberTwoRolls();
-    void setNumberTwoRolls(int rolls);
-    int getNumberTwoSafeRolls();
-    void setNumberTwoSafeRolls(int safeRolls);
-    double getNumberTwoChance();
-    void setNumberTwoChance(double numberTwoChance);
-    boolean isEnabled();
-    void setEnabled(boolean enabled);
+    String getAsString(Setting<?> setting);
+    double getAsDouble(Setting<?> setting);
+    int getAsInt(Setting<?> setting);
+    boolean getAsBool(Setting<?> setting);
+    String getCSVRow();
+    String getCSVHeaders();
+    void reset();
+
+    Metabolism.Type type();
+    void updateValue(Setting<?> setting, Object value);
 }

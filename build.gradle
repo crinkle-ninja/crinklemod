@@ -80,7 +80,11 @@ minecraft {
             // Recommended logging level for the console
             // You can set various levels here.
             // Please read: https://stackoverflow.com/questions/2031163/when-to-use-the-different-log-levels
-            property 'forge.logging.console.level', 'debug'
+            if (System.getenv("TRACE")) {
+                property 'forge.logging.console.level', 'trace'
+            } else {
+                property 'forge.logging.console.level', 'debug'
+            }
 
             mods {
                 "${mod_id}" {
@@ -130,8 +134,12 @@ repositories {
         name = 'GeckoLib'
         url 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/'
     }
-    maven { // TOP
-        url "https://maven.k-4u.nl"
+    maven {
+        url 'https://www.cursemaven.com'
+        // FG4: It's recommended to uncomment the following block
+         content {
+             includeGroup "curse.maven"
+         }
     }
 }
 
@@ -155,7 +163,16 @@ dependencies {
     compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge-api:${jei_version}")
     runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge:${jei_version}")
     implementation fg.deobf("software.bernie.geckolib:geckolib-forge-${minecraft_version}:${geckolib_version}")
-    implementation fg.deobf("mcjty.theoneprobe:theoneprobe:${top_version}") { transitive = false}
+    // implementation fg.deobf("mcjty.theoneprobe:theoneprobe:${top_version}") { transitive = false}
+    implementation fg.deobf("curse.maven:theoneprobe-245211:6106996")
+
+    testImplementation("org.junit.jupiter:junit-jupiter-api:${junit_version}")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junit_version}")
+    testImplementation("org.mockito:mockito-core:${mockito_version}")
+    testImplementation("org.mockito:mockito-junit-jupiter:${mockito_version}")
+
+    // Source: https://mvnrepository.com/artifact/com.opencsv/opencsv
+    implementation("com.opencsv:opencsv:5.12.0")
 
     // Example mod dependency using a mod jar from ./libs with a flat dir repository
     // This maps to ./libs/coolmod-${mc_version}-${coolmod_version}.jar
@@ -226,4 +243,8 @@ publishing {
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
+}
+
+test {
+    useJUnitPlatform()
 }

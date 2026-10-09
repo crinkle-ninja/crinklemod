@@ -1,0 +1,29 @@
+{
+  "display_name": "Try Agains Caden",
+  "armor_texture": "crinklemod:armor/diaper_tryagainscaden",
+  "item_texture": "crinklemod:item/diaper_tryagainscaden",
+  "stats": {
+    "max_liquids": 5,
+    "max_solids": 3
+  },
+  "texture_overlays": {
+    "wet": {
+      "parts": [
+        "FRONT_BOTTOM",
+        "BOTTOM"
+      ],
+      "fade_colors": [
+        "#b7ebfe"
+      ]
+    },
+    "mess": {
+      "parts": [
+        "BACK",
+        "BACK_BOTTOM"
+      ],
+      "fade_colors": [
+        "#b7ebfe"
+      ]
+    }
+  }
+}

@@ -1,0 +1,63 @@
+package ninja.crinkle.mod.capabilities.versioning;
+
+import com.mojang.logging.LogUtils;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraftforge.common.capabilities.ICapabilityProvider;
+import ninja.crinkle.mod.metabolism.MetabolismSettings;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+
+import java.util.function.BiFunction;
+
+public enum MetabolismVersion {
+    V1((provider, tag) -> tag),
+    ;
+
+    public static final String TAG_VERSION = "version";
+    private static final Logger LOGGER = LogUtils.getLogger();
+    private final BiFunction<ICapabilityProvider, CompoundTag, CompoundTag> upgrade;
+
+    MetabolismVersion(BiFunction<ICapabilityProvider, CompoundTag, CompoundTag> upgrade) {
+        this.upgrade = upgrade;
+    }
+
+    public static MetabolismVersion getLatest() {
+        return values()[values().length - 1];
+    }
+
+    public static CompoundTag performUpgrades(ICapabilityProvider provider, CompoundTag tag) {
+        MetabolismVersion version = fromNBT(tag);
+        for (MetabolismVersion v : values()) {
+            if (v.ordinal() > version.ordinal())
+                tag = v.upgrade(provider, tag);
+        }
+        return tag;
+    }
+
+    public static MetabolismVersion fromNBT(@NotNull CompoundTag tag) {
+        if (tag.contains(TAG_VERSION)) {
+            String versionString = tag.getString(TAG_VERSION);
+            try {
+                return MetabolismVersion.valueOf(versionString);
+            } catch (IllegalArgumentException e) {
+                LOGGER.warn("invalid metabolism version found: {}, returning {}", versionString, getLatest());
+            }
+        }
+        return getLatest();
+    }
+
+    public CompoundTag upgrade(ICapabilityProvider provider, CompoundTag tag) {
+        if (this == fromNBT(tag))
+            return tag;
+        LOGGER.info("Upgrading metabolism capability from {} to {}", fromNBT(tag), this);
+        return updateVersion(upgrade.apply(provider, tag));
+    }
+
+    @Contract("_ -> param1")
+    public @NotNull CompoundTag updateVersion(@NotNull CompoundTag tag) {
+        tag.putString(TAG_VERSION, name());
+        return tag;
+    }
+
+}
