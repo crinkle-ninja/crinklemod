@@ -35,7 +35,6 @@ public class TextBox extends AbstractWidget {
     private String text;
     private int visibleStart = 0;
     private final BiConsumer<TextChangedEvent, TextBox> onTextChanged;
-    private final Supplier<?> getter;
 
     protected TextBox(Builder builder) {
         super(builder);
@@ -44,7 +43,6 @@ public class TextBox extends AbstractWidget {
         this.shadow = builder.shadow();
         this.readOnly = builder.readOnly();
         this.onTextChanged = builder.onTextChanged();
-        this.getter = builder.getter();
         if (style() == null) {
             style("textbox");
         }
@@ -317,10 +315,14 @@ public class TextBox extends AbstractWidget {
             while (start > 0 && !Character.isWhitespace(text().charAt(start - 1))) {
                 start--;
             }
-            while (end < text().length() && !Character.isWhitespace(text().charAt(end))) {
+            while (end < text().length() && end >= 0 && !Character.isWhitespace(text().charAt(end))) {
                 end++;
             }
             cursorPos(end);
+            if (start <= 0 || end <= 0) {
+                event.consumed(true);
+                return;
+            }
             selection(new Selection(start, end));
             event.consumed(true);
         }
