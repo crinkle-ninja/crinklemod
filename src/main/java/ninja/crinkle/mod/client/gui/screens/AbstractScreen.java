@@ -1,12 +1,15 @@
 package ninja.crinkle.mod.client.gui.screens;
 
 import net.minecraft.client.gui.ComponentPath;
-import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.navigation.FocusNavigationEvent;
 import net.minecraft.client.gui.navigation.ScreenDirection;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import ninja.crinkle.mod.client.gui.actions.DragAction;
+import ninja.crinkle.mod.client.gui.actions.MouseAction;
+import ninja.crinkle.mod.client.gui.actions.FocusAction;
+import ninja.crinkle.mod.client.gui.actions.KeyPressAction;
 import ninja.crinkle.mod.client.gui.events.*;
 import ninja.crinkle.mod.client.gui.managers.*;
 import ninja.crinkle.mod.client.gui.properties.ClickState;
@@ -18,11 +21,10 @@ import ninja.crinkle.mod.client.gui.widgets.Container;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
 
-public abstract class AbstractScreen extends Screen implements EventNode, GuiManager, IManagedGUI {
+public abstract class AbstractScreen extends Screen implements GuiManager, IManagedGUI {
     private static final int DOUBLE_CLICK_OFFSET = 2;
     private static final int DOUBLE_CLICK_TIME = 300;
     private static final int SCAN_OFFSET = 10;
@@ -46,45 +48,26 @@ public abstract class AbstractScreen extends Screen implements EventNode, GuiMan
                 .minSize(screenWidth, screenHeight)
                 .build();
         this.root.setRect(new Rect(0, 0, screenWidth, screenHeight));
-        addListener(root());
-        addListener(focusManager());
-        eventManager().addListener(TabIndexEvent.KEY, 0, this::onTabIndexChanged);
-        clickState = new ClickState();
+        clickState = new ClickState(point, pButton, System.currentTimeMillis());
     }
 
-    protected void addListener(EventNode listener) {
-        if (listener instanceof Renderable renderable) {
-            this.addRenderableOnly(renderable);
-        }
-        eventManager().addListener(listener);
-    }
-
-    @Override
-    public EventManager eventManager() {
-        return eventManager;
-    }
-
-    @Override
     abstract public String name();
-
-    public void onTabIndexChanged(TabIndexEvent event) {
-        this.focusedElements.sort(Comparator.comparingInt(GuiEventListener::getTabOrderGroup));
-    }
 
     @Override
     public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
         if (notReady()) {
             return super.keyPressed(pKeyCode, pScanCode, pModifiers);
         }
-        Event event = new KeyEvent(this, pKeyCode, pScanCode, pModifiers, false);
-        eventManager().dispatchEvent(event);
-        return event.success() || super.keyPressed(pKeyCode, pScanCode, pModifiers);
+        AbstractWidget widget = root().topFocused();
+        if (widget instanceof KeyPressAction action) {
+            return action.onKeyPressed(pKeyCode, pScanCode, pModifiers);
+        }
+        return super.keyPressed(pKeyCode, pScanCode, pModifiers);
     }
 
     @Override
     public void onClose() {
         super.onClose();
-        eventManager().clear();
     }
 
     @Override
@@ -136,28 +119,51 @@ public abstract class AbstractScreen extends Screen implements EventNode, GuiMan
         return mouse;
     }
 
+    // mouse clicked handlers
+    private boolean handlePressed(AbstractWidget widget, Point point, int pButton) {
+        if (widget instanceof MouseAction action) {
+            return action.onPressed(point, pButton);
+        }
+        return false;
+    }
+
+    private boolean handleDoubleClick(AbstractWidget widget, Point point, int pButton) {
+        if (widget instanceof MouseAction action) {
+            return action.onDoubleClick(point, pButton);
+        }
+        return false;
+    }
+
+    private void handleFocusLeft(AbstractWidget focusable) {
+        if (focusable instanceof FocusAction action) {
+            action.onBlur();
+        }
+    }
+
+    private void handleFocusEntered(AbstractWidget focusable) {
+        if (focusable instanceof FocusAction action) {
+            action.onFocus();
+        }
+    }
+
     @Override
     public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
         if (notReady()) {
             return super.mouseClicked(pMouseX, pMouseY, pButton);
         }
         ClickState state = clickState;
+        Point point = new Point(pMouseX, pMouseY);
+        AbstractWidget topMost = root().topClicked(point);
+
+        // double click
         if (state.button() == pButton && System.currentTimeMillis() - state.clickTime() < DOUBLE_CLICK_TIME
                 && state.position().distance(pMouseX, pMouseY) < DOUBLE_CLICK_OFFSET) {
-            List<EventNode> listeners = eventManager().listeners(onlyHovered(pMouseX, pMouseY, 0)).stream().toList();
-            Event event = new DoubleClickEvent(this, pMouseX, pMouseY, pButton, listeners);
-            eventManager().dispatchEvent(event, l -> state.listeners().contains(l));
-            clickState = new ClickState(Point.ZERO, -1, 0, List.of());
-            return event.success() || super.mouseClicked(pMouseX, pMouseY, pButton);
+            return handleDoubleClick(topMost, point, pButton);
         }
-        List<EventNode> listeners = eventManager().listeners(onlyHovered(pMouseX, pMouseY, 0)).stream().toList();
-        AbstractWidget topMost = listeners.stream()
-                .filter(l -> l instanceof AbstractWidget)
-                .map(l -> (AbstractWidget) l)
-                .filter(c -> !c.equals(root()))
-                .reduce((a, b) -> a.zIndex() > b.zIndex() ? a : b)
-                .orElse(null);
-        clickState = new ClickState(new Point(pMouseX, pMouseY), pButton, System.currentTimeMillis(), listeners);
+
+        clickState = new ClickState(point, pButton, System.currentTimeMillis());
+
+        // drag
         AbstractWidget dragTarget = topMost;
         while (dragTarget != null && !dragTarget.draggable()) {
             dragTarget = dragTarget.parent().filter(p -> !p.equals(root())).orElse(null);
@@ -166,55 +172,65 @@ public abstract class AbstractScreen extends Screen implements EventNode, GuiMan
             dragManager().current(dragTarget);
             dragManager().dragging(false);
         }
-        AbstractWidget topFocusable = listeners.stream()
-                .filter(l -> l instanceof AbstractWidget)
-                .map(l -> (AbstractWidget) l)
-                .filter(c -> !c.equals(root()))
-                .filter(AbstractWidget::focusable)
-                .min(Comparator.comparingInt(AbstractWidget::priority))
-                .orElse(null);
+
+        // focus
+        AbstractWidget topFocusable = root().topFocused();
         if ((topFocusable == null || topFocusable != focusManager().currentFocus()) && focusManager().currentFocus() != null) {
-            Event event = new FocusLeftEvent(this, false, focusManager().currentFocus());
-            eventManager().dispatchEvent(event);
-            focusManager().currentFocus(null);
+            handleFocusLeft(focusManager().currentFocus());
         }
         if (topFocusable != null && topFocusable.focusable()) {
-            Event event = new FocusEnteredEvent(this, true, topFocusable);
-            eventManager().dispatchEvent(event);
-            focusManager().currentFocus(topFocusable);
+            handleFocusEntered(topFocusable);
         }
-        Event mousePressedEvent = new MousePressedEvent(this, pMouseX, pMouseY, pButton, listeners);
-        eventManager().dispatchEvent(mousePressedEvent);
-        return mousePressedEvent.success() || super.mouseClicked(pMouseX, pMouseY, pButton);
+        focusManager().currentFocus(topFocusable);
+
+        // pressed
+        return handlePressed(topMost, point, pButton) || super.mouseClicked(pMouseX, pMouseY, pButton);
     }
+
+    // mouse released handlers
+    private void handleDragStopped(AbstractWidget widget) {
+        if (widget instanceof DragAction action) {
+            action.onDragStopped();
+        }
+    }
+
+    private boolean handleClicked(AbstractWidget widget, Point point, int pButton) {
+        if (widget instanceof MouseAction action) {
+            return action.onClick(point, pButton);
+        }
+        return false;
+    }
+
+    private boolean handleReleased(AbstractWidget widget, Point point, int pButton) {
+        if (widget instanceof MouseAction action) {
+            return action.onReleased(point, pButton);
+        }
+        return false;
+    }
+
 
     @Override
     public boolean mouseReleased(double pMouseX, double pMouseY, int pButton) {
         if (notReady()) {
             return super.mouseReleased(pMouseX, pMouseY, pButton);
         }
+        Point point = new Point(pMouseX, pMouseY);
+        AbstractWidget topMost = root().topClicked(point);
+
+        // drag
         if (dragManager().current() != null) {
             if (dragManager().dragging()) {
-                Event event = new DragStoppedEvent(this, pMouseX, pMouseY, pButton,
-                        0, 0, dragManager().current());
-                eventManager().dispatchEvent(event);
                 dragManager().dragging(false);
+                handleDragStopped(topMost);
             }
             dragManager().current(null);
         }
-        List<EventNode> listeners = eventManager().listeners(onlyHovered(pMouseX, pMouseY, 0)).stream().toList();
-        Event event = new MouseReleasedEvent(this, pMouseX, pMouseY, pButton, listeners);
-        eventManager().dispatchEvent(event);
+
+        // released & clicked
         ClickState state = clickState;
-        if (state.button() == pButton) {
-            List<EventNode> filteredListeners = listeners.stream()
-                    .filter(l -> state.listeners().contains(l))
-                    .toList();
-            Event clickEvent = new ClickEvent(this, pMouseX, pMouseY, pButton, true, filteredListeners);
-            eventManager().dispatchEvent(clickEvent, l -> state.listeners().contains(l));
-            return event.success() || clickEvent.success() || super.mouseReleased(pMouseX, pMouseY, pButton);
-        }
-        return event.success() || super.mouseReleased(pMouseX, pMouseY, pButton);
+        return (state.button() == pButton && handleClicked(topMost, point, pButton))
+                || handleReleased(topMost, point, pButton)
+                || super.mouseReleased(pMouseX, pMouseY, pButton);
     }
 
     @Override
@@ -228,7 +244,7 @@ public abstract class AbstractScreen extends Screen implements EventNode, GuiMan
                     pDragY, dragManager().current());
             eventManager().dispatchEvent(event);
         }
-        List<EventNode> listeners = eventManager().listeners(onlyHovered(pMouseX, pMouseY, 0)).stream().toList();
+        List<EventNode> listeners = eventManager().listeners(onlyHoveredAndVisible(pMouseX, pMouseY, 0)).stream().toList();
         Event event = new DragEvent(this, pMouseX, pMouseY, pButton, pDragX, pDragY, listeners);
         eventManager().dispatchEvent(event);
         return event.success() || super.mouseDragged(pMouseX, pMouseY, pButton, pDragX, pDragY);
@@ -282,7 +298,7 @@ public abstract class AbstractScreen extends Screen implements EventNode, GuiMan
         return ComponentPath.leaf(focusedElements.get(currentTabIndex));
     }
 
-    private Predicate<EventNode> onlyHovered(double mouseX, double mouseY, int offset) {
+    private Predicate<EventNode> onlyHoveredAndVisible(double mouseX, double mouseY, int offset) {
         if (offset < 0) {
             throw new IllegalArgumentException("Offset must be greater than or equal to 0");
         }
@@ -291,7 +307,7 @@ public abstract class AbstractScreen extends Screen implements EventNode, GuiMan
                     && widget.rect().contains(mouseX, mouseY);
         }
         return (l) -> {
-            if (!(l instanceof AbstractWidget widget) || l.equals(root())) return false;
+            if (!(l instanceof AbstractWidget widget) || l.equals(root()) || !widget.visible()) return false;
             Rect r = widget.rect();
             return mouseX >= r.x() - offset && mouseX < r.right() + offset
                     && mouseY >= r.y() - offset && mouseY < r.bottom() + offset;
@@ -306,9 +322,9 @@ public abstract class AbstractScreen extends Screen implements EventNode, GuiMan
         }
         if (mouse.xInt() != Math.floor(pMouseX) || mouse.yInt() != Math.floor(pMouseY)) {
             List<EventNode> listeners =
-                    eventManager().listeners(onlyHovered(pMouseX, pMouseY, 0)).stream().toList();
+                    eventManager().listeners(onlyHoveredAndVisible(pMouseX, pMouseY, 0)).stream().toList();
             eventManager().dispatchEvent(new MoveEvent(this, pMouseX, pMouseY, listeners),
-                    onlyHovered(pMouseX, pMouseY, SCAN_OFFSET));
+                    onlyHoveredAndVisible(pMouseX, pMouseY, SCAN_OFFSET));
             mouse = new Point(pMouseX, pMouseY);
         }
 

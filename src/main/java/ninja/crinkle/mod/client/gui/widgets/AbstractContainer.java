@@ -103,6 +103,24 @@ public abstract class AbstractContainer extends AbstractWidget {
         return children.stream().toList();
     }
 
+    public AbstractWidget topClicked(Point point) {
+        return children().stream().sorted(Comparator.comparingInt(AbstractWidget::zIndexOf))
+                .filter(AbstractWidget::visible)
+                .filter(AbstractWidget::active)
+                .filter(w -> w.rect().contains(point))
+                .findFirst()
+                .orElse(this);
+    }
+
+    public AbstractWidget topFocused() {
+        return children().stream().sorted(Comparator.comparingInt(AbstractWidget::zIndexOf))
+                .filter(AbstractWidget::focused)
+                .filter(AbstractWidget::active)
+                .filter(AbstractWidget::visible)
+                .findFirst()
+                .orElse(this);
+    }
+
     public void remove(AbstractWidget widget) {
         manager().eventManager().removeListener(widget);
         eventManager().removeListener(widget);

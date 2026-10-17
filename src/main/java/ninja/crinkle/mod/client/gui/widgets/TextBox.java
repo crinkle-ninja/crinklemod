@@ -15,10 +15,8 @@ import ninja.crinkle.mod.client.gui.textures.TextureSize;
 import ninja.crinkle.mod.util.ClientUtil;
 import org.slf4j.Logger;
 
-import java.text.DecimalFormat;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -33,8 +31,9 @@ public class TextBox extends AbstractWidget {
     private boolean shadow;
     private boolean shiftDown;
     private String text;
+    private String value;
     private int visibleStart = 0;
-    private final BiConsumer<TextChangedEvent, TextBox> onTextChanged;
+    private final Consumer<TextChangedEvent> onTextChanged;
 
     protected TextBox(Builder builder) {
         super(builder);
@@ -100,6 +99,32 @@ public class TextBox extends AbstractWidget {
             cursorPos++;
         }
         return cursorPos;
+    }
+
+    private void textChanged() {
+        if (value() != null && value().equals(text())) return;
+        TextChangedEvent event = new TextChangedEvent(this, value());
+        value(text());
+        onTextChanged.accept(event);
+    }
+
+    public String value() {
+        return this.value;
+    }
+
+    private void handleReturn(KeyEvent event) {
+        textChanged();
+        event.consumed(true);
+    }
+
+    @Override
+    public void focused(boolean focused) {
+        super.focused(focused);
+        if (focused) {
+            value(text());
+        } else {
+            textChanged();
+        }
     }
 
     private void handleBackspace(KeyEvent event) {
@@ -344,6 +369,7 @@ public class TextBox extends AbstractWidget {
                     insertMode(!insertMode());
                     event.consumed(true);
                 }
+                case InputConstants.KEY_RETURN -> handleReturn(event);
                 case InputConstants.KEY_BACKSPACE -> handleBackspace(event);
                 case InputConstants.KEY_DELETE -> handleDelete(event);
                 case InputConstants.KEY_HOME -> handleHome(event);
@@ -416,6 +442,10 @@ public class TextBox extends AbstractWidget {
 
     public Component placeholder() {
         return placeholder;
+    }
+
+    public void value(String value) {
+        this.value = value;
     }
 
     protected String visibleText() {
@@ -524,54 +554,8 @@ public class TextBox extends AbstractWidget {
         return shiftDown;
     }
 
-    public void text(String text) {
-        text(text, false);
-    }
-
-    public void text(int value, String format, boolean quiet) {
-        text(new DecimalFormat(format).format(value), quiet);
-    }
-
-    public void text(int value, String format) {
-        text(new DecimalFormat(format).format(value), false);
-    }
-
-    public void text(int value) {
-        text(new DecimalFormat("#,###").format(value));
-    }
-
-    public void text(Object value, boolean quiet) {
-        if (value instanceof Integer i) {
-            text(i, "#,###", quiet);
-        } else if (value instanceof Double d) {
-            text(d, "#.##", quiet);
-        } else {
-            text(value.toString(), quiet);
-        }
-    }
-
-    public void text(Object value) {
-        text(value, false);
-    }
-
-    public void text(String text, boolean quiet) {
-        String previous = this.text;
-        this.text = text;
-        if (!previous.equals(text) && onTextChanged != null && !quiet) {
-            onTextChanged.accept(new TextChangedEvent(this, previous), this);
-        }
-    }
-
-    public void text(double value, String format, boolean quiet) {
-        text(new DecimalFormat(format).format(value), quiet);
-    }
-
-    public void text(double value, String format) {
-        text(value, format, false);
-    }
-
-    public void text(double value) {
-        text(value, new DecimalFormat("#.##").format(value));
+    public void text(String value) {
+        this.text = value;
     }
 
     public void visibleStart(int visibleStart) {
@@ -584,7 +568,7 @@ public class TextBox extends AbstractWidget {
         private boolean readOnly = false;
         private boolean shadow = false;
         private String text = "";
-        private BiConsumer<TextChangedEvent, TextBox> onTextChanged;
+        private Consumer<TextChangedEvent> onTextChanged;
         private Supplier<?> getter;
 
         public Builder getter(Supplier<?> getter) {
@@ -596,11 +580,11 @@ public class TextBox extends AbstractWidget {
             return getter;
         }
 
-        public BiConsumer<TextChangedEvent, TextBox> onTextChanged() {
+        public Consumer<TextChangedEvent> onTextChanged() {
             return onTextChanged;
         }
 
-        public Builder onTextChanged(BiConsumer<TextChangedEvent, TextBox> onTextChanged) {
+        public Builder onTextChanged(Consumer<TextChangedEvent> onTextChanged) {
             this.onTextChanged = onTextChanged;
             return self();
         }

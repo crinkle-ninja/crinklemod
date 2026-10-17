@@ -3,6 +3,7 @@ package ninja.crinkle.mod.client.gui.managers;
 import com.mojang.logging.LogUtils;
 import ninja.crinkle.mod.client.gui.events.Event;
 import ninja.crinkle.mod.client.gui.events.EventNode;
+import ninja.crinkle.mod.client.gui.widgets.AbstractWidget;
 import org.slf4j.Logger;
 
 import java.util.*;
@@ -43,7 +44,8 @@ public class EventManager {
 
     @SuppressWarnings("unchecked")
     public void dispatchEvent(Event event, Predicate<EventNode> predicate) {
-        if (event.dispatched() || !event.propagate()) {
+        LOGGER.trace("[{}] dispatching: {}", event.getClass().getSimpleName(), event);
+        if (event.dispatched() || !event.propagate() || !predicate.test(event.source())) {
             return;
         }
         event.dispatched(true);
@@ -55,6 +57,7 @@ public class EventManager {
                 ((Consumer<Event>) pl.handler()).accept(event);
             }
         });
+        LOGGER.trace("[{}] dispatched: {}", event.getClass().getSimpleName(), event);
     }
 
     public List<EventNode> listeners(Predicate<EventNode> predicate) {

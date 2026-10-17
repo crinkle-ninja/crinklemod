@@ -1,11 +1,8 @@
 package ninja.crinkle.mod.client.gui.widgets;
 
-import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Renderable;
-import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.components.events.GuiEventListener;
-import net.minecraft.client.gui.screens.inventory.tooltip.TooltipRenderUtil;
 import net.minecraft.network.chat.Component;
 import ninja.crinkle.mod.client.color.Color;
 import ninja.crinkle.mod.client.gui.builders.GenericBuilder;
@@ -31,6 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public abstract class AbstractWidget implements Renderable, Widget, EventNode,
@@ -52,8 +50,10 @@ public abstract class AbstractWidget implements Renderable, Widget, EventNode,
     private String styleId;
     private int tabIndex;
     private EnumSet<Sizing> verticalSizing;
-    private Color debugColor;
+    private final Color debugColor;
     private Component tooltip;
+    private final Consumer<FocusEvent> onFocus;
+    private final Consumer<FocusEvent> onBlur;
 
     protected AbstractWidget(@NotNull AbstractBuilder<?> builder) {
         this.activePredicate = builder.activePredicate();
@@ -72,6 +72,9 @@ public abstract class AbstractWidget implements Renderable, Widget, EventNode,
         this.stretchRatio = builder.stretchRatio();
         this.debugColor = Color.random();
         this.tooltip = builder.tooltip();
+
+        this.onFocus = builder.onFocus();
+        this.onBlur = builder.onBlur();
 
         if (builder.zIndex() == DragManager.Z_MIN) {
             parent().filter(p -> !p.equals(this)).ifPresent(p -> zIndex(nextZIndex()));
@@ -99,6 +102,8 @@ public abstract class AbstractWidget implements Renderable, Widget, EventNode,
         this.verticalSizing = EnumSet.of(Sizing.Fill);
         this.stretchRatio = 1.0f;
         this.debugColor = Color.random();
+        this.onFocus = null;
+        this.onBlur = null;
     }
 
     public static int zIndexOf(AbstractWidget widget) {
@@ -260,7 +265,7 @@ public abstract class AbstractWidget implements Renderable, Widget, EventNode,
     }
 
     public boolean focusable() {
-        return behavior().focusable();
+        return behavior().focusable() && visible();
     }
 
     @SuppressWarnings("unused")
@@ -271,9 +276,15 @@ public abstract class AbstractWidget implements Renderable, Widget, EventNode,
     public void focused(boolean focused) {
         if (focused != focused()) {
             if (focused) {
-                dispatchEvent(new FocusEnteredEvent(this, true, this));
+                FocusEnteredEvent event = new FocusEnteredEvent(this, true, this);
+                dispatchEvent(event);
+                if (this.onFocus != null)
+                    this.onFocus.accept(event);
             } else {
-                dispatchEvent(new FocusLeftEvent(this, false, this));
+                FocusLeftEvent event = new FocusLeftEvent(this, false, this);
+                dispatchEvent(event);
+                if (this.onBlur != null)
+                    this.onBlur.accept(event);
             }
         }
         behavior(behavior().withFocused(focused && active() && visible()));
@@ -618,6 +629,8 @@ public abstract class AbstractWidget implements Renderable, Widget, EventNode,
         private int minHeight = 0;
         private int minWidth = 0;
         private String name = "Unnamed_" + Math.round((Math.random() * hashCode()));
+        private Consumer<FocusEvent> onBlur;
+        private Consumer<FocusEvent> onFocus;
         private int priority = 0;
         private float stretchRatio = 1.0f;
         private String styleId = null;
@@ -642,6 +655,20 @@ public abstract class AbstractWidget implements Renderable, Widget, EventNode,
             }
             this.manager = parent.manager();
             this.parent = parent;
+        }
+
+        public T onBlur(Consumer<FocusEvent> onBlur) {
+            this.onBlur = onBlur;
+            return self();
+        }
+
+        public Consumer<FocusEvent> onBlur() {
+            return this.onBlur;
+        }
+
+        public T onFocus(Consumer<FocusEvent> onFocus) {
+            this.onFocus = onFocus;
+            return self();
         }
 
         public T active(boolean active) {
@@ -752,6 +779,10 @@ public abstract class AbstractWidget implements Renderable, Widget, EventNode,
         public T name(String name) {
             this.name = name;
             return self();
+        }
+
+        public Consumer<FocusEvent> onFocus() {
+            return this.onFocus;
         }
 
         public AbstractContainer parent() {

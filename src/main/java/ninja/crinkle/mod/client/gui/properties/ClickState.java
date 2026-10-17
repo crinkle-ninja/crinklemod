@@ -5,7 +5,7 @@ import ninja.crinkle.mod.client.gui.events.EventNode;
 import java.util.List;
 
 public record ClickState(Point position, int button, long clickTime, List<EventNode> listeners) {
-    public ClickState() {
+    public ClickState(Point point, int pButton, long l) {
         this(Point.ZERO, 0, 0, List.of());
     }
 

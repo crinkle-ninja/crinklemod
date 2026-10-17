@@ -38,6 +38,13 @@ public class CrinkleModConfigScreen extends AbstractScreen {
     }
 
     @Override
+    public void onClose() {
+        MetabolismTab.Mess.onClose();
+        MetabolismTab.Wet.onClose();
+        super.onClose();
+    }
+
+    @Override
     public boolean layoutEditorEnabled() {
         return false;
     }
@@ -126,10 +133,10 @@ public class CrinkleModConfigScreen extends AbstractScreen {
         window.add(tabs);
         eventManager().addListener(TabChangedEvent.KEY, 0, this::onTabChanged);
 
-        // === Wet tab ===
-        MetabolismTab.Wet.buildTab(tabs.addTab("wet", MetabolismSettings.WET.label().getString()), rowHeight);
         // === Mess tab ===
         MetabolismTab.Mess.buildTab(tabs.addTab("mess", MetabolismSettings.MESS.label().getString()), rowHeight);
+        // === Wet tab ===
+        MetabolismTab.Wet.buildTab(tabs.addTab("wet", MetabolismSettings.WET.label().getString()), rowHeight);
 
 
         // === Undergarment tab ===
@@ -426,6 +433,16 @@ public class CrinkleModConfigScreen extends AbstractScreen {
                     .activePredicate(w -> metabolism().enabled())
                     .horizontalSizing(Sizing.ShrinkCenter)
                     .verticalSizing(Sizing.Expand)
+                    .onTextChanged(e -> {
+                        TextBox box = (TextBox) e.source();
+                        if (setting instanceof Setting.DoubleValue dv) {
+                            double value = Double.parseDouble(box.value());
+                            setValue(dv, box, value);
+                        } else if (setting instanceof Setting.IntValue iv) {
+                            int value = Integer.parseInt(box.value());
+                            setValue(iv, box, value);
+                        }
+                    })
                     .build();
             valueBox.text(metabolism().getAsString(setting));
             valueBoxes.put(setting, valueBox);
@@ -473,7 +490,6 @@ public class CrinkleModConfigScreen extends AbstractScreen {
             if (setting.isValid(value)) {
                 valueBox.text(setting.formattedString(value));
                 metabolism().setValue(setting, value);
-                metabolism().reset();
             } else {
                 errors().add(setting.errors(value).stream().map(Component::getString).collect(Collectors.joining(" ")));
             }
@@ -516,30 +532,6 @@ public class CrinkleModConfigScreen extends AbstractScreen {
             buildSettingRow(parent, rowHeight, settings().intervalDecay());
             // intensity
             buildSettingRow(parent, rowHeight, settings().intensity());
-
-
-//            // Void button
-//            HBoxContainer voidButtonRow = new HBoxContainer.Builder(parent)
-//                    .name("%s.void.row".formatted(settings().type().name().toLowerCase()))
-//                    .separation(4)
-//                    .minSize(0, rowHeight)
-//                    .horizontalSizing(Sizing.Fill)
-//                    .verticalSizing(Sizing.Expand)
-//                    .pushAndReturn();
-//
-//            new Button.Builder(voidButtonRow)
-//                    .name("%s.void.button".formatted(settings().type().name().toLowerCase()))
-//                    .text("Void")
-//                    .minSize(20, rowHeight)
-//                    .onClick((e, w) -> {
-//                        switch(this) {
-//                            case Wet -> Metabolism.wetOf(ClientUtil.getPlayer()).wet();
-//                            case Mess -> Metabolism.messOf(ClientUtil.getPlayer()).mess();
-//                        }
-//                    })
-//                    .activePredicate(w -> metabolism().enabled())
-//                    .pushAndReturn();
-
         }
 
         private <T extends Comparable<? super T>> T modifierValue(Setting<T> setting) {
@@ -563,6 +555,11 @@ public class CrinkleModConfigScreen extends AbstractScreen {
                 Setting<?> setting = entry.getKey();
                 valueBox.text(metabolism().getAsString(setting));
             }
+        }
+
+        private void onClose() {
+            valueBoxes.forEach((key, value) -> value.focused(false));
+            metabolism().reset();
         }
 
         public MetabolismSettings settings() {
