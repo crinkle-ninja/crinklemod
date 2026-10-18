@@ -1,17 +1,11 @@
 package ninja.crinkle.mod.client.gui.widgets;
 
 import com.mojang.logging.LogUtils;
-import ninja.crinkle.mod.client.ClientSetup;
-import ninja.crinkle.mod.client.gui.events.*;
 import ninja.crinkle.mod.client.gui.managers.GuiManager;
-import ninja.crinkle.mod.client.gui.managers.IManagedGUI;
 import ninja.crinkle.mod.client.gui.properties.Point;
 import ninja.crinkle.mod.client.gui.properties.Rect;
 import ninja.crinkle.mod.client.gui.properties.Sizing;
 import ninja.crinkle.mod.client.gui.renderers.ThemeGraphics;
-import ninja.crinkle.mod.client.gui.screens.CrinkleModConfigScreen;
-import ninja.crinkle.mod.client.gui.screens.LayoutEditorScreen;
-import ninja.crinkle.mod.util.ClientUtil;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
@@ -90,7 +84,6 @@ public abstract class AbstractContainer extends AbstractWidget {
             throw new RuntimeException();
         }
         children.add(widget);
-        manager().eventManager().addListener(widget);
         Optional<AbstractContainer> existingParent = widget.parent();
         if (existingParent.isPresent() && existingParent.get() != this) {
             existingParent.get().remove(widget);
@@ -103,27 +96,7 @@ public abstract class AbstractContainer extends AbstractWidget {
         return children.stream().toList();
     }
 
-    public AbstractWidget topClicked(Point point) {
-        return children().stream().sorted(Comparator.comparingInt(AbstractWidget::zIndexOf))
-                .filter(AbstractWidget::visible)
-                .filter(AbstractWidget::active)
-                .filter(w -> w.rect().contains(point))
-                .findFirst()
-                .orElse(this);
-    }
-
-    public AbstractWidget topFocused() {
-        return children().stream().sorted(Comparator.comparingInt(AbstractWidget::zIndexOf))
-                .filter(AbstractWidget::focused)
-                .filter(AbstractWidget::active)
-                .filter(AbstractWidget::visible)
-                .findFirst()
-                .orElse(this);
-    }
-
     public void remove(AbstractWidget widget) {
-        manager().eventManager().removeListener(widget);
-        eventManager().removeListener(widget);
         children.remove(widget);
         widget.parent(null);
     }
@@ -220,67 +193,9 @@ public abstract class AbstractContainer extends AbstractWidget {
                 .forEach(child -> child.render(graphics, pMouse, pPartialTick));
     }
 
-    @Override
-    public void onDrag(DragEvent event) {
-        if (!dragged()) return;
-        // super.onDrag calls setRect which calls arrange() — that repositions children
-        // relative to this container's new rect, so no manual child-moving needed.
-        super.onDrag(event);
-    }
-
-    // --- Events ---
-
-    @Override
-    public void onDragStarted(DragStartedEvent event) {
-        super.onDragStarted(event);
-        children().forEach(c -> c.onDragStarted(event));
-    }
-
-    @Override
-    public void onDropped(DroppedEvent event) {
-        super.onDropped(event);
-        children().forEach(c -> c.onDropped(event));
-    }
-
-    @Override
-    protected void registerEventHandlers() {
-        super.registerEventHandlers();
-        eventManager().addListener(KeyEvent.KEY, priority(), this::onKey);
-        eventManager().addListener(LayoutChangedEvent.KEY, priority(), this::onLayoutChanged);
-    }
-
-    public void onKey(KeyEvent event) {
-        if (ClientSetup.LAYOUT_EDITOR_KEY != null
-                && ClientSetup.LAYOUT_EDITOR_KEY.consumeClick()) {
-            if (ClientUtil.getMinecraft().screen instanceof LayoutEditorScreen) return;
-            if (manager() instanceof IManagedGUI gui && gui.layoutEditorEnabled()) {
-                ClientUtil.getMinecraft().setScreen(new LayoutEditorScreen(gui));
-                event.consumed(true);
-            }
-        }
-        if (ClientSetup.CRINKLE_CONFIG_KEY != null
-                && ClientSetup.CRINKLE_CONFIG_KEY.consumeClick()) {
-            ClientUtil.getMinecraft().setScreen(new CrinkleModConfigScreen());
-            event.consumed(true);
-        }
-    }
-
-    public void onLayoutChanged(LayoutChangedEvent event) {
-        if (event.cancelled() || event.consumed()) return;
-        arrange();
-    }
-
-    // --- Rendering ---
-
-    /**
-     * Place children within this container's rect. Subclasses override to implement
-     * specific layout strategies (HBox, VBox, etc.). Default does nothing.
-     */
     public void arrange() {
         // Default: no arrangement. Subclasses override.
     }
-
-    // --- Lifecycle ---
 
     @Override
     public void setRect(Rect rect) {
@@ -293,16 +208,12 @@ public abstract class AbstractContainer extends AbstractWidget {
         children().forEach(AbstractWidget::tick);
     }
 
-    // --- Object ---
-
     protected void visualCopyChildrenInto(AbstractContainer target) {
         for (AbstractWidget child : children()) {
             AbstractWidget copied = child.visualCopy(target);
             target.add(copied);
         }
     }
-
-    // --- Builder ---
 
     public static abstract class AbstractContainerBuilder<T extends AbstractContainerBuilder<T>>
             extends AbstractBuilder<T> {

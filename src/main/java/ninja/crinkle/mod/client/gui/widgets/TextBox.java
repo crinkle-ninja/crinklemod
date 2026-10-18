@@ -6,7 +6,10 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import ninja.crinkle.mod.client.color.Color;
-import ninja.crinkle.mod.client.gui.events.*;
+import ninja.crinkle.mod.client.gui.actors.Modifier;
+import ninja.crinkle.mod.client.gui.actors.MouseButton;
+import ninja.crinkle.mod.client.gui.actors.KeyActor;
+import ninja.crinkle.mod.client.gui.actors.MouseActor;
 import ninja.crinkle.mod.client.gui.properties.Point;
 import ninja.crinkle.mod.client.gui.properties.Rect;
 import ninja.crinkle.mod.client.gui.renderers.ThemeGraphics;
@@ -21,7 +24,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 
-public class TextBox extends AbstractWidget {
+public class TextBox extends AbstractWidget implements KeyActor, MouseActor {
     private static final Logger LOGGER = LogUtils.getLogger();
     private int cursorPos = -1;
     private boolean insertMode = true;
@@ -33,7 +36,7 @@ public class TextBox extends AbstractWidget {
     private String text;
     private String value;
     private int visibleStart = 0;
-    private final Consumer<TextChangedEvent> onTextChanged;
+    private final Consumer<String> onTextChanged;
 
     protected TextBox(Builder builder) {
         super(builder);
@@ -101,20 +104,19 @@ public class TextBox extends AbstractWidget {
         return cursorPos;
     }
 
-    private void textChanged() {
-        if (value() != null && value().equals(text())) return;
-        TextChangedEvent event = new TextChangedEvent(this, value());
+    private boolean textChanged() {
+        if (value() != null && value().equals(text())) return false;
         value(text());
-        onTextChanged.accept(event);
+        onTextChanged.accept(value());
+        return true;
     }
 
     public String value() {
         return this.value;
     }
 
-    private void handleReturn(KeyEvent event) {
-        textChanged();
-        event.consumed(true);
+    private boolean handleReturn() {
+        return textChanged();
     }
 
     @Override
@@ -127,75 +129,77 @@ public class TextBox extends AbstractWidget {
         }
     }
 
-    private void handleBackspace(KeyEvent event) {
+    private boolean handleBackspace() {
         int index = cursorPos();
         if (selection() != null) {
             text(text().substring(0, selection().min()) + text().substring(selection().max()));
             cursorPos(selection().min());
             selection(null);
-            event.consumed(true);
+            return true;
         } else if (index > 0) {
             text(text().substring(0, index - 1) + text().substring(index));
             cursorPos(index - 1);
-            event.consumed(true);
+            return true;
         }
+        return false;
     }
 
-    private void handleCopy(KeyEvent event) {
-        if (Screen.isCopy(event.keyCode()) && selection() != null) {
+    private boolean handleCopy(int keyCode) {
+        if (Screen.isCopy(keyCode) && selection() != null) {
             ClientUtil.setClipboard(selection().text(text()));
-            event.consumed(true);
+            return true;
         }
+        return false;
     }
 
-    private void handleCut(KeyEvent event) {
-        if (Screen.isCut(event.keyCode()) && selection() != null) {
+    private boolean handleCut(int keyCode) {
+        if (Screen.isCut(keyCode) && selection() != null) {
             ClientUtil.setClipboard(selection().text(text()));
             text(text().substring(0, selection().min()) + text().substring(selection().max()));
             cursorPos(selection().min());
             selection(null);
-            event.consumed(true);
+            return true;
         }
+        return false;
     }
 
-    private void handleDelete(KeyEvent event) {
+    private boolean handleDelete() {
         int index = cursorPos();
         if (selection() != null) {
             text(text().substring(0, selection().min()) + text().substring(selection().max()));
             cursorPos(selection().min());
             selection(null);
-            event.consumed(true);
+            return true;
         } else if (index < text().length()) {
             text(text().substring(0, index) + text().substring(index + 1));
-            event.consumed(true);
+            return true;
         }
+        return false;
     }
 
-    private void handleEnd(KeyEvent event) {
+    private boolean handleEnd(int modifiers) {
         int newPos = text().length();
         if (selection() != null) {
             newPos = selection().max();
             selection(null);
-        } else if (event.isShiftDown()) {
+        } else if (isShiftDown(modifiers)) {
             if (cursorPos() < text().length()) {
                 selection(new Selection(cursorPos(), text().length()));
             }
         }
         cursorPos(newPos);
-        event.consumed(true);
+        return true;
     }
 
-    private void handleEscape(KeyEvent event) {
-        if (focused() && selection() != null) {
+    private boolean handleEscape() {
+        if (!focused()) return false;
+        if (selection() != null) {
             selection(null);
-            event.consumed(true);
-        } else if (focused()) {
-            focused(false);
-            event.consumed(true);
         }
+        return true;
     }
 
-    private void handleHome(KeyEvent event) {
+    private boolean handleHome() {
         int newPos = 0;
         if (selection() != null) {
             newPos = selection().min();
@@ -208,7 +212,7 @@ public class TextBox extends AbstractWidget {
             }
         }
         cursorPos(newPos);
-        event.consumed(true);
+        return true;
     }
 
     private void handleInsert(int index, char c) {
@@ -225,22 +229,23 @@ public class TextBox extends AbstractWidget {
         cursorPos(index + 1);
     }
 
-    private void handleLeft(KeyEvent event) {
+    private boolean handleLeft() {
         if (selection() != null && !shiftDown()) {
             cursorPos(selection().min());
             selection(null);
-            event.consumed(true);
+            return true;
         } else if (shiftDown()) {
             if (selection() == null) {
                 selection(new Selection(cursorPos(), cursorPos()));
             }
             cursorPos(Math.max(0, cursorPos() - 1));
             selection(new Selection(cursorPos(), selection().max()));
-            event.consumed(true);
+            return true;
         } else if (cursorPos() > 0) {
             cursorPos(Math.max(0, cursorPos() - 1));
-            event.consumed(true);
+            return true;
         }
+        return false;
     }
 
     private void handleOverwrite(int index, char c) {
@@ -257,65 +262,66 @@ public class TextBox extends AbstractWidget {
         cursorPos(index + 1);
     }
 
-    private void handlePaste(KeyEvent event) {
-        if (!Screen.isPaste(event.keyCode())) {
-            return;
+    private boolean handlePaste(int keyCode) {
+        if (!Screen.isPaste(keyCode)) {
+            return false;
         }
         String clipboard = Optional.of(ClientUtil.getClipboard()).orElse("");
         if (selection() != null) {
             text(text().substring(0, selection().min()) + clipboard + text().substring(selection().max()));
             cursorPos(selection().min() + clipboard.length());
             selection(null);
-            event.consumed(true);
         } else {
             text(text().substring(0, cursorPos()) + clipboard + text().substring(cursorPos()));
             cursorPos(cursorPos() + clipboard.length());
-            event.consumed(true);
         }
+        return true;
     }
 
-    private void handleRight(KeyEvent event) {
+    private boolean handleRight() {
         if (selection() != null && !shiftDown()) {
             cursorPos(selection().max());
             selection(null);
-            event.consumed(true);
+            return true;
         } else if (shiftDown()) {
             if (selection() == null) {
                 selection(new Selection(cursorPos(), cursorPos()));
             }
             cursorPos(Math.min(text().length(), cursorPos() + 1));
             selection(new Selection(selection().min(), cursorPos()));
-            event.consumed(true);
+            return true;
         } else if (cursorPos() < text().length()) {
             cursorPos(Math.min(text().length(), cursorPos() + 1));
-            event.consumed(true);
+            return true;
         }
+        return false;
     }
 
     public void insertMode(boolean insertMode) {
         this.insertMode = insertMode;
     }
 
-    public void onCharTyped(CharTypedEvent event) {
-        if (!focused() || !active() || readOnly() || event.consumed()) {
-            return;
+    @Override
+    public boolean onCharTyped(char pCodePoint, int pModifiers) {
+        if (!focused() || !active() || readOnly()) return false;
+        if (insertMode()) {
+            handleInsert(cursorPos(), pCodePoint);
+        } else {
+            handleOverwrite(cursorPos(), pCodePoint);
         }
-        if (insertMode())
-            handleInsert(cursorPos(), event.codePoint());
-        else
-            handleOverwrite(cursorPos(), event.codePoint());
-        event.consumed(true);
+        return true;
     }
 
-    public void onClick(ClickEvent event) {
-        if (!visible() || !active() || event.consumed()) {
-            return;
+    @Override
+    public boolean onClick(Point point, MouseButton mouseButton) {
+        if (!visible() || !active()) {
+            return false;
         }
-        if (event.button() == MouseEvent.Button.LEFT) {
+        if (mouseButton == MouseButton.LEFT) {
             int start = cursorPos();
-            int end = cursorPosFromPoint(event.position());
+            int end = cursorPosFromPoint(point);
             if (selection() != null && selection.contains(end)) {
-                return;
+                return true;
             }
             cursorPos(end);
             if (shiftDown()) {
@@ -323,16 +329,18 @@ public class TextBox extends AbstractWidget {
             } else {
                 selection(null);
             }
-            event.consumed(true);
+            return true;
         }
+        return false;
     }
 
-    public void onDoubleClick(DoubleClickEvent event) {
-        if (!active() || event.consumed() || !rect().contains(event.x(), event.y())) {
-            return;
+    @Override
+    public boolean onDoubleClick(Point point, MouseButton button) {
+        if (!active() || !rect().contains(point)) {
+            return false;
         }
         if (selection() != null && !selection().isEmpty()
-                && selection().contains(cursorPosFromPoint(event.position()))) {
+                && selection().contains(cursorPosFromPoint(point))) {
             selection(new Selection(0, text().length()));
         } else {
             int start = cursorPos();
@@ -345,47 +353,52 @@ public class TextBox extends AbstractWidget {
             }
             cursorPos(end);
             if (start <= 0 || end <= 0) {
-                event.consumed(true);
-                return;
+                return true;
             }
             selection(new Selection(start, end));
-            event.consumed(true);
+            return true;
         }
+        return false;
     }
 
-    public void onKey(KeyEvent event) {
-        if (!focused() || !active() || readOnly() || event.consumed()) {
-            return;
+    private boolean isShiftDown(int modifiers) {
+        return Modifier.Shift.mask() == (modifiers & Modifier.Shift.mask());
+    }
+
+    @Override
+    public boolean onKeyPressed(int keyCode, int scanCode, int modifiers) {
+        if (!focused() || !active() || readOnly()) {
+            return false;
         }
 
-        shiftDown(event.isShiftDown());
+        shiftDown(isShiftDown(modifiers));
 
-        if (event.pressed()) {
-            switch (event.keyCode()) {
-                case InputConstants.KEY_ESCAPE -> handleEscape(event);
-                case InputConstants.KEY_LEFT -> handleLeft(event);
-                case InputConstants.KEY_RIGHT -> handleRight(event);
-                case InputConstants.KEY_INSERT -> {
-                    insertMode(!insertMode());
-                    event.consumed(true);
-                }
-                case InputConstants.KEY_RETURN -> handleReturn(event);
-                case InputConstants.KEY_BACKSPACE -> handleBackspace(event);
-                case InputConstants.KEY_DELETE -> handleDelete(event);
-                case InputConstants.KEY_HOME -> handleHome(event);
-                case InputConstants.KEY_END -> handleEnd(event);
-                case InputConstants.KEY_C -> handleCopy(event);
-                case InputConstants.KEY_X -> handleCut(event);
-                case InputConstants.KEY_V -> handlePaste(event);
-                case InputConstants.KEY_A -> {
-                    if (Screen.isSelectAll(event.keyCode())) {
-                        selection(new Selection(0, text().length()));
-                        cursorPos(text().length());
-                        event.consumed(true);
-                    }
-                }
+        return switch (keyCode) {
+            case InputConstants.KEY_ESCAPE -> handleEscape();
+            case InputConstants.KEY_LEFT -> handleLeft();
+            case InputConstants.KEY_RIGHT -> handleRight();
+            case InputConstants.KEY_INSERT -> {
+                insertMode(!insertMode());
+                yield true;
             }
-        }
+            case InputConstants.KEY_RETURN -> handleReturn();
+            case InputConstants.KEY_BACKSPACE -> handleBackspace();
+            case InputConstants.KEY_DELETE -> handleDelete();
+            case InputConstants.KEY_HOME -> handleHome();
+            case InputConstants.KEY_END -> handleEnd(modifiers);
+            case InputConstants.KEY_C -> handleCopy(keyCode);
+            case InputConstants.KEY_X -> handleCut(keyCode);
+            case InputConstants.KEY_V -> handlePaste(keyCode);
+            case InputConstants.KEY_A -> {
+                if (Screen.isSelectAll(keyCode)) {
+                    selection(new Selection(0, text().length()));
+                    cursorPos(text().length());
+                    yield true;
+                }
+                yield false;
+            }
+            default -> false;
+        };
     }
 
     @SuppressWarnings("unused")
@@ -400,15 +413,6 @@ public class TextBox extends AbstractWidget {
     @SuppressWarnings("unused")
     public void readOnly(boolean readOnly) {
         this.readOnly = readOnly;
-    }
-
-    @Override
-    protected void registerEventHandlers() {
-        super.registerEventHandlers();
-        eventManager().addListener(KeyEvent.KEY, priority(), this::onKey);
-        eventManager().addListener(CharTypedEvent.KEY, priority(), this::onCharTyped);
-        eventManager().addListener(ClickEvent.KEY, priority(), this::onClick);
-        eventManager().addListener(DoubleClickEvent.KEY, priority(), this::onDoubleClick);
     }
 
     @Override
@@ -568,7 +572,7 @@ public class TextBox extends AbstractWidget {
         private boolean readOnly = false;
         private boolean shadow = false;
         private String text = "";
-        private Consumer<TextChangedEvent> onTextChanged;
+        private Consumer<String> onTextChanged;
         private Supplier<?> getter;
 
         public Builder getter(Supplier<?> getter) {
@@ -580,11 +584,11 @@ public class TextBox extends AbstractWidget {
             return getter;
         }
 
-        public Consumer<TextChangedEvent> onTextChanged() {
+        public Consumer<String> onTextChanged() {
             return onTextChanged;
         }
 
-        public Builder onTextChanged(Consumer<TextChangedEvent> onTextChanged) {
+        public Builder onTextChanged(Consumer<String> onTextChanged) {
             this.onTextChanged = onTextChanged;
             return self();
         }

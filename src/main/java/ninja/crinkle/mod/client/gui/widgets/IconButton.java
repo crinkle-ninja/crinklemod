@@ -3,8 +3,7 @@ package ninja.crinkle.mod.client.gui.widgets;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-import ninja.crinkle.mod.client.gui.events.ClickEvent;
-import ninja.crinkle.mod.client.gui.managers.EventManager;
+import ninja.crinkle.mod.client.gui.actors.MouseActor;
 import ninja.crinkle.mod.client.gui.properties.Point;
 import ninja.crinkle.mod.client.gui.properties.Rect;
 import ninja.crinkle.mod.client.gui.renderers.ThemeGraphics;
@@ -12,16 +11,12 @@ import ninja.crinkle.mod.client.gui.textures.Texture;
 import ninja.crinkle.mod.client.gui.textures.TextureSize;
 import ninja.crinkle.mod.client.gui.themes.StyleVariant;
 
-import java.util.function.BiConsumer;
-
-public class IconButton extends AbstractContainer {
-    private final BiConsumer<ClickEvent, AbstractWidget> onClick;
+public class IconButton extends Button implements MouseActor {
     private Icon icon;
     private Label label;
 
     protected IconButton(Builder builder) {
         super(builder);
-        this.onClick = builder.onClick();
 
         if (builder.itemStack() != null) {
             this.icon = new ItemIcon.Builder(this)
@@ -29,8 +24,6 @@ public class IconButton extends AbstractContainer {
                     .textureSize(builder.textureSize())
                     .dropShadow(builder.dropShadow())
                     .pushAndReturn();
-            icon.zIndex(zIndex() + 1);
-            icon.priority(EventManager.PRIORITY_IGNORE);
         } else if (builder.texture() != null) {
             this.icon = new Icon.Builder(this)
                     .atlas(builder.atlas())
@@ -38,16 +31,12 @@ public class IconButton extends AbstractContainer {
                     .textureSize(builder.textureSize())
                     .dropShadow(builder.dropShadow())
                     .pushAndReturn();
-            icon.zIndex(zIndex() + 1);
-            icon.priority(EventManager.PRIORITY_IGNORE);
         }
 
         if (builder.text() != null) {
             this.label = new Label.Builder(this)
                     .text(builder.text())
                     .pushAndReturn();
-            label.zIndex(zIndex() + 1);
-            label.priority(EventManager.PRIORITY_IGNORE);
         }
     }
 
@@ -83,20 +72,6 @@ public class IconButton extends AbstractContainer {
         super.renderContent(graphics, pMouse, renderRect, pPartialTick);
         if (label != null) {
             label.renderContent(graphics, pMouse, renderRect, pPartialTick);
-        }
-    }
-
-    @Override
-    protected void registerEventHandlers() {
-        super.registerEventHandlers();
-        eventManager().addListener(ClickEvent.KEY, priority(), this::onClick);
-    }
-
-    public void onClick(ClickEvent event) {
-        if (event.cancelled()) return;
-        if (mouseOver(event.position()) && event.isLeftButton() && onClick != null && visible() && active() && event.released()) {
-            event.consumer(this);
-            onClick.accept(event, this);
         }
     }
 
@@ -152,12 +127,11 @@ public class IconButton extends AbstractContainer {
 
     @Override
     public String toString() {
-        return "IconButton{icon=" + icon + ", label=" + label + ", onClick=" + (onClick != null) + ", " + super.toString() + '}';
+        return "IconButton{icon=" + icon + ", label=" + label + '}';
     }
 
-    public static class Builder extends AbstractContainerBuilder<Builder> {
+    public static class Builder extends Button.Builder {
         private TextureAtlas atlas;
-        private BiConsumer<ClickEvent, AbstractWidget> onClick;
         private boolean dropShadow;
         private ResourceLocation texture;
         private TextureSize textureSize = TextureSize.of(16, 16);
@@ -179,30 +153,14 @@ public class IconButton extends AbstractContainer {
         }
 
         @Override
-        public AbstractContainer push() {
-            parent().add(this);
-            return parent();
-        }
-
-        @Override
         protected Builder self() {
             return this;
         }
 
-        @Override
         public IconButton pushAndReturn() {
             IconButton b = new IconButton(this);
             parent().add(b);
             return b;
-        }
-
-        public BiConsumer<ClickEvent, AbstractWidget> onClick() {
-            return onClick;
-        }
-
-        public Builder onClick(BiConsumer<ClickEvent, AbstractWidget> onClick) {
-            this.onClick = onClick;
-            return self();
         }
 
         public Builder texture(ResourceLocation texture) {

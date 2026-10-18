@@ -1,9 +1,8 @@
 package ninja.crinkle.mod.client.gui.managers;
 
-import ninja.crinkle.mod.client.gui.events.EventNode;
 import ninja.crinkle.mod.client.gui.widgets.AbstractWidget;
 
-public class FocusManager implements EventNode {
+public class FocusManager {
     private AbstractWidget currentFocus;
 
     public void currentFocus(AbstractWidget currentFocus) {
@@ -18,15 +17,5 @@ public class FocusManager implements EventNode {
 
     public AbstractWidget currentFocus() {
         return currentFocus;
-    }
-
-    @Override
-    public EventManager eventManager() {
-        return null;
-    }
-
-    @Override
-    public String name() {
-        return FocusManager.class.getSimpleName();
     }
 }

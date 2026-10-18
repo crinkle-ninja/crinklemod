@@ -14,8 +14,6 @@ public interface GuiManager {
 
     DragManager dragManager();
 
-    EventManager eventManager();
-
     FocusManager focusManager();
 
     AbstractContainer root();

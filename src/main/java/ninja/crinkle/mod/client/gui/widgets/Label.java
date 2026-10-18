@@ -1,7 +1,6 @@
 package ninja.crinkle.mod.client.gui.widgets;
 
 import ninja.crinkle.mod.client.color.Color;
-import ninja.crinkle.mod.client.gui.events.BehaviorChangedEvent;
 import ninja.crinkle.mod.client.gui.properties.Point;
 import ninja.crinkle.mod.client.gui.properties.Rect;
 import ninja.crinkle.mod.client.gui.renderers.ThemeGraphics;
@@ -21,19 +20,6 @@ public class Label extends AbstractWidget {
 
     public void color(Color color) {
         this.color = color;
-    }
-
-    @Override
-    protected void registerEventHandlers() {
-        super.registerEventHandlers();
-        eventManager().addListener(BehaviorChangedEvent.KEY, priority(), this::onBehaviorChanged);
-    }
-
-    public void onBehaviorChanged(BehaviorChangedEvent event) {
-        if (event.consumed() || event.cancelled() || event.source() == this || parent().isEmpty() || !event.source().equals(parent().get()))
-            return;
-        active(event.current().active());
-        event.consumed(true);
     }
 
     @Override

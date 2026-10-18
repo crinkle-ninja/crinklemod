@@ -1,7 +1,7 @@
 package ninja.crinkle.mod.client.gui.widgets;
 
-import ninja.crinkle.mod.client.gui.events.ClickEvent;
-import ninja.crinkle.mod.client.gui.managers.EventManager;
+import ninja.crinkle.mod.client.gui.actors.MouseActor;
+import ninja.crinkle.mod.client.gui.actors.MouseButton;
 import ninja.crinkle.mod.client.gui.properties.Point;
 import ninja.crinkle.mod.client.gui.properties.Rect;
 import ninja.crinkle.mod.client.gui.renderers.ThemeGraphics;
@@ -9,10 +9,10 @@ import ninja.crinkle.mod.client.gui.textures.Texture;
 import ninja.crinkle.mod.client.gui.textures.Texture.Slice;
 import ninja.crinkle.mod.client.gui.themes.StyleVariant;
 
-import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
-public class Button extends AbstractContainer {
-    private final BiConsumer<ClickEvent, AbstractWidget> onClick;
+public class Button extends AbstractContainer implements MouseActor {
+    private final Consumer<AbstractWidget> onClick;
     private Label text;
 
     protected Button(Builder builder) {
@@ -22,8 +22,6 @@ public class Button extends AbstractContainer {
                 .build();
         this.onClick = builder.onClick();
         if (text != null) {
-            text.zIndex(zIndex() + 1);
-            text.priority(EventManager.PRIORITY_IGNORE);
             add(text);
         }
     }
@@ -80,12 +78,6 @@ public class Button extends AbstractContainer {
     }
 
     @Override
-    protected void registerEventHandlers() {
-        super.registerEventHandlers();
-        eventManager().addListener(ClickEvent.KEY, priority(), this::onClick);
-    }
-
-    @Override
     public void arrange() {
         if (children().isEmpty() || rect().equals(Rect.ZERO)) return;
         for (AbstractWidget child : children()) {
@@ -107,13 +99,15 @@ public class Button extends AbstractContainer {
         return "Button{" + "text=" + text + ", onClick=" + (onClick != null) + ", " + super.toString() + '}';
     }
 
-    public void onClick(ClickEvent event) {
-        if (!visible() || !active() || !event.propagate())
-            return;
-        if (mouseOver(event.position()) && event.isLeftButton() && onClick != null && visible() && active() && event.released()) {
-            event.consumer(this);
-            onClick.accept(event, this);
+    @Override
+    public boolean onClick(Point point, MouseButton button) {
+        if (!visible() || !active())
+            return false;
+        if (mouseOver(point) && button == MouseButton.LEFT && onClick != null && visible() && active()) {
+            onClick.accept(this);
+            return true;
         }
+        return false;
     }
 
     public Label text() {
@@ -135,7 +129,7 @@ public class Button extends AbstractContainer {
     }
 
     public static class Builder extends AbstractContainerBuilder<Builder> {
-        private BiConsumer<ClickEvent, AbstractWidget> onClick;
+        private Consumer<AbstractWidget> onClick;
         private String textString;
 
         public Builder(AbstractContainer container) {
@@ -170,11 +164,11 @@ public class Button extends AbstractContainer {
             return b;
         }
 
-        public BiConsumer<ClickEvent, AbstractWidget> onClick() {
+        public Consumer<AbstractWidget> onClick() {
             return onClick;
         }
 
-        public Builder onClick(BiConsumer<ClickEvent, AbstractWidget> onClick) {
+        public Builder onClick(Consumer<AbstractWidget> onClick) {
             this.onClick = onClick;
             return self();
         }

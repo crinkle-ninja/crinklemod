@@ -29,7 +29,7 @@ public class PauseScreenAddOn extends AbstractAddOn {
         new Button.Builder(buttonPanel)
                 .text(Component.translatable("gui.crinklemod.screen.config.title").getString())
                 .style("button")
-                .onClick((e, w) -> Minecraft.getInstance().setScreen(new CrinkleModConfigScreen()))
+                .onClick((w) -> Minecraft.getInstance().setScreen(new CrinkleModConfigScreen()))
                 .push();
     }
 }

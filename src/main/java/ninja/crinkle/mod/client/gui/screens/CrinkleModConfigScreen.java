@@ -8,7 +8,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
 import ninja.crinkle.mod.client.color.Color;
-import ninja.crinkle.mod.client.gui.events.TabChangedEvent;
+import ninja.crinkle.mod.client.gui.actors.TabActor;
 import ninja.crinkle.mod.client.gui.properties.Sizing;
 import ninja.crinkle.mod.client.gui.widgets.*;
 import ninja.crinkle.mod.config.ClientConfig;
@@ -25,7 +25,7 @@ import org.slf4j.Logger;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class CrinkleModConfigScreen extends AbstractScreen {
+public class CrinkleModConfigScreen extends AbstractScreen implements TabActor {
     private final Player player;
     private Label errorLabel;
     private Label tabTitle;
@@ -131,7 +131,6 @@ public class CrinkleModConfigScreen extends AbstractScreen {
                 .verticalSizing(Sizing.Expand, Sizing.Fill)
                 .build();
         window.add(tabs);
-        eventManager().addListener(TabChangedEvent.KEY, 0, this::onTabChanged);
 
         // === Mess tab ===
         MetabolismTab.Mess.buildTab(tabs.addTab("mess", MetabolismSettings.MESS.label().getString()), rowHeight);
@@ -182,7 +181,7 @@ public class CrinkleModConfigScreen extends AbstractScreen {
                 .style("button_secondary")
                 .minSize(60, rowHeight)
                 .horizontalSizing(Sizing.Expand, Sizing.Fill)
-                .onClick((e, w) -> onReset())
+                .onClick(w -> onReset())
                 .push();
 
         new Button.Builder(footer)
@@ -191,14 +190,15 @@ public class CrinkleModConfigScreen extends AbstractScreen {
                 .style("button")
                 .minSize(60, rowHeight)
                 .horizontalSizing(Sizing.Expand, Sizing.Fill)
-                .onClick((e, w) -> onClose())
+                .onClick(w -> onClose())
                 .push();
 
         super.init();
     }
 
-    public void onTabChanged(TabChangedEvent event) {
-        tabTitle.text(event.currentTab().tabButton().text().text());
+    @Override
+    public void onTabChanged(TabbedPanelContainer.@NotNull Entry tab) {
+        tabTitle.text(tab.tabButton().text().text());
         titleRow.arrange();
     }
 
@@ -275,7 +275,7 @@ public class CrinkleModConfigScreen extends AbstractScreen {
                 .name("undergarment_clean_action")
                 .text("Clean")
                 .minSize(20, rowHeight)
-                .onClick((e, w) -> {
+                .onClick(w -> {
                     if (player() == null) return;
                     undergarment.setLiquids(0);
                     undergarment.setSolids(0);
@@ -331,12 +331,12 @@ public class CrinkleModConfigScreen extends AbstractScreen {
             for (int j = i; j < Math.min(i + columns, designList.size()); j++) {
                 DiaperDesign design = designList.get(j);
                 new IconButton.Builder(row)
-                        .name("design_" + design.id().getPath())
                         .atlas(blockAtlas)
                         .texture(design.itemTexture())
                         .minSize(iconSize, iconSize)
                         .activePredicate(w -> design != Undergarment.of(player).getDesign().orElse(null))
-                        .onClick((e, w) -> onDesignSelected(design, w))
+                        .onClick(w -> onDesignSelected(design, w))
+                        .name("design_" + design.id().getPath())
                         .pushAndReturn();
             }
         }
@@ -433,14 +433,13 @@ public class CrinkleModConfigScreen extends AbstractScreen {
                     .activePredicate(w -> metabolism().enabled())
                     .horizontalSizing(Sizing.ShrinkCenter)
                     .verticalSizing(Sizing.Expand)
-                    .onTextChanged(e -> {
-                        TextBox box = (TextBox) e.source();
+                    .onTextChanged(v -> {
                         if (setting instanceof Setting.DoubleValue dv) {
-                            double value = Double.parseDouble(box.value());
-                            setValue(dv, box, value);
+                            double value = Double.parseDouble(v);
+                            setValue(dv, value);
                         } else if (setting instanceof Setting.IntValue iv) {
-                            int value = Integer.parseInt(box.value());
-                            setValue(iv, box, value);
+                            int value = Integer.parseInt(v);
+                            setValue(iv, value);
                         }
                     })
                     .build();
@@ -451,13 +450,13 @@ public class CrinkleModConfigScreen extends AbstractScreen {
                     .name("%s.control.minus".formatted(setting.key()))
                     .text("-")
                     .minSize(20, rowHeight)
-                    .onClick((e, w) -> {
+                    .onClick(w -> {
                         if (setting instanceof Setting.DoubleValue dv) {
                             double value = metabolism().getAsDouble(dv);
-                            setValue(dv, valueBox, dv.subtract(value, modifierValue(dv)));
+                            setValue(dv, dv.subtract(value, modifierValue(dv)));
                         } else if (setting instanceof Setting.IntValue iv) {
                             int value = metabolism().getAsInt(iv);
-                            setValue(iv, valueBox, iv.subtract(value, modifierValue(iv)));
+                            setValue(iv, iv.subtract(value, modifierValue(iv)));
                         }
                     })
                     .activePredicate(w -> metabolism().enabled())
@@ -468,13 +467,13 @@ public class CrinkleModConfigScreen extends AbstractScreen {
                     .name("%s.control.plus".formatted(setting.key()))
                     .text("+")
                     .minSize(20, rowHeight)
-                    .onClick((e, w) -> {
+                    .onClick(w -> {
                         if (setting instanceof Setting.DoubleValue dv) {
                             double value = metabolism().getAsDouble(dv);
-                            setValue(dv, valueBox, dv.add(value, modifierValue(dv)));
+                            setValue(dv, dv.add(value, modifierValue(dv)));
                         } else if (setting instanceof Setting.IntValue iv) {
                             int value = metabolism().getAsInt(iv);
-                            setValue(iv, valueBox, iv.add(value, modifierValue(iv)));
+                            setValue(iv, iv.add(value, modifierValue(iv)));
                         }
                     })
                     .activePredicate(w -> metabolism().enabled())
@@ -485,10 +484,9 @@ public class CrinkleModConfigScreen extends AbstractScreen {
             controls.add(plus);
         }
 
-        private <T extends Comparable<? super T>> void setValue(Setting<T> setting, TextBox valueBox, T value) {
+        private <T extends Comparable<? super T>> void setValue(Setting<T> setting, T value) {
             errors().clear();
             if (setting.isValid(value)) {
-                valueBox.text(setting.formattedString(value));
                 metabolism().setValue(setting, value);
             } else {
                 errors().add(setting.errors(value).stream().map(Component::getString).collect(Collectors.joining(" ")));
@@ -515,7 +513,7 @@ public class CrinkleModConfigScreen extends AbstractScreen {
                     .name("%s.button".formatted(settings.enabled().key()))
                     .text(metabolism().enabled() ? "ON" : "OFF")
                     .minSize(92, rowHeight)
-                    .onClick((e, w) -> {
+                    .onClick(w -> {
                         metabolism().enabled(!metabolism().enabled());
                         ((Button) w).text(metabolism().enabled() ? "ON" : "OFF");
                         Metabolism.of(ClientUtil.getPlayer(), settings().type()).syncServer();
