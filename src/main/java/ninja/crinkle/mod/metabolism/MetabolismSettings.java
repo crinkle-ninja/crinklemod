@@ -15,8 +15,20 @@ public class MetabolismSettings {
     public static final double DEFAULT_CONTROL = 1.0;
     public static final double DEFAULT_CONTROL_DECAY = -0.0008;
 
-    public static final MetabolismSettings WET = new MetabolismSettings(Metabolism.Type.Wet);
-    public static final MetabolismSettings MESS = new MetabolismSettings(Metabolism.Type.Mess);
+    public static final MetabolismSettings WET = new MetabolismSettings(Profile.of(Metabolism.Type.Wet)
+            .control(0.6)
+            .interval(400)
+            .controlDecay(-0.0009)
+            .intervalDecay(0.5)
+            .intensity(0.5)
+            .enabled(false));
+    public static final MetabolismSettings MESS = new MetabolismSettings(Profile.of(Metabolism.Type.Mess)
+            .control(0.75)
+            .interval(600)
+            .controlDecay(-0.0007)
+            .intervalDecay(0.5)
+            .intensity(0.5)
+            .enabled(false));
 
     private final Component label;
     private final Metabolism.Type type;
@@ -33,20 +45,102 @@ public class MetabolismSettings {
     private final Setting<Integer> tickCount;
     private final Map<String, Setting<?>> registry = new HashMap<>();
 
-    public MetabolismSettings(Metabolism.Type type) {
-        this.type = type;
+    public static class Profile {
+        private final Metabolism.Type type;
+        private boolean enabled;
+        private double control;
+        private int interval;
+        private double controlDecay;
+        private double intervalDecay;
+        private double intensity;
+
+        Profile(Metabolism.Type type) {
+            this.type = type;
+            this.enabled = false;
+            this.control = DEFAULT_CONTROL;
+            this.interval = DEFAULT_INTERVAL;
+            this.controlDecay = DEFAULT_CONTROL_DECAY;
+            this.intervalDecay = DEFAULT_INTERVAL_DECAY;
+            this.intensity = DEFAULT_INTENSITY;
+        }
+
+        public static Profile of(Metabolism.Type type) {
+            return new Profile(type);
+        }
+
+        public Profile enabled(boolean enabled) {
+            this.enabled = enabled;
+            return this;
+        }
+
+        public Profile control(double control) {
+            this.control = control;
+            return this;
+        }
+
+        public Profile interval(int interval) {
+            this.interval = interval;
+            return this;
+        }
+
+        public Profile controlDecay(double controlDecay) {
+            this.controlDecay = controlDecay;
+            return this;
+        }
+
+        public Profile intervalDecay(double intervalDecay) {
+            this.intervalDecay = intervalDecay;
+            return this;
+        }
+
+        public Profile intensity(double intensity) {
+            this.intensity = intensity;
+            return this;
+        }
+
+        public double control() {
+            return control;
+        }
+
+        public double controlDecay() {
+            return controlDecay;
+        }
+
+        public boolean enabled() {
+            return enabled;
+        }
+
+        public double intensity() {
+            return intensity;
+        }
+
+        public int interval() {
+            return interval;
+        }
+
+        public double intervalDecay() {
+            return intervalDecay;
+        }
+
+        public Metabolism.Type type() {
+            return type;
+        }
+    }
+
+    public MetabolismSettings(Profile profile) {
+        this.type = profile.type();
         this.label = Component.translatable("setting.crinklemod.metabolism.%s.label".formatted(type()));
         this.enabled = register(Setting.booleanBuilder(type() + ".enabled")
                 .label(Component.translatable("setting.crinklemod.metabolism.%s.enabled.label".formatted(type())))
                 .tooltip(Component.translatable("setting.crinklemod.metabolism.%s.enabled.tooltip".formatted(type())))
-                .defaultValue(false)
+                .defaultValue(profile.enabled())
                 .build());
         this.control = register(Setting.doubleBuilder(type() + ".control")
                 .range(0.0, 1.0)
                 .label(Component.translatable("setting.crinklemod.metabolism.%s.control.label".formatted(type())))
                 .tooltip(Component.translatable("setting.crinklemod.metabolism.%s.control.tooltip".formatted(type())))
                 .numberFormat("#.##")
-                .defaultValue(DEFAULT_CONTROL)
+                .defaultValue(profile.control())
                 .modifierValue(Setting.ModifierValue.Ctrl, 0.1)
                 .modifierValue(Setting.ModifierValue.Shift, 0.05)
                 .modifierValue(Setting.ModifierValue.None, 0.01)
@@ -55,7 +149,7 @@ public class MetabolismSettings {
                 .range(10, 3600)
                 .label(Component.translatable("setting.crinklemod.metabolism.%s.interval.label".formatted(type())))
                 .tooltip(Component.translatable("setting.crinklemod.metabolism.%s.interval.tooltip".formatted(type())))
-                .defaultValue(DEFAULT_INTERVAL)
+                .defaultValue(profile.interval())
                 .modifierValue(Setting.ModifierValue.Alt, 100)
                 .modifierValue(Setting.ModifierValue.Ctrl, 10)
                 .modifierValue(Setting.ModifierValue.Shift, 5)
@@ -66,7 +160,7 @@ public class MetabolismSettings {
                 .label(Component.translatable("setting.crinklemod.metabolism.%s.controlDecay.label".formatted(type())))
                 .tooltip(Component.translatable("setting.crinklemod.metabolism.%s.controlDecay.tooltip".formatted(type())))
                 .numberFormat("#.#####")
-                .defaultValue(DEFAULT_CONTROL_DECAY)
+                .defaultValue(profile.controlDecay())
                 .modifierValue(Setting.ModifierValue.Ctrl, -0.001)
                 .modifierValue(Setting.ModifierValue.Shift, -0.0005)
                 .modifierValue(Setting.ModifierValue.None, -0.0001)
@@ -76,7 +170,7 @@ public class MetabolismSettings {
                 .label(Component.translatable("setting.crinklemod.metabolism.%s.intervalDecay.label".formatted(type())))
                 .tooltip(Component.translatable("setting.crinklemod.metabolism.%s.intervalDecay.tooltip".formatted(type())))
                 .numberFormat("#.###")
-                .defaultValue(DEFAULT_INTERVAL_DECAY)
+                .defaultValue(profile.intervalDecay())
                 .modifierValue(Setting.ModifierValue.Ctrl, 0.01)
                 .modifierValue(Setting.ModifierValue.Shift, 0.005)
                 .modifierValue(Setting.ModifierValue.None, 0.001)
@@ -86,7 +180,7 @@ public class MetabolismSettings {
                 .label(Component.translatable("setting.crinklemod.metabolism.%s.intensity.label".formatted(type())))
                 .tooltip(Component.translatable("setting.crinklemod.metabolism.%s.intensity.tooltip".formatted(type())))
                 .numberFormat("#.##")
-                .defaultValue(DEFAULT_INTENSITY)
+                .defaultValue(profile.intensity())
                 .modifierValue(Setting.ModifierValue.Ctrl, 0.1)
                 .modifierValue(Setting.ModifierValue.Shift, 0.05)
                 .modifierValue(Setting.ModifierValue.None, 0.01)
