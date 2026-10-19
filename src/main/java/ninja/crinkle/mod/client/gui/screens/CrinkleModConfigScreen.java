@@ -434,16 +434,24 @@ public class CrinkleModConfigScreen extends AbstractScreen implements TabActor {
                     .horizontalSizing(Sizing.ShrinkCenter)
                     .verticalSizing(Sizing.Expand)
                     .onTextChanged(v -> {
-                        if (setting instanceof Setting.DoubleValue dv) {
-                            double value = Double.parseDouble(v);
-                            setValue(dv, value);
-                        } else if (setting instanceof Setting.IntValue iv) {
-                            int value = Integer.parseInt(v);
-                            setValue(iv, value);
+                        errors().clear();
+                        try {
+                            if (setting instanceof Setting.DoubleValue dv) {
+                                double value = Double.parseDouble(v);
+                                setValue(dv, value);
+                            } else if (setting instanceof Setting.IntValue iv) {
+                                int value = Integer.parseInt(v);
+                                setValue(iv, value);
+                            }
+                        } catch (NumberFormatException numberFormatException) {
+                            errors().add(Component.translatable("validation.crinklemod.metabolism.failure.invalid.general",
+                                    v, setting.displayName()).getString());
+                            return false;
                         }
+                        return true;
                     })
                     .build();
-            valueBox.text(metabolism().getAsString(setting));
+            valueBox.value(metabolism().getAsString(setting));
             valueBoxes.put(setting, valueBox);
 
             Button minus = new Button.Builder(controls)
@@ -458,6 +466,7 @@ public class CrinkleModConfigScreen extends AbstractScreen implements TabActor {
                             int value = metabolism().getAsInt(iv);
                             setValue(iv, iv.subtract(value, modifierValue(iv)));
                         }
+                        valueBox.value(metabolism().getAsString(setting));
                     })
                     .activePredicate(w -> metabolism().enabled())
                     .build();
@@ -475,6 +484,7 @@ public class CrinkleModConfigScreen extends AbstractScreen implements TabActor {
                             int value = metabolism().getAsInt(iv);
                             setValue(iv, iv.add(value, modifierValue(iv)));
                         }
+                        valueBox.value(metabolism().getAsString(setting));
                     })
                     .activePredicate(w -> metabolism().enabled())
                     .build();
@@ -551,7 +561,7 @@ public class CrinkleModConfigScreen extends AbstractScreen implements TabActor {
             for (Map.Entry<Setting<?>, TextBox> entry : valueBoxes.entrySet()) {
                 TextBox valueBox = entry.getValue();
                 Setting<?> setting = entry.getKey();
-                valueBox.text(metabolism().getAsString(setting));
+                valueBox.value(metabolism().getAsString(setting));
             }
         }
 

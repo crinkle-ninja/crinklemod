@@ -6,10 +6,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import ninja.crinkle.mod.client.color.Color;
-import ninja.crinkle.mod.client.gui.actors.Modifier;
-import ninja.crinkle.mod.client.gui.actors.MouseButton;
-import ninja.crinkle.mod.client.gui.actors.KeyActor;
-import ninja.crinkle.mod.client.gui.actors.MouseActor;
+import ninja.crinkle.mod.client.gui.actors.*;
 import ninja.crinkle.mod.client.gui.properties.Point;
 import ninja.crinkle.mod.client.gui.properties.Rect;
 import ninja.crinkle.mod.client.gui.renderers.ThemeGraphics;
@@ -20,11 +17,11 @@ import org.slf4j.Logger;
 
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 
-public class TextBox extends AbstractWidget implements KeyActor, MouseActor {
+public class TextBox extends AbstractWidget implements KeyActor, MouseActor, FocusActor {
     private static final Logger LOGGER = LogUtils.getLogger();
     private int cursorPos = -1;
     private boolean insertMode = true;
@@ -36,7 +33,7 @@ public class TextBox extends AbstractWidget implements KeyActor, MouseActor {
     private String text;
     private String value;
     private int visibleStart = 0;
-    private final Consumer<String> onTextChanged;
+    private final Function<String, Boolean> onTextChanged;
 
     protected TextBox(Builder builder) {
         super(builder);
@@ -93,6 +90,8 @@ public class TextBox extends AbstractWidget implements KeyActor, MouseActor {
 
     private int cursorPosFromPoint(Point point) {
         int cursorPos = 0;
+        if (text().isBlank()) return 0;
+
         double charX = rect().x();
         for (char c : text().toCharArray()) {
             charX += appearance().font().width(String.valueOf(c));
@@ -106,8 +105,10 @@ public class TextBox extends AbstractWidget implements KeyActor, MouseActor {
 
     private boolean textChanged() {
         if (value() != null && value().equals(text())) return false;
+        if (!onTextChanged.apply(text())) {
+            return false;
+        }
         value(text());
-        onTextChanged.accept(value());
         return true;
     }
 
@@ -116,17 +117,13 @@ public class TextBox extends AbstractWidget implements KeyActor, MouseActor {
     }
 
     private boolean handleReturn() {
+        focused(false);
         return textChanged();
     }
 
     @Override
-    public void focused(boolean focused) {
-        super.focused(focused);
-        if (focused) {
-            value(text());
-        } else {
-            textChanged();
-        }
+    public void onFocus() {
+        text(value());
     }
 
     private boolean handleBackspace() {
@@ -195,6 +192,9 @@ public class TextBox extends AbstractWidget implements KeyActor, MouseActor {
         if (!focused()) return false;
         if (selection() != null) {
             selection(null);
+        } else {
+            focused(false);
+            text(value());
         }
         return true;
     }
@@ -295,6 +295,11 @@ public class TextBox extends AbstractWidget implements KeyActor, MouseActor {
             return true;
         }
         return false;
+    }
+
+    @Override
+    public void onBlur() {
+        textChanged();
     }
 
     public void insertMode(boolean insertMode) {
@@ -440,7 +445,7 @@ public class TextBox extends AbstractWidget implements KeyActor, MouseActor {
         }
     }
 
-    public String text() {
+    protected String text() {
         return text;
     }
 
@@ -450,6 +455,7 @@ public class TextBox extends AbstractWidget implements KeyActor, MouseActor {
 
     public void value(String value) {
         this.value = value;
+        text(value());
     }
 
     protected String visibleText() {
@@ -572,7 +578,7 @@ public class TextBox extends AbstractWidget implements KeyActor, MouseActor {
         private boolean readOnly = false;
         private boolean shadow = false;
         private String text = "";
-        private Consumer<String> onTextChanged;
+        private Function<String, Boolean> onTextChanged;
         private Supplier<?> getter;
 
         public Builder getter(Supplier<?> getter) {
@@ -584,11 +590,11 @@ public class TextBox extends AbstractWidget implements KeyActor, MouseActor {
             return getter;
         }
 
-        public Consumer<String> onTextChanged() {
+        public Function<String, Boolean> onTextChanged() {
             return onTextChanged;
         }
 
-        public Builder onTextChanged(Consumer<String> onTextChanged) {
+        public Builder onTextChanged(Function<String, Boolean> onTextChanged) {
             this.onTextChanged = onTextChanged;
             return self();
         }
@@ -598,6 +604,7 @@ public class TextBox extends AbstractWidget implements KeyActor, MouseActor {
             super(parent);
             active(true);
             focusable(true);
+            pressable(true);
         }
 
         @Override

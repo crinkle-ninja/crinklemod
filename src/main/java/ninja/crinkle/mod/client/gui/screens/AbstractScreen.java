@@ -14,6 +14,7 @@ import ninja.crinkle.mod.client.gui.properties.Rect;
 import ninja.crinkle.mod.client.gui.widgets.AbstractContainer;
 import ninja.crinkle.mod.client.gui.widgets.AbstractWidget;
 import ninja.crinkle.mod.client.gui.widgets.Container;
+import ninja.crinkle.mod.client.gui.widgets.ScrollContainer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -184,6 +185,16 @@ public abstract class AbstractScreen extends Screen implements GuiManager, IMana
                 .orElse(null);
     }
 
+    private AbstractWidget scrollableWidget(Point point) {
+        return widgets(root()).stream()
+                .filter(AbstractWidget::active)
+                .filter(AbstractWidget::visible)
+                .filter(AbstractWidget::scrollable)
+                .filter(w -> w.rect().contains(point))
+                .max(Comparator.comparingInt(AbstractWidget::zIndexOf))
+                .orElse(null);
+    }
+
     // mouse clicked handlers
     private boolean handlePressed(AbstractWidget widget, Point point, int pButton) {
         if (widget == null || !widget.pressable()) return false;
@@ -345,7 +356,7 @@ public abstract class AbstractScreen extends Screen implements GuiManager, IMana
             return super.mouseScrolled(pMouseX, pMouseY, pDelta);
         }
         Point mousePoint = new Point(pMouseX, pMouseY);
-        AbstractWidget topMost = hoveredWidget(mousePoint);
+        AbstractWidget topMost = scrollableWidget(mousePoint);
         if (topMost instanceof MouseActor action) {
             return action.onScroll(mousePoint, pDelta);
         }

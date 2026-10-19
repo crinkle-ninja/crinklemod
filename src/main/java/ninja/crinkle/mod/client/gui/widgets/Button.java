@@ -136,7 +136,6 @@ public class Button extends AbstractContainer implements MouseActor {
             super(container);
             // Button defaults
             hoverable(true);
-            focusable(true);
             active(true);
             pressable(true);
             style("button");

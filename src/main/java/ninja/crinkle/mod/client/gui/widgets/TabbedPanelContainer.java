@@ -113,7 +113,7 @@ public class TabbedPanelContainer extends AbstractContainer {
         tabs.add(entry);
 
         if (tabs.size() == 1) {
-            selectedIndex = 0;
+            selectTab(0);
         }
 
         return content;

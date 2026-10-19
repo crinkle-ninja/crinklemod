@@ -166,7 +166,7 @@ public abstract class AbstractWidget implements Renderable, Widget, ThemeRendera
                 source.behavior.draggable(), false, false, false, false,
                 source.behavior.active(), source.behavior.focusable(),
                 source.behavior.hoverable(), source.behavior.pressable(),
-                source.behavior.repositionable());
+                source.behavior.repositionable(), source.behavior.scrollable());
     }
 
     public boolean draggable() {
@@ -175,6 +175,14 @@ public abstract class AbstractWidget implements Renderable, Widget, ThemeRendera
 
     public void draggable(boolean draggable) {
         behavior(behavior().withDraggable(draggable));
+    }
+
+    public boolean scrollable() {
+        return behavior().scrollable();
+    }
+
+    public void scrollable(boolean scrollable) {
+        behavior(behavior().withScrollable(scrollable));
     }
 
     public void behavior(WidgetBehavior behavior) {
@@ -610,6 +618,15 @@ public abstract class AbstractWidget implements Renderable, Widget, ThemeRendera
 
         public T repositionable(boolean repositionable) {
             behavior = behavior.withRepositionable(repositionable);
+            return self();
+        }
+
+        public boolean scrollable() {
+            return behavior.scrollable();
+        }
+
+        public T scrollable(boolean scrollable) {
+            behavior = behavior.withScrollable(scrollable);
             return self();
         }
 

@@ -136,11 +136,13 @@ public class ScrollContainer extends AbstractContainer implements MouseActor {
         public Builder(AbstractContainer container) {
             super(container);
             active(true);
+            scrollable(true);
         }
 
         public Builder(GuiManager manager) {
             super(manager);
             active(true);
+            scrollable(true);
         }
 
         @Override
