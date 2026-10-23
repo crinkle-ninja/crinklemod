@@ -25,6 +25,8 @@ public class DragManager {
     }
 
     public void drop() {
+        if (current() == null) return;
+        LOGGER.trace("dropped {}", current().name());
         dragging(false);
         current().dragged(false);
         current().pressed(false);
@@ -32,6 +34,7 @@ public class DragManager {
 
     public void dragged(Point dragPoint) {
         if (current() == null) return;
+        LOGGER.trace("dragging {} to {}", current().name(), dragPoint);
         dragAccumulatorX += dragPoint.x();
         dragAccumulatorY += dragPoint.y();
         int dx = (int) dragAccumulatorX;
@@ -52,7 +55,8 @@ public class DragManager {
     }
 
     public void startDragging(AbstractWidget widget) {
-        if (!widget.draggable()) return;
+        if (widget == null || !widget.draggable()) return;
+        LOGGER.trace("start dragging: {}", widget.name());
         dragging(true);
         current(widget);
         dragAccumulatorX = 0;

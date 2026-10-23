@@ -14,7 +14,6 @@ import ninja.crinkle.mod.client.gui.properties.Rect;
 import ninja.crinkle.mod.client.gui.widgets.AbstractContainer;
 import ninja.crinkle.mod.client.gui.widgets.AbstractWidget;
 import ninja.crinkle.mod.client.gui.widgets.Container;
-import ninja.crinkle.mod.client.gui.widgets.ScrollContainer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -27,7 +26,6 @@ public abstract class AbstractScreen extends Screen implements GuiManager, IMana
     private static final Logger LOGGER = LogUtils.getLogger();
     private static final int DOUBLE_CLICK_OFFSET = 2;
     private static final int DOUBLE_CLICK_TIME = 300;
-    private static final int SCAN_OFFSET = 10;
     private final DragManager dragManager = new DragManager();
     private final FocusManager focusManager = new FocusManager();
     private final AbstractContainer root;
@@ -133,6 +131,16 @@ public abstract class AbstractScreen extends Screen implements GuiManager, IMana
         return mouse;
     }
 
+    private List<AbstractWidget> widgets() {
+        if (!ready) return List.of();
+        if (!widgetCache().isEmpty()) return List.copyOf(widgetCache());
+        LOGGER.trace("Building widget cache...");
+        widgetCache().clear();
+        widgetCache().addAll(widgets(root()));
+        LOGGER.trace("Widgets cached: {}", widgetCache().size());
+        return List.copyOf(widgetCache());
+    }
+
     private List<AbstractWidget> widgets(AbstractContainer parent) {
         List<AbstractWidget> widgets = new java.util.ArrayList<>();
         widgets.add(parent);
@@ -147,51 +155,61 @@ public abstract class AbstractScreen extends Screen implements GuiManager, IMana
     }
 
     private AbstractWidget hoveredWidget(Point point) {
-        return widgets(root()).stream()
+        return widgets().stream()
                 .filter(AbstractWidget::active)
                 .filter(AbstractWidget::visible)
                 .filter(AbstractWidget::hoverable)
                 .filter(w -> w.rect().contains(point))
-                .max(Comparator.comparingInt(AbstractWidget::zIndexOf))
+                .max(Comparator.comparingInt(AbstractWidget::zIndex))
                 .orElse(null);
     }
 
     private AbstractWidget clickedWidget(Point point) {
-        return widgets(root()).stream()
+        return widgets().stream()
                 .filter(AbstractWidget::active)
                 .filter(AbstractWidget::visible)
                 .filter(AbstractWidget::pressable)
                 .filter(w -> w.rect().contains(point))
-                .max(Comparator.comparingInt(AbstractWidget::zIndexOf))
+                .max(Comparator.comparingInt(AbstractWidget::zIndex))
                 .orElse(null);
     }
 
     private AbstractWidget focusableWidget(Point point) {
-        return widgets(root()).stream()
+        return widgets().stream()
                 .filter(AbstractWidget::active)
                 .filter(AbstractWidget::visible)
                 .filter(AbstractWidget::focusable)
                 .filter(w -> w.rect().contains(point))
-                .max(Comparator.comparingInt(AbstractWidget::zIndexOf))
+                .max(Comparator.comparingInt(AbstractWidget::zIndex))
                 .orElse(null);
     }
 
     private AbstractWidget focusedWidget() {
-        return widgets(root()).stream()
+        return widgets().stream()
                 .filter(AbstractWidget::active)
                 .filter(AbstractWidget::visible)
                 .filter(AbstractWidget::focused)
-                .max(Comparator.comparingInt(AbstractWidget::zIndexOf))
+                .max(Comparator.comparingInt(AbstractWidget::zIndex))
                 .orElse(null);
     }
 
     private AbstractWidget scrollableWidget(Point point) {
-        return widgets(root()).stream()
+        return widgets().stream()
                 .filter(AbstractWidget::active)
                 .filter(AbstractWidget::visible)
                 .filter(AbstractWidget::scrollable)
                 .filter(w -> w.rect().contains(point))
-                .max(Comparator.comparingInt(AbstractWidget::zIndexOf))
+                .max(Comparator.comparingInt(AbstractWidget::zIndex))
+                .orElse(null);
+    }
+
+    private AbstractWidget draggableWidget(Point point) {
+        return widgets().stream()
+                .filter(AbstractWidget::active)
+                .filter(AbstractWidget::visible)
+                .filter(AbstractWidget::draggable)
+                .filter(w -> w.rect().contains(point))
+                .min(Comparator.comparingInt(AbstractWidget::zIndex))
                 .orElse(null);
     }
 
@@ -233,7 +251,7 @@ public abstract class AbstractScreen extends Screen implements GuiManager, IMana
         Point point = new Point(pMouseX, pMouseY);
         AbstractWidget topMost = clickedWidget(point);
         if (topMost != null)
-            LOGGER.trace("mouseClicked on {}, zIndex: {}, calculated zIndex: {}", topMost.name(), topMost.zIndex(), AbstractWidget.zIndexOf(topMost));
+            LOGGER.trace("mouseClicked on {}, zIndex: {}, {}", topMost.name(), topMost.zIndex(), topMost);
         // double click
         if (topMost != null && state.button() == pButton && System.currentTimeMillis() - state.clickTime() < DOUBLE_CLICK_TIME
                 && state.position().distance(pMouseX, pMouseY) < DOUBLE_CLICK_OFFSET) {
@@ -243,10 +261,7 @@ public abstract class AbstractScreen extends Screen implements GuiManager, IMana
         clickState = new ClickState(point, pButton, System.currentTimeMillis(), topMost);
 
         // drag
-        AbstractWidget dragTarget = topMost;
-        while (dragTarget != null && !dragTarget.draggable()) {
-            dragTarget = dragTarget.parent().filter(p -> !p.equals(root())).orElse(null);
-        }
+        AbstractWidget dragTarget = draggableWidget(point);
         if (dragTarget != null) {
             dragManager().current(dragTarget);
             dragManager().dragging(false);
@@ -297,9 +312,6 @@ public abstract class AbstractScreen extends Screen implements GuiManager, IMana
             return super.mouseReleased(pMouseX, pMouseY, pButton);
         }
         Point point = new Point(pMouseX, pMouseY);
-        AbstractWidget topMost = clickedWidget(point);
-        if (topMost != null)
-            LOGGER.trace("mouseReleased on {}, zIndex: {}, calculated zIndex: {}", topMost.name(), topMost.zIndex(), AbstractWidget.zIndexOf(topMost));
         // drag
         if (dragManager().current() != null) {
             if (dragManager().dragging()) {
@@ -309,6 +321,9 @@ public abstract class AbstractScreen extends Screen implements GuiManager, IMana
             }
             dragManager().current(null);
         }
+        AbstractWidget topMost = clickedWidget(point);
+        if (topMost != null)
+            LOGGER.trace("mouseReleased on {}, zIndex: {}", topMost.name(), topMost.zIndex());
 
         // released & clicked
         boolean result = false;
@@ -340,7 +355,7 @@ public abstract class AbstractScreen extends Screen implements GuiManager, IMana
         }
         Point mousePoint = new Point(pMouseX, pMouseY);
         Point dragPoint = new Point(pDragX, pDragY);
-        AbstractWidget topMost = clickedWidget(mousePoint);
+        AbstractWidget topMost = draggableWidget(mousePoint);
         if (dragManager().current() != null && !dragManager().dragging()) {
             dragManager().startDragging(topMost);
             return handleDragStarted(topMost, mousePoint, dragPoint, pButton);
@@ -394,7 +409,7 @@ public abstract class AbstractScreen extends Screen implements GuiManager, IMana
 
     @Override
     public @Nullable ComponentPath nextFocusPath(@NotNull FocusNavigationEvent pEvent) {
-        List<AbstractWidget> focusElements = widgets(root()).stream()
+        List<AbstractWidget> focusElements = widgets().stream()
                 .filter(AbstractWidget::focusable)
                 .sorted(Comparator.comparingInt(AbstractWidget::tabIndex))
                 .toList();

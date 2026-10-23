@@ -110,34 +110,6 @@ public abstract class AbstractContainer extends AbstractWidget {
         return new Button.Builder(this);
     }
 
-    public Container.Builder addContainer() {
-        return new Container.Builder(this);
-    }
-
-    public Icon.Builder addIcon() {
-        return new Icon.Builder(this);
-    }
-
-    public IconButton.Builder addIconButton() {
-        return new IconButton.Builder(this);
-    }
-
-    public ItemIcon.Builder addItemIcon() {
-        return new ItemIcon.Builder(this);
-    }
-
-    public ProgressBar.Builder addProgressBar() {
-        return new ProgressBar.Builder(this);
-    }
-
-    public ScrollContainer.Builder addScrollContainer() {
-        return new ScrollContainer.Builder(this);
-    }
-
-    public TextBox.Builder addTextBox() {
-        return new TextBox.Builder(this);
-    }
-
     public List<AbstractWidget> children(Predicate<? super AbstractWidget> predicate) {
         return children().stream().filter(predicate).toList();
     }
@@ -189,7 +161,7 @@ public abstract class AbstractContainer extends AbstractWidget {
     }
 
     protected void renderChildren(ThemeGraphics graphics, Point pMouse, float pPartialTick) {
-        children().stream().sorted(Comparator.comparingInt(AbstractWidget::zIndexOf))
+        children().stream().sorted(Comparator.comparingInt(AbstractWidget::zIndex))
                 .forEach(child -> child.render(graphics, pMouse, pPartialTick));
     }
 

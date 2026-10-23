@@ -19,7 +19,7 @@ class WidgetDisplayTest {
         void testConstructorAlphaGreaterThanOne_Exception() {
             // When & Then
             IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                    () -> new WidgetDisplay(true, 1.2f, 5),
+                    () -> new WidgetDisplay(true, 1.2f, 5, 0),
                     "Constructor should throw an exception when alpha is greater than 1.");
             assertEquals("Alpha must be between 0 and 1", exception.getMessage(), "Unexpected exception message for " +
                     "invalid alpha.");
@@ -30,7 +30,7 @@ class WidgetDisplayTest {
         void testConstructorAlphaLessThanZero_Exception() {
             // When & Then
             IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                    () -> new WidgetDisplay(true, -0.1f, 5),
+                    () -> new WidgetDisplay(true, -0.1f, 5, 0),
                     "Constructor should throw an exception when alpha is less than 0.");
             assertEquals("Alpha must be between 0 and 1", exception.getMessage(), "Unexpected exception message for " +
                     "invalid alpha.");
@@ -41,7 +41,7 @@ class WidgetDisplayTest {
         void testConstructorZIndexNegative_Exception() {
             // When & Then
             IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                    () -> new WidgetDisplay(true, 0.5f, -1),
+                    () -> new WidgetDisplay(true, 0.5f, -1, 0),
                     "Constructor should throw an exception when Z-index is negative.");
             assertEquals("Z-Index must be greater than or equal to 0", exception.getMessage(), "Unexpected exception " +
                     "message for invalid Z-index.");
@@ -73,7 +73,7 @@ class WidgetDisplayTest {
         @DisplayName("Should return a new instance with visibility set to false")
         void testWithVisibleFalse_Success() {
             // Given
-            WidgetDisplay widget = new WidgetDisplay(true, 0.8f, 15);
+            WidgetDisplay widget = new WidgetDisplay(true, 0.8f, 15, 0);
 
             // When
             WidgetDisplay updatedWidget = widget.withVisible(false);
@@ -89,7 +89,7 @@ class WidgetDisplayTest {
         @DisplayName("Should return a new instance with visibility set to true")
         void testWithVisibleTrue_Success() {
             // Given
-            WidgetDisplay widget = new WidgetDisplay(false, 0.5f, 10);
+            WidgetDisplay widget = new WidgetDisplay(false, 0.5f, 10, 0);
 
             // When
             WidgetDisplay updatedWidget = widget.withVisible(true);

@@ -80,13 +80,17 @@ public abstract class AbstractWidget implements Renderable, Widget, ThemeRendera
         this.debugColor = Color.random();
     }
 
-    public static int zIndexOf(AbstractWidget widget) {
-        int zIndex = widget.zIndex() == DragManager.Z_MIN ? DragManager.Z_STEP : widget.zIndex();
-        return widget.parent().map(AbstractWidget::zIndexOf).orElse(0) + zIndex;
+    public int zOffset() {
+        return display().zOffset();
+    }
+
+    @SuppressWarnings("unused")
+    public void zOffset(int zOffset) {
+        display(display().withZOffset(zOffset));
     }
 
     public int zIndex() {
-        return display().zIndex();
+        return display().zIndex() + zOffset();
     }
 
     public WidgetDisplay display() {
@@ -181,6 +185,7 @@ public abstract class AbstractWidget implements Renderable, Widget, ThemeRendera
         return behavior().scrollable();
     }
 
+    @SuppressWarnings("unused")
     public void scrollable(boolean scrollable) {
         behavior(behavior().withScrollable(scrollable));
     }
@@ -310,25 +315,20 @@ public abstract class AbstractWidget implements Renderable, Widget, ThemeRendera
         pGuiGraphics.drawBox(rect, debugColor, zIndex() + 1);
     }
 
-    private int nextZIndex() {
-        return parent().map(abstractContainer -> abstractContainer.children().stream()
-                .mapToInt(AbstractWidget::zIndex).max()
-                .orElse(abstractContainer.zIndex()) + DragManager.Z_STEP).orElse(DragManager.Z_STEP);
-    }
-
     public Optional<AbstractContainer> parent() {
         return Optional.ofNullable(parent);
     }
 
     public void parent(AbstractContainer parent) {
         this.parent = parent;
-    }
-
-    public AbstractContainer parentOrThrow() {
-        if (parent == null) {
-            throw new IllegalStateException("Parent cannot be null");
-        }
-        return parent;
+        if (parent != null) {
+            zIndex(parent.zIndex() + DragManager.Z_STEP);
+            if (this instanceof AbstractContainer container) {
+                // We need to make sure all children get their zIndex updated now
+                container.children().forEach(w -> w.zIndex(zIndex() + DragManager.Z_STEP));
+            }
+        } else
+            zIndex(DragManager.Z_MIN);
     }
 
     public boolean pressable() {
@@ -372,10 +372,6 @@ public abstract class AbstractWidget implements Renderable, Widget, ThemeRendera
 
     private Component tooltip() {
         return tooltip;
-    }
-
-    private void tooltip(Component tooltip) {
-        this.tooltip = tooltip;
     }
 
     @SuppressWarnings("unused")
@@ -683,6 +679,15 @@ public abstract class AbstractWidget implements Renderable, Widget, ThemeRendera
             this.visible = visible;
             this.display = display.withVisible(visible);
             return self();
+        }
+
+        public T zOffset(int z) {
+            display = display.withZOffset(z);
+            return self();
+        }
+
+        public int zOffset() {
+            return display.zOffset();
         }
 
         public T zIndex(int z) {
