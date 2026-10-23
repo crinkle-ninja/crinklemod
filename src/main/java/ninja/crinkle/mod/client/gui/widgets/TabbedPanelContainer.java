@@ -1,6 +1,6 @@
 package ninja.crinkle.mod.client.gui.widgets;
 
-import ninja.crinkle.mod.client.gui.events.TabChangedEvent;
+import ninja.crinkle.mod.client.gui.actors.TabActor;
 import ninja.crinkle.mod.client.gui.managers.GuiManager;
 import ninja.crinkle.mod.client.gui.properties.Rect;
 import ninja.crinkle.mod.client.gui.properties.Sizing;
@@ -97,7 +97,7 @@ public class TabbedPanelContainer extends AbstractContainer {
                 .style(tabs.isEmpty() ? "tab_active" : "tab_inactive")
                 .minSize(tabWidth - 4 - (tabMargin * 2), btnHeight)
                 .horizontalSizing(Sizing.Fill)
-                .onClick((e, w) -> selectTab(index))
+                .onClick(w -> selectTab(index))
                 .pushAndReturn();
 
         // Create content container (initially hidden unless first tab)
@@ -113,7 +113,7 @@ public class TabbedPanelContainer extends AbstractContainer {
         tabs.add(entry);
 
         if (tabs.size() == 1) {
-            selectedIndex = 0;
+            selectTab(0);
         }
 
         return content;
@@ -136,9 +136,15 @@ public class TabbedPanelContainer extends AbstractContainer {
     }
 
     public void tabChanged() {
-        TabChangedEvent event = new TabChangedEvent(this,
-                tabs().get(selectedIndex()));
-        dispatchEvent(event);
+        TabbedPanelContainer.Entry tab = tabs().get(selectedIndex());
+        if (manager() instanceof TabActor actor) {
+            actor.onTabChanged(tab);
+        }
+        for (AbstractWidget widget : children()) {
+            if (widget instanceof TabActor actor) {
+                actor.onTabChanged(tab);
+            }
+        }
     }
 
     public List<Entry> tabs() {

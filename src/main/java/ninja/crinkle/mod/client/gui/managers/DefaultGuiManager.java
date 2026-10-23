@@ -5,13 +5,11 @@ import ninja.crinkle.mod.client.gui.widgets.Container;
 
 public class DefaultGuiManager implements GuiManager {
     private final DragManager dragManager;
-    private final EventManager eventManager;
     private final FocusManager focusManager;
     private final Container root;
 
     public DefaultGuiManager(int width, int height) {
-        this.eventManager = new EventManager();
-        this.dragManager = new DragManager(this.eventManager);
+        this.dragManager = new DragManager();
         this.focusManager = new FocusManager();
         this.root = new Container.Builder(this)
                 .name("root")
@@ -23,11 +21,6 @@ public class DefaultGuiManager implements GuiManager {
     @Override
     public DragManager dragManager() {
         return dragManager;
-    }
-
-    @Override
-    public EventManager eventManager() {
-        return eventManager;
     }
 
     @Override

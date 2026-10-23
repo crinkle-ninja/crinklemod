@@ -55,7 +55,6 @@ public class LayoutEditorScreen extends AbstractScreen implements IManagedGUI {
         }
         // Restore the parent screen instead of closing to null
         if (parentScreen != null) {
-            eventManager().clear();
             Minecraft.getInstance().setScreen(parentScreen);
         } else {
             super.onClose();
@@ -84,7 +83,6 @@ public class LayoutEditorScreen extends AbstractScreen implements IManagedGUI {
             editorWidgets.put(entry.id(), widget);
         }
 
-        // Toolbar: PanelContainer > VBoxContainer > children
         toolbar = new PanelContainer.Builder(root())
                 .margins(8)
                 .name("layout_toolbar")
@@ -109,7 +107,7 @@ public class LayoutEditorScreen extends AbstractScreen implements IManagedGUI {
                 .text("Save")
                 .name("layout_save")
                 .minSize(92, 20)
-                .onClick((event, btn) -> save())
+                .onClick(w -> save())
                 .push();
 
         new Button.Builder(column)
@@ -117,22 +115,19 @@ public class LayoutEditorScreen extends AbstractScreen implements IManagedGUI {
                 .text("Cancel")
                 .name("layout_cancel")
                 .minSize(92, 20)
-                .onClick((event, btn) -> cancel())
+                .onClick(w -> cancel())
                 .push();
 
         root().add(toolbar);
 
         super.init();
 
-        // Position toolbar — resolve saved position or default to top-center
         int tw = toolbar.minimumWidth();
         int th = toolbar.minimumHeight();
         Rect defaultToolbar = new Rect(width / 2 - tw / 2, 10, tw, th);
         toolbar.setRect(LayoutRegistry.resolvePosition(TOOLBAR_ID, width, height, tw, th)
                 .orElse(defaultToolbar));
 
-        // Position widgets AFTER super.init() so arrange() doesn't overwrite them.
-        // Use the live widget's rect as the source of truth for dimensions.
         for (LayoutRegistry.Entry entry : LayoutRegistry.entries(source)) {
             positionWidget(entry);
         }

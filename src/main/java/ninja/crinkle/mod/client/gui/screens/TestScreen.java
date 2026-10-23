@@ -50,7 +50,7 @@ public class TestScreen extends AbstractScreen {
                         .name("button" + i + p)
                         .style(themes[i])
                         .text("Button " + i + p)
-                        .onClick((event, widget) -> LOGGER.info("Button {} clicked", widget.name()))
+                        .onClick(w -> LOGGER.info("Button {} clicked", w.name()))
                         .minSize(btnWidth, height)
                         .horizontalSizing(Sizing.Expand, Sizing.Fill)
                         .pushAndReturn();

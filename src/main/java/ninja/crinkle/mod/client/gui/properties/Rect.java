@@ -21,6 +21,10 @@ public record Rect(int x, int y, int width, int height) {
         return px >= x && px < x + width && py >= y && py < y + height;
     }
 
+    public boolean contains(Point point) {
+        return contains(point.x(), point.y());
+    }
+
     public int right() {
         return x + width;
     }
