@@ -440,6 +440,7 @@ public abstract class AbstractScreen extends Screen implements GuiManager, IMana
             if (hoveredWidget != null) {
                 hovered(hoveredWidget);
                 hoveredWidget.hovered(true);
+                LOGGER.trace("mouseMoved, hovering over {}", hoveredWidget.name());
             }
             if (focusedWidget() instanceof MouseActor action) {
                 action.onMoved(mousePoint);

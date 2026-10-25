@@ -1,6 +1,6 @@
 package ninja.crinkle.mod.client.gui.screens;
 
-import com.mojang.logging.LogUtils;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.network.chat.Component;
@@ -20,14 +20,12 @@ import ninja.crinkle.mod.undergarment.DiaperDesignRegistry;
 import ninja.crinkle.mod.undergarment.Undergarment;
 import ninja.crinkle.mod.util.ClientUtil;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class CrinkleModConfigScreen extends AbstractScreen implements TabActor {
     private final Player player;
-    private Label errorLabel;
     private Label tabTitle;
     private TabbedPanelContainer tabs;
     private CenterContainer titleRow;
@@ -76,6 +74,7 @@ public class CrinkleModConfigScreen extends AbstractScreen implements TabActor {
                 .separation(2)
                 .style("panel")
                 .draggable(true)
+                .focusable(true)
                 .horizontalSizing(Sizing.ShrinkCenter)
                 .verticalSizing(Sizing.ShrinkCenter)
                 .pushAndReturn();
@@ -144,25 +143,6 @@ public class CrinkleModConfigScreen extends AbstractScreen implements TabActor {
             buildUndergarmentTab(tabs.addTab("undergarment", itemStack.getDisplayName().getString()), rowHeight, itemStack);
         }
 
-        MarginContainer labelContainer = new MarginContainer.Builder(window)
-                .name("info.container")
-                .margins(4)
-                .minSize(290, fontHeight + 8)
-                .style("textbox")
-                .horizontalSizing(Sizing.ShrinkCenter)
-                .verticalSizing(Sizing.ShrinkCenter)
-                .visible(true)
-                .build();
-        errorLabel = new Label.Builder(window)
-                .name("error.label")
-                .minSize(0, fontHeight + 6)
-                .horizontalSizing(Sizing.ShrinkCenter)
-                .verticalSizing(Sizing.ShrinkCenter)
-                .color(Color.RED)
-                .build();
-        labelContainer.add(errorLabel);
-        window.add(labelContainer);
-
         // Footer
         MarginContainer footerMargin = new MarginContainer.Builder(window)
                 .margins(4)
@@ -200,14 +180,6 @@ public class CrinkleModConfigScreen extends AbstractScreen implements TabActor {
     public void onTabChanged(TabbedPanelContainer.@NotNull Entry tab) {
         tabTitle.text(tab.tabButton().text().text());
         titleRow.arrange();
-    }
-
-    @Override
-    public void tick() {
-        super.tick();
-        List<String> errors = MetabolismTab.Wet.errors();
-        errors.addAll(MetabolismTab.Mess.errors());
-        errorLabel.text(String.join(" ", errors));
     }
 
     private void buildUndergarmentTab(VBoxContainer parent, int rowHeight, ItemStack itemStack) {
@@ -389,9 +361,7 @@ public class CrinkleModConfigScreen extends AbstractScreen implements TabActor {
         Mess(MetabolismSettings.MESS);
 
         private final MetabolismSettings settings;
-        private final List<String> errors = new ArrayList<>();
         private final Map<Setting<?>, TextBox> valueBoxes = new HashMap<>();
-        private static final Logger LOGGER = LogUtils.getLogger();
         private Button enableButton;
 
         MetabolismTab(MetabolismSettings setting) {
@@ -409,6 +379,7 @@ public class CrinkleModConfigScreen extends AbstractScreen implements TabActor {
                     .separation(4)
                     .minSize(0, rowHeight)
                     .horizontalSizing(Sizing.Fill)
+                    .hoverable(true)
                     .verticalSizing(Sizing.ShrinkBegin)
                     .pushAndReturn();
 
@@ -425,6 +396,7 @@ public class CrinkleModConfigScreen extends AbstractScreen implements TabActor {
                     .verticalSizing(Sizing.Fill)
                     .pushAndReturn();
 
+            List<String> errors = new ArrayList<>();
             final TextBox valueBox = new TextBox.Builder(controls)
                     .name("%s.control.textbox".formatted(setting.key()))
                     .style("config.value.textbox")
@@ -434,19 +406,29 @@ public class CrinkleModConfigScreen extends AbstractScreen implements TabActor {
                     .horizontalSizing(Sizing.ShrinkCenter)
                     .verticalSizing(Sizing.Expand)
                     .onTextChanged(v -> {
-                        errors().clear();
+                        errors.clear();
+                        rowContainer.tooltip(null);
                         try {
                             if (setting instanceof Setting.DoubleValue dv) {
                                 double value = Double.parseDouble(v);
-                                setValue(dv, value);
+                                errors.addAll(setValue(dv, value));
                             } else if (setting instanceof Setting.IntValue iv) {
                                 int value = Integer.parseInt(v);
-                                setValue(iv, value);
+                                errors.addAll(setValue(iv, value));
                             }
                         } catch (NumberFormatException numberFormatException) {
-                            errors().add(Component.translatable("validation.crinklemod.metabolism.failure.invalid.general",
+                            errors.add(Component.translatable("validation.crinklemod.metabolism.failure.invalid.general",
                                     v, setting.displayName()).getString());
-                            return false;
+                        }
+                        if (!errors.isEmpty()) {
+                            List<Component> lines = new ArrayList<>();
+                            lines.add(Component.literal("Errors found:").withStyle(ChatFormatting.WHITE));
+                            for (String error : errors) {
+                                if (error.isBlank()) continue;
+                                lines.add(Component.translatable(error).withStyle(ChatFormatting.RED));
+                            }
+                            rowContainer.tooltip(lines);
+                            return true;
                         }
                         return true;
                     })
@@ -459,12 +441,14 @@ public class CrinkleModConfigScreen extends AbstractScreen implements TabActor {
                     .text("-")
                     .minSize(20, rowHeight)
                     .onClick(w -> {
+                        errors.clear();
+                        rowContainer.tooltip(null);
                         if (setting instanceof Setting.DoubleValue dv) {
                             double value = metabolism().getAsDouble(dv);
-                            setValue(dv, dv.subtract(value, modifierValue(dv)));
+                            errors.addAll(setValue(dv, dv.subtract(value, modifierValue(dv))));
                         } else if (setting instanceof Setting.IntValue iv) {
                             int value = metabolism().getAsInt(iv);
-                            setValue(iv, iv.subtract(value, modifierValue(iv)));
+                            errors.addAll(setValue(iv, iv.subtract(value, modifierValue(iv))));
                         }
                         valueBox.value(metabolism().getAsString(setting));
                     })
@@ -477,12 +461,14 @@ public class CrinkleModConfigScreen extends AbstractScreen implements TabActor {
                     .text("+")
                     .minSize(20, rowHeight)
                     .onClick(w -> {
+                        errors.clear();
+                        rowContainer.tooltip(null);
                         if (setting instanceof Setting.DoubleValue dv) {
                             double value = metabolism().getAsDouble(dv);
-                            setValue(dv, dv.add(value, modifierValue(dv)));
+                            errors.addAll(setValue(dv, dv.add(value, modifierValue(dv))));
                         } else if (setting instanceof Setting.IntValue iv) {
                             int value = metabolism().getAsInt(iv);
-                            setValue(iv, iv.add(value, modifierValue(iv)));
+                            errors.addAll(setValue(iv, iv.add(value, modifierValue(iv))));
                         }
                         valueBox.value(metabolism().getAsString(setting));
                     })
@@ -492,15 +478,25 @@ public class CrinkleModConfigScreen extends AbstractScreen implements TabActor {
             controls.add(minus);
             controls.add(valueBox);
             controls.add(plus);
+
+            new Label.Builder(controls).text("?")
+                    .tooltip(Collections.singletonList(setting.tooltip()))
+                    .hoverable(true)
+                    .pushAndReturn();
+
+            new Label.Builder(controls).text("*")
+                    .visiblePredicate(w -> !errors.isEmpty())
+                    .color(Color.RED).pushAndReturn();
         }
 
-        private <T extends Comparable<? super T>> void setValue(Setting<T> setting, T value) {
-            errors().clear();
+        private <T extends Comparable<? super T>> List<String> setValue(Setting<T> setting, T value) {
+            List<String> errors = new ArrayList<>();
             if (setting.isValid(value)) {
                 metabolism().setValue(setting, value);
             } else {
-                errors().add(setting.errors(value).stream().map(Component::getString).collect(Collectors.joining(" ")));
+                errors.add(setting.errors(value).stream().map(Component::getString).collect(Collectors.joining(" ")));
             }
+            return errors;
         }
 
         void buildTab(VBoxContainer parent, int rowHeight) {
@@ -549,10 +545,6 @@ public class CrinkleModConfigScreen extends AbstractScreen implements TabActor {
             if (hasAltDown()) modifierValues.add(Setting.ModifierValue.Alt);
             if (modifierValues.isEmpty()) modifierValues.add(Setting.ModifierValue.None);
             return setting.modifierValue(modifierValues);
-        }
-
-        public List<String> errors() {
-            return errors;
         }
 
         private void onReset() {

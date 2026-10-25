@@ -158,6 +158,12 @@ public abstract class AbstractContainer extends AbstractWidget {
         graphics.enableScissor(r.x(), r.y(), r.right(), r.bottom());
         renderChildren(graphics, pMouse, pPartialTick);
         graphics.disableScissor();
+        renderTooltips(graphics, pMouse);
+    }
+
+    private void renderTooltips(ThemeGraphics graphics, Point pMouse) {
+        children().stream().sorted(Comparator.comparingInt(AbstractWidget::zIndex))
+                .forEach(child -> child.renderTooltip(graphics, pMouse));
     }
 
     protected void renderChildren(ThemeGraphics graphics, Point pMouse, float pPartialTick) {

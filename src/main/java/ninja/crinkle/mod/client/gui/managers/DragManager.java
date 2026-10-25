@@ -7,9 +7,10 @@ import ninja.crinkle.mod.client.gui.widgets.AbstractWidget;
 import org.slf4j.Logger;
 
 public class DragManager {
-    public static final int Z_MAX = Integer.MAX_VALUE - 1;
     public static final int Z_MIN = 0;
-    public static final int Z_STEP = 10;
+    public static final int Z_STEP = 1;
+    public static final int Z_MAX = Z_STEP * 64;
+    public static final int Z_MODAL = Z_MAX / 2;
     private static final Logger LOGGER = LogUtils.getLogger();
     private AbstractWidget current;
     private boolean dragging;

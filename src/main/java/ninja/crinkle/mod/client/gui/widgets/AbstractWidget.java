@@ -21,7 +21,6 @@ import ninja.crinkle.mod.client.gui.themes.StyleVariant;
 import ninja.crinkle.mod.client.gui.themes.Theme;
 import ninja.crinkle.mod.client.gui.themes.ThemeRegistry;
 import ninja.crinkle.mod.config.ClientConfig;
-import ninja.crinkle.mod.util.ClientUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,6 +30,7 @@ import java.util.function.Predicate;
 public abstract class AbstractWidget implements Renderable, Widget, ThemeRenderable, GuiEventListener {
     private final GuiManager manager;
     private Predicate<AbstractWidget> activePredicate;
+    private Predicate<AbstractWidget> visiblePredicate;
     private WidgetBehavior behavior;
     private WidgetDisplay display;
     private EnumSet<Sizing> horizontalSizing;
@@ -44,10 +44,11 @@ public abstract class AbstractWidget implements Renderable, Widget, ThemeRendera
     private final int tabIndex;
     private EnumSet<Sizing> verticalSizing;
     private final Color debugColor;
-    private Component tooltip;
+    private List<Component> tooltip;
 
     protected AbstractWidget(@NotNull AbstractBuilder<?> builder) {
         this.activePredicate = builder.activePredicate();
+        this.visiblePredicate = builder.visiblePredicate();
         this.name = builder.name();
         this.styleId = builder.styleId();
         this.tabIndex = builder.tabIndex();
@@ -66,6 +67,7 @@ public abstract class AbstractWidget implements Renderable, Widget, ThemeRendera
 
     public AbstractWidget() {
         this.activePredicate = null;
+        this.visiblePredicate = null;
         this.name = "Unnamed_" + hashCode();
         this.tabIndex = 0;
         this.manager = GuiManager.create();
@@ -78,6 +80,16 @@ public abstract class AbstractWidget implements Renderable, Widget, ThemeRendera
         this.verticalSizing = EnumSet.of(Sizing.Fill);
         this.stretchRatio = 1.0f;
         this.debugColor = Color.random();
+    }
+
+    @SuppressWarnings("unused")
+    public Predicate<AbstractWidget> visiblePredicate() {
+        return visiblePredicate;
+    }
+
+    @SuppressWarnings("unused")
+    public void visiblePredicate(Predicate<AbstractWidget> visiblePredicate) {
+        this.visiblePredicate = visiblePredicate;
     }
 
     public int zOffset() {
@@ -356,6 +368,12 @@ public abstract class AbstractWidget implements Renderable, Widget, ThemeRendera
         render(new ThemeGraphics(graphics, ThemeAtlas.getAtlas(), ThemeRegistry.current()), new Point(pMouseX, pMouseY), pPartialTick);
     }
 
+    public void renderTooltip(@NotNull ThemeGraphics graphics, Point pMouse) {
+        if (hovered() && tooltip() != null && !tooltip().isEmpty()) {
+            graphics.renderTooltip(tooltip(), Point.of(pMouse.xInt(), pMouse.yInt()));
+        }
+    }
+
     @Override
     public void render(@NotNull ThemeGraphics graphics, Point pMouse, float pPartialTick) {
         if (!visible() || rect == null || rect.equals(Rect.ZERO)) return;
@@ -365,12 +383,13 @@ public abstract class AbstractWidget implements Renderable, Widget, ThemeRendera
         if (ClientConfig.debug()) {
             renderDebug(graphics);
         }
-        if (hovered() && tooltip() != null) {
-            graphics.renderTooltip(ClientUtil.getMinecraft().font, tooltip(), pMouse.xInt(), pMouse.yInt());
-        }
     }
 
-    private Component tooltip() {
+    public void tooltip(List<Component> tooltip) {
+        this.tooltip = tooltip;
+    }
+
+    public List<Component> tooltip() {
         return tooltip;
     }
 
@@ -427,7 +446,8 @@ public abstract class AbstractWidget implements Renderable, Widget, ThemeRendera
     }
 
     public boolean visible() {
-        return this.display.visible() && (parent().isPresent() && parent().get().visible() || parent().isEmpty());
+        boolean result = visiblePredicate == null || visiblePredicate.test(this);
+        return result && this.display.visible() && (parent().isPresent() && parent().get().visible() || parent().isEmpty());
     }
 
     public void visible(boolean visible) {
@@ -461,9 +481,10 @@ public abstract class AbstractWidget implements Renderable, Widget, ThemeRendera
         private float stretchRatio = 1.0f;
         private String styleId = null;
         private int tabIndex = 0;
-        private Component tooltip;
+        private List<Component> tooltip;
         private EnumSet<Sizing> verticalSizing = EnumSet.of(Sizing.Fill);
         private boolean visible = true;
+        private Predicate<AbstractWidget> visiblePredicate;
 
         protected AbstractBuilder(GuiManager manager) {
             this.manager = manager;
@@ -653,12 +674,12 @@ public abstract class AbstractWidget implements Renderable, Widget, ThemeRendera
             return self();
         }
 
-        public T tooltip(Component tooltip) {
+        public T tooltip(List<Component> tooltip) {
             this.tooltip = tooltip;
             return self();
         }
 
-        public Component tooltip() {
+        public List<Component> tooltip() {
             return this.tooltip;
         }
 
@@ -679,6 +700,15 @@ public abstract class AbstractWidget implements Renderable, Widget, ThemeRendera
             this.visible = visible;
             this.display = display.withVisible(visible);
             return self();
+        }
+
+        public T visiblePredicate(Predicate<AbstractWidget> predicate) {
+            this.visiblePredicate = predicate;
+            return self();
+        }
+
+        public Predicate<AbstractWidget> visiblePredicate() {
+            return this.visiblePredicate;
         }
 
         public T zOffset(int z) {

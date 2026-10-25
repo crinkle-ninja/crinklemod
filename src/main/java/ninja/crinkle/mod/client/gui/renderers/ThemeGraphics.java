@@ -22,12 +22,14 @@ import org.joml.Matrix4f;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.List;
 
 @SuppressWarnings("unused")
 public class ThemeGraphics extends GuiGraphics {
     private final Atlas atlas;
     private final GuiGraphics graphics;
     private final Deque<Rect> scissorStack = new ArrayDeque<>();
+    @SuppressWarnings("FieldCanBeLocal")
     private Rect scissorRect;
     private final Theme currentTheme;
 
@@ -42,11 +44,17 @@ public class ThemeGraphics extends GuiGraphics {
         return currentTheme;
     }
 
-    public void renderTooltip(Component tooltip, Point mouse) {
-        disableScissor();
-        graphics().renderTooltip(ClientUtil.getMinecraft().font, tooltip, mouse.xInt(), mouse.yInt());
-        if (scissorRect != null)
-            enableScissor(scissorRect.x(), scissorRect.y(), scissorRect.right(), scissorRect.bottom());
+    public void renderTooltip(List<Component> tooltip, Point mouse) {
+        GL11.glDisable(GL11.GL_SCISSOR_TEST);
+        graphics().renderComponentTooltip(ClientUtil.getMinecraft().font, tooltip, mouse.xInt(), mouse.yInt());
+        graphics().flush();
+        if (!scissorStack.isEmpty()) {
+            GL11.glEnable(GL11.GL_SCISSOR_TEST);
+        }
+    }
+
+    private void enableScissor(Rect scissorRect) {
+        enableScissor(scissorRect.x(), scissorRect.y(), scissorRect.right(), scissorRect.height());
     }
 
     public void enableScissor(int x1, int y1, int x2, int y2) {
@@ -57,6 +65,10 @@ public class ThemeGraphics extends GuiGraphics {
     }
 
     public void disableScissor() {
+        if (scissorStack.isEmpty()) {
+            GL11.glDisable(GL11.GL_SCISSOR_TEST);
+            return;
+        }
         scissorStack.pop();
         if (scissorStack.isEmpty()) {
             GL11.glDisable(GL11.GL_SCISSOR_TEST);

@@ -21,6 +21,10 @@ public class Button extends MarginContainer implements MouseActor {
                 .text(builder.text())
                 .pushAndReturn();
         this.onClick = builder.onClick();
+        setMargins();
+    }
+
+    private void setMargins() {
         margins(Optional.ofNullable(style())
                         .map(s -> s.variant(Style.Variant.active))
                         .map(StyleVariant::backgroundTexture)
@@ -45,6 +49,13 @@ public class Button extends MarginContainer implements MouseActor {
                         .map(t -> t.boundsOf(Texture.Slice.Location.left)
                                 .width())
                         .orElse(0) + marginLeft());
+    }
+
+    @Override
+    protected void copyVisualProperties(AbstractWidget source) {
+        super.copyVisualProperties(source);
+        if (source instanceof MarginContainer m)
+            margins(m.marginTop(), m.marginRight(), m.marginBottom(), m.marginLeft());
     }
 
     @Override

@@ -75,9 +75,6 @@ public class LayoutEditorScreen extends AbstractScreen implements IManagedGUI {
             widget.draggable(true);
             widget.active(true);
             widget.visible(true);
-            // Prevent arrange() from expanding this widget to fill the root
-            widget.horizontalSizing(Sizing.ShrinkBegin);
-            widget.verticalSizing(Sizing.ShrinkBegin);
 
             root().add(widget);
             editorWidgets.put(entry.id(), widget);
