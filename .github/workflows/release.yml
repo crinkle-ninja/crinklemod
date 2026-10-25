@@ -32,6 +32,7 @@ jobs:
         with:
           github-token: ${{ secrets.github_token }}
           auto-version-bump: true
+          auto-version-bump-mode: patch
           git-committer: 'BOT'
       - name: Build Jar
         run: ./gradlew jar
