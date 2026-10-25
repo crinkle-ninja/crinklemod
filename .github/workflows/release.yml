@@ -31,7 +31,7 @@ jobs:
         uses: crinkle-ninja/version-bump-action@v9
         with:
           github-token: ${{ secrets.github_token }}
-          auto-version-bump: false
+          auto-version-bump: true
           git-committer: 'BOT'
       - name: Build Jar
         run: ./gradlew jar
