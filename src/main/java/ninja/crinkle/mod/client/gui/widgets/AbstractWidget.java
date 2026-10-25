@@ -1,17 +1,12 @@
 package ninja.crinkle.mod.client.gui.widgets;
 
-import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Renderable;
-import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.components.events.GuiEventListener;
-import net.minecraft.client.gui.screens.inventory.tooltip.TooltipRenderUtil;
 import net.minecraft.network.chat.Component;
 import ninja.crinkle.mod.client.color.Color;
 import ninja.crinkle.mod.client.gui.builders.GenericBuilder;
-import ninja.crinkle.mod.client.gui.events.*;
 import ninja.crinkle.mod.client.gui.managers.DragManager;
-import ninja.crinkle.mod.client.gui.managers.EventManager;
 import ninja.crinkle.mod.client.gui.managers.GuiManager;
 import ninja.crinkle.mod.client.gui.properties.Point;
 import ninja.crinkle.mod.client.gui.properties.Rect;
@@ -26,42 +21,38 @@ import ninja.crinkle.mod.client.gui.themes.StyleVariant;
 import ninja.crinkle.mod.client.gui.themes.Theme;
 import ninja.crinkle.mod.client.gui.themes.ThemeRegistry;
 import ninja.crinkle.mod.config.ClientConfig;
-import ninja.crinkle.mod.util.ClientUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Predicate;
 
-public abstract class AbstractWidget implements Renderable, Widget, EventNode,
-        ThemeRenderable, GuiEventListener {
+public abstract class AbstractWidget implements Renderable, Widget, ThemeRenderable, GuiEventListener {
     private final GuiManager manager;
     private Predicate<AbstractWidget> activePredicate;
+    private Predicate<AbstractWidget> visiblePredicate;
     private WidgetBehavior behavior;
     private WidgetDisplay display;
-    private double dragAccumX;
-    private double dragAccumY;
     private EnumSet<Sizing> horizontalSizing;
     private int minHeight;
     private int minWidth;
     private String name;
     private AbstractContainer parent;
-    private int priority;
     private Rect rect = Rect.ZERO;
     private float stretchRatio;
     private String styleId;
-    private int tabIndex;
+    private final int tabIndex;
     private EnumSet<Sizing> verticalSizing;
-    private Color debugColor;
-    private Component tooltip;
+    private final Color debugColor;
+    private List<Component> tooltip;
 
     protected AbstractWidget(@NotNull AbstractBuilder<?> builder) {
         this.activePredicate = builder.activePredicate();
+        this.visiblePredicate = builder.visiblePredicate();
         this.name = builder.name();
         this.styleId = builder.styleId();
         this.tabIndex = builder.tabIndex();
         this.manager = builder.manager();
-        this.priority = builder.priority();
         this.parent = builder.parent();
         this.display = builder.display();
         this.behavior = builder.behavior();
@@ -72,24 +63,14 @@ public abstract class AbstractWidget implements Renderable, Widget, EventNode,
         this.stretchRatio = builder.stretchRatio();
         this.debugColor = Color.random();
         this.tooltip = builder.tooltip();
-
-        if (builder.zIndex() == DragManager.Z_MIN) {
-            parent().filter(p -> !p.equals(this)).ifPresent(p -> zIndex(nextZIndex()));
-        }
-
-        if (builder.priority() == 0) {
-            parent().filter(p -> !p.equals(this)).ifPresent(p -> priority(nextPriority()));
-        }
-
-        registerEventHandlers();
     }
 
     public AbstractWidget() {
         this.activePredicate = null;
+        this.visiblePredicate = null;
         this.name = "Unnamed_" + hashCode();
         this.tabIndex = 0;
         this.manager = GuiManager.create();
-        this.priority = 1;
         this.parent = null;
         this.display = new WidgetDisplay();
         this.behavior = new WidgetBehavior();
@@ -101,12 +82,27 @@ public abstract class AbstractWidget implements Renderable, Widget, EventNode,
         this.debugColor = Color.random();
     }
 
-    public static int zIndexOf(AbstractWidget widget) {
-        return widget.zIndex();
+    @SuppressWarnings("unused")
+    public Predicate<AbstractWidget> visiblePredicate() {
+        return visiblePredicate;
+    }
+
+    @SuppressWarnings("unused")
+    public void visiblePredicate(Predicate<AbstractWidget> visiblePredicate) {
+        this.visiblePredicate = visiblePredicate;
+    }
+
+    public int zOffset() {
+        return display().zOffset();
+    }
+
+    @SuppressWarnings("unused")
+    public void zOffset(int zOffset) {
+        display(display().withZOffset(zOffset));
     }
 
     public int zIndex() {
-        return display().zIndex();
+        return display().zIndex() + zOffset();
     }
 
     public WidgetDisplay display() {
@@ -129,19 +125,6 @@ public abstract class AbstractWidget implements Renderable, Widget, EventNode,
 
     public void active(Predicate<AbstractWidget> activePredicate) {
         this.activePredicate = activePredicate;
-    }
-
-    public void addListener(EventNode listener) {
-        eventManager().addListener(listener);
-    }
-
-    @Override
-    public EventManager eventManager() {
-        return manager().eventManager();
-    }
-
-    public int priority() {
-        return priority;
     }
 
     public GuiManager manager() {
@@ -199,7 +182,7 @@ public abstract class AbstractWidget implements Renderable, Widget, EventNode,
                 source.behavior.draggable(), false, false, false, false,
                 source.behavior.active(), source.behavior.focusable(),
                 source.behavior.hoverable(), source.behavior.pressable(),
-                source.behavior.repositionable());
+                source.behavior.repositionable(), source.behavior.scrollable());
     }
 
     public boolean draggable() {
@@ -210,24 +193,23 @@ public abstract class AbstractWidget implements Renderable, Widget, EventNode,
         behavior(behavior().withDraggable(draggable));
     }
 
+    public boolean scrollable() {
+        return behavior().scrollable();
+    }
+
+    @SuppressWarnings("unused")
+    public void scrollable(boolean scrollable) {
+        behavior(behavior().withScrollable(scrollable));
+    }
+
     public void behavior(WidgetBehavior behavior) {
         final WidgetBehavior previous = this.behavior();
         if (previous.equals(behavior)) return;
         this.behavior = behavior;
-        behaviorChanged(previous);
     }
 
     public WidgetBehavior behavior() {
         return behavior;
-    }
-
-    public void behaviorChanged(WidgetBehavior previous) {
-        BehaviorChangedEvent event = new BehaviorChangedEvent(this, behavior(), previous);
-        dispatchEvent(event);
-    }
-
-    public void dispatchEvent(AbstractEvent event) {
-        eventManager().dispatchEvent(event);
     }
 
     public boolean dragged() {
@@ -247,7 +229,7 @@ public abstract class AbstractWidget implements Renderable, Widget, EventNode,
                 Objects.equals(this.name, that.name) &&
                 Objects.equals(this.styleId, that.styleId) &&
                 this.tabIndex == that.tabIndex &&
-                this.priority == that.priority &&
+                this.zIndex() == that.zIndex() &&
                 Objects.equals(this.parent, that.parent) &&
                 Objects.equals(this.display, that.display) &&
                 Objects.equals(this.behavior, that.behavior) &&
@@ -260,7 +242,7 @@ public abstract class AbstractWidget implements Renderable, Widget, EventNode,
     }
 
     public boolean focusable() {
-        return behavior().focusable();
+        return behavior().focusable() && visible();
     }
 
     @SuppressWarnings("unused")
@@ -269,14 +251,7 @@ public abstract class AbstractWidget implements Renderable, Widget, EventNode,
     }
 
     public void focused(boolean focused) {
-        if (focused != focused()) {
-            if (focused) {
-                dispatchEvent(new FocusEnteredEvent(this, true, this));
-            } else {
-                dispatchEvent(new FocusLeftEvent(this, false, this));
-            }
-        }
-        behavior(behavior().withFocused(focused && active() && visible()));
+        behavior(behavior().withFocused(focused));
     }
 
     public boolean focused() {
@@ -291,7 +266,7 @@ public abstract class AbstractWidget implements Renderable, Widget, EventNode,
         this.horizontalSizing = Sizing.of(flags);
     }
 
-    private boolean hoverable() {
+    public boolean hoverable() {
         return behavior().hoverable();
     }
 
@@ -305,13 +280,9 @@ public abstract class AbstractWidget implements Renderable, Widget, EventNode,
     }
 
     public void hovered(boolean hovered) {
-        if (!behavior().hoverable())
+        if (!behavior().hoverable() || !behavior().active())
             return;
-        if (hovered != hovered()) {
-            Point mouse = ClientUtil.getMousePosition();
-            dispatchEvent(new HoverEvent(this, mouse.x(), mouse.y(), hovered));
-        }
-        behavior(behavior().withHovered(hovered && active() && visible()));
+        behavior(behavior().withHovered(hovered));
     }
 
     protected void init() {
@@ -356,116 +327,20 @@ public abstract class AbstractWidget implements Renderable, Widget, EventNode,
         pGuiGraphics.drawBox(rect, debugColor, zIndex() + 1);
     }
 
-    private int nextPriority() {
-        return parent().map(abstractContainer -> abstractContainer.children().stream()
-                        .mapToInt(AbstractWidget::priority).max()
-                        .orElse(abstractContainer.priority()) - EventManager.PRIORITY_STEP)
-                .orElse(EventManager.PRIORITY_STEP);
-    }
-
-    private int nextZIndex() {
-        return parent().map(abstractContainer -> abstractContainer.children().stream()
-                .mapToInt(AbstractWidget::zIndex).max()
-                .orElse(abstractContainer.zIndex()) + DragManager.Z_STEP).orElse(DragManager.Z_STEP);
-    }
-
-    public void onDrag(DragEvent event) {
-        if (event.cancelled()) return;
-        if (!dragged()) return;
-        dragAccumX += event.dragX();
-        dragAccumY += event.dragY();
-        int dx = (int) dragAccumX;
-        int dy = (int) dragAccumY;
-        if (dx == 0 && dy == 0) return;
-        dragAccumX -= dx;
-        dragAccumY -= dy;
-        Rect old = rect;
-        setRect(new Rect(rect.x() + dx, rect.y() + dy, rect.width(), rect.height()));
-        if (rect.equals(old)) return;
-        event.consumer(this);
-    }
-
-    public void onDragStarted(DragStartedEvent event) {
-        if (event.cancelled()) return;
-        if (event.widget() == this) {
-            dragAccumX = 0;
-            dragAccumY = 0;
-            dragged(true);
-            event.consumer(this);
-        }
-    }
-
-    public void onDropped(DroppedEvent event) {
-        if (event.cancelled()) return;
-        if (event.widget() == this) {
-            dragged(false);
-            pressed(false);
-            event.consumer(this);
-        }
-    }
-
-    public void onMousePressed(MousePressedEvent event) {
-        if (event.cancelled()) return;
-        if (mouseOver(event.position())) {
-            if (event.isLeftButton()) {
-                AbstractWidget topMost =
-                        (AbstractWidget) event.listeners().stream()
-                                .min(Comparator.comparingInt(EventNode::priority))
-                                .filter(listener -> listener instanceof AbstractWidget)
-                                .orElse(null);
-                if (topMost == this) {
-                    if (pressable()) pressed(true);
-                    if (draggable()) dragged(true);
-                    event.consumer(this);
-                }
-            }
-        } else if (pressed()) {
-            pressed(false);
-        }
-    }
-
-    public void onMouseReleased(MouseReleasedEvent event) {
-        if (event.cancelled()) return;
-        if (pressed()) {
-            pressed(false);
-        }
-    }
-
-    public void onMove(MoveEvent event) {
-        if (event.cancelled()) return;
-        if (!hoverable()) return;
-        AbstractWidget topMost =
-                (AbstractWidget) event.listeners().stream()
-                        .min(Comparator.comparingInt(EventNode::priority))
-                        .filter(listener -> listener instanceof AbstractWidget)
-                        .orElse(null);
-        if (topMost != null && topMost != this) {
-            hovered(false);
-            return;
-        }
-
-        if (hovered()) {
-            if (!mouseOver(event.position())) {
-                hovered(false);
-            }
-        } else if (mouseOver(event.position())) {
-            hovered(true);
-        }
-    }
-
     public Optional<AbstractContainer> parent() {
         return Optional.ofNullable(parent);
     }
 
     public void parent(AbstractContainer parent) {
         this.parent = parent;
-    }
-
-    public AbstractContainer parentOrThrow() {
-        if (parent == null) {
-            throw new IllegalStateException("Parent cannot be null");
-        }
-        return parent;
+        if (parent != null) {
+            zIndex(parent.zIndex() + DragManager.Z_STEP);
+            if (this instanceof AbstractContainer container) {
+                // We need to make sure all children get their zIndex updated now
+                container.children().forEach(w -> w.zIndex(zIndex() + DragManager.Z_STEP));
+            }
+        } else
+            zIndex(DragManager.Z_MIN);
     }
 
     public boolean pressable() {
@@ -482,20 +357,7 @@ public abstract class AbstractWidget implements Renderable, Widget, EventNode,
     }
 
     public void pressed(boolean pressed) {
-        behavior(behavior().withPressed(pressed && active() && visible()));
-    }
-
-    public void priority(int priority) {
-        this.priority = priority;
-    }
-
-    protected void registerEventHandlers() {
-        eventManager().addListener(DragEvent.KEY, priority(), this::onDrag);
-        eventManager().addListener(DragStartedEvent.KEY, priority(), this::onDragStarted);
-        eventManager().addListener(DroppedEvent.KEY, priority(), this::onDropped);
-        eventManager().addListener(MousePressedEvent.KEY, priority(), this::onMousePressed);
-        eventManager().addListener(MouseReleasedEvent.KEY, priority(), this::onMouseReleased);
-        eventManager().addListener(MoveEvent.KEY, priority(), this::onMove);
+        behavior(behavior().withPressed(pressed));
     }
 
     /**
@@ -504,6 +366,12 @@ public abstract class AbstractWidget implements Renderable, Widget, EventNode,
     @Override
     public void render(@NotNull GuiGraphics graphics, int pMouseX, int pMouseY, float pPartialTick) {
         render(new ThemeGraphics(graphics, ThemeAtlas.getAtlas(), ThemeRegistry.current()), new Point(pMouseX, pMouseY), pPartialTick);
+    }
+
+    public void renderTooltip(@NotNull ThemeGraphics graphics, Point pMouse) {
+        if (hovered() && tooltip() != null && !tooltip().isEmpty()) {
+            graphics.renderTooltip(tooltip(), Point.of(pMouse.xInt(), pMouse.yInt()));
+        }
     }
 
     @Override
@@ -515,17 +383,14 @@ public abstract class AbstractWidget implements Renderable, Widget, EventNode,
         if (ClientConfig.debug()) {
             renderDebug(graphics);
         }
-        if (hovered() && tooltip() != null) {
-            graphics.renderTooltip(ClientUtil.getMinecraft().font, tooltip(), pMouse.xInt(), pMouse.yInt());
-        }
     }
 
-    private Component tooltip() {
-        return tooltip;
-    }
-
-    private void tooltip(Component tooltip) {
+    public void tooltip(List<Component> tooltip) {
         this.tooltip = tooltip;
+    }
+
+    public List<Component> tooltip() {
+        return tooltip;
     }
 
     @SuppressWarnings("unused")
@@ -565,12 +430,6 @@ public abstract class AbstractWidget implements Renderable, Widget, EventNode,
         return focused();
     }
 
-    public void tabIndex(int tabIndex) {
-        if (tabIndex != tabIndex())
-            dispatchEvent(new TabIndexEvent(this, focused(), tabIndex(), tabIndex, this));
-        this.tabIndex = tabIndex;
-    }
-
     public int tabIndex() {
         return tabIndex;
     }
@@ -587,7 +446,8 @@ public abstract class AbstractWidget implements Renderable, Widget, EventNode,
     }
 
     public boolean visible() {
-        return this.display.visible() && (parent().isPresent() && parent().get().visible() || parent().isEmpty());
+        boolean result = visiblePredicate == null || visiblePredicate.test(this);
+        return result && this.display.visible() && (parent().isPresent() && parent().get().visible() || parent().isEmpty());
     }
 
     public void visible(boolean visible) {
@@ -618,13 +478,13 @@ public abstract class AbstractWidget implements Renderable, Widget, EventNode,
         private int minHeight = 0;
         private int minWidth = 0;
         private String name = "Unnamed_" + Math.round((Math.random() * hashCode()));
-        private int priority = 0;
         private float stretchRatio = 1.0f;
         private String styleId = null;
         private int tabIndex = 0;
-        private Component tooltip;
+        private List<Component> tooltip;
         private EnumSet<Sizing> verticalSizing = EnumSet.of(Sizing.Fill);
         private boolean visible = true;
+        private Predicate<AbstractWidget> visiblePredicate;
 
         protected AbstractBuilder(GuiManager manager) {
             this.manager = manager;
@@ -767,15 +627,6 @@ public abstract class AbstractWidget implements Renderable, Widget, EventNode,
             return self();
         }
 
-        public T priority(int priority) {
-            this.priority = priority;
-            return self();
-        }
-
-        public int priority() {
-            return priority;
-        }
-
         public abstract AbstractContainer push();
 
         public boolean repositionable() {
@@ -784,6 +635,15 @@ public abstract class AbstractWidget implements Renderable, Widget, EventNode,
 
         public T repositionable(boolean repositionable) {
             behavior = behavior.withRepositionable(repositionable);
+            return self();
+        }
+
+        public boolean scrollable() {
+            return behavior.scrollable();
+        }
+
+        public T scrollable(boolean scrollable) {
+            behavior = behavior.withScrollable(scrollable);
             return self();
         }
 
@@ -814,12 +674,12 @@ public abstract class AbstractWidget implements Renderable, Widget, EventNode,
             return self();
         }
 
-        public T tooltip(Component tooltip) {
+        public T tooltip(List<Component> tooltip) {
             this.tooltip = tooltip;
             return self();
         }
 
-        public Component tooltip() {
+        public List<Component> tooltip() {
             return this.tooltip;
         }
 
@@ -840,6 +700,24 @@ public abstract class AbstractWidget implements Renderable, Widget, EventNode,
             this.visible = visible;
             this.display = display.withVisible(visible);
             return self();
+        }
+
+        public T visiblePredicate(Predicate<AbstractWidget> predicate) {
+            this.visiblePredicate = predicate;
+            return self();
+        }
+
+        public Predicate<AbstractWidget> visiblePredicate() {
+            return this.visiblePredicate;
+        }
+
+        public T zOffset(int z) {
+            display = display.withZOffset(z);
+            return self();
+        }
+
+        public int zOffset() {
+            return display.zOffset();
         }
 
         public T zIndex(int z) {

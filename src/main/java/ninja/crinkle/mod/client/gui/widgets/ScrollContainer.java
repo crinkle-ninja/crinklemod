@@ -1,7 +1,7 @@
 package ninja.crinkle.mod.client.gui.widgets;
 
 import ninja.crinkle.mod.client.color.Color;
-import ninja.crinkle.mod.client.gui.events.ScrollEvent;
+import ninja.crinkle.mod.client.gui.actors.MouseActor;
 import ninja.crinkle.mod.client.gui.managers.GuiManager;
 import ninja.crinkle.mod.client.gui.properties.Point;
 import ninja.crinkle.mod.client.gui.properties.Rect;
@@ -17,7 +17,7 @@ import java.util.List;
  * vertically by the scroll amount. Rendering is clipped to this container's rect
  * using GL scissor.
  */
-public class ScrollContainer extends AbstractContainer {
+public class ScrollContainer extends AbstractContainer implements MouseActor {
     private static final int SCROLL_SPEED = 10;
     private static final int SCROLLBAR_WIDTH = 4;
     private static final Color SCROLLBAR_TRACK = Color.of(0, 0, 0, 0.3f);
@@ -31,28 +31,23 @@ public class ScrollContainer extends AbstractContainer {
     }
 
     @Override
-    protected void registerEventHandlers() {
-        super.registerEventHandlers();
-        eventManager().addListener(ScrollEvent.KEY, priority(), this::onScroll);
-    }
-
-    private void onScroll(ScrollEvent event) {
-        if (event.cancelled() || event.consumed()) return;
-        if (!visible() || !active()) return;
-        if (!mouseOver(event.position())) return;
+    public boolean onScroll(Point mousePoint, double pDelta) {
+        if (!visible() || !active()) return false;
+        if (!mouseOver(mousePoint)) return false;
 
         int contentHeight = contentHeight();
         int viewportHeight = rect().height();
-        if (contentHeight <= viewportHeight) return;
+        if (contentHeight <= viewportHeight) return false;
 
         int maxOffset = contentHeight - viewportHeight;
         int oldOffset = scrollOffset;
-        scrollOffset = Math.max(0, Math.min(maxOffset, scrollOffset - (int) (event.delta() * SCROLL_SPEED)));
+        scrollOffset = Math.max(0, Math.min(maxOffset, scrollOffset - (int) (pDelta * SCROLL_SPEED)));
 
         if (scrollOffset != oldOffset) {
             arrange();
-            event.consumed(true);
+            return true;
         }
+        return false;
     }
 
     @Override
@@ -141,11 +136,13 @@ public class ScrollContainer extends AbstractContainer {
         public Builder(AbstractContainer container) {
             super(container);
             active(true);
+            scrollable(true);
         }
 
         public Builder(GuiManager manager) {
             super(manager);
             active(true);
+            scrollable(true);
         }
 
         @Override

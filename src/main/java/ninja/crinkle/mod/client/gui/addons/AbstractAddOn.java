@@ -1,8 +1,6 @@
 package ninja.crinkle.mod.client.gui.addons;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import com.mojang.logging.LogUtils;
-import net.minecraft.client.gui.screens.PauseScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.client.event.InputEvent;
@@ -19,10 +17,8 @@ import ninja.crinkle.mod.client.gui.screens.LayoutEditorScreen;
 import ninja.crinkle.mod.client.gui.textures.ThemeAtlas;
 import ninja.crinkle.mod.client.gui.themes.ThemeRegistry;
 import ninja.crinkle.mod.util.ClientUtil;
-import org.slf4j.Logger;
 
 public abstract class AbstractAddOn extends AbstractScreen {
-    private static final Logger LOGGER = LogUtils.getLogger();
     private final Class<? extends Screen> screenClass;
 
     protected AbstractAddOn(Class<? extends Screen> screenClass) {
@@ -50,17 +46,17 @@ public abstract class AbstractAddOn extends AbstractScreen {
     }
 
     @SubscribeEvent
-    public void onScreenKeyPressed(ScreenEvent.KeyPressed.Pre event) {
+    public void onScreenKeyPressed(ScreenEvent.KeyPressed.Post event) {
         if (!root().active()) return;
         if (ClientUtil.getMinecraft() == null || ClientUtil.getMinecraft().screen == null) return;
         if (screenClass() != ClientUtil.getMinecraft().screen.getClass()) return;
         if (ClientSetup.LAYOUT_EDITOR_KEY != null
-                && ClientSetup.LAYOUT_EDITOR_KEY.consumeClick()) {
+                && ClientSetup.LAYOUT_EDITOR_KEY.getKey().getValue() == event.getKeyCode()) {
             ClientUtil.getMinecraft().setScreen(new LayoutEditorScreen(this));
             event.setCanceled(true);
         }
         if (ClientSetup.CRINKLE_CONFIG_KEY != null
-                && ClientSetup.CRINKLE_CONFIG_KEY.consumeClick()) {
+                && ClientSetup.CRINKLE_CONFIG_KEY.getKey().getValue() == event.getKeyCode()) {
             ClientUtil.getMinecraft().setScreen(new CrinkleModConfigScreen());
             event.setCanceled(true);
         }

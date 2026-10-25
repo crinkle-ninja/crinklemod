@@ -6,7 +6,7 @@ import org.jetbrains.annotations.NotNull;
  * A MarginContainer that defaults to the "panel" style.
  */
 public class PanelContainer extends MarginContainer {
-    protected PanelContainer(@NotNull MarginContainer.BaseBuilder<?> builder) {
+    protected PanelContainer(@NotNull MarginContainer.MarginBuilder<?> builder) {
         super(builder);
     }
 
@@ -19,7 +19,7 @@ public class PanelContainer extends MarginContainer {
         return copy;
     }
 
-    public static class Builder extends MarginContainer.BaseBuilder<Builder> {
+    public static class Builder extends MarginBuilder<Builder> {
         public Builder(AbstractContainer parent) {
             super(parent);
             style("panel");

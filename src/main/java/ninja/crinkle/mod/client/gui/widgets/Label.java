@@ -1,15 +1,17 @@
 package ninja.crinkle.mod.client.gui.widgets;
 
+import com.mojang.logging.LogUtils;
 import ninja.crinkle.mod.client.color.Color;
-import ninja.crinkle.mod.client.gui.events.BehaviorChangedEvent;
 import ninja.crinkle.mod.client.gui.properties.Point;
 import ninja.crinkle.mod.client.gui.properties.Rect;
 import ninja.crinkle.mod.client.gui.renderers.ThemeGraphics;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
 
 import java.util.Optional;
 
 public class Label extends AbstractWidget {
+    public static final Logger LOGGER = LogUtils.getLogger();
     private Color color;
     private String text;
 
@@ -21,19 +23,6 @@ public class Label extends AbstractWidget {
 
     public void color(Color color) {
         this.color = color;
-    }
-
-    @Override
-    protected void registerEventHandlers() {
-        super.registerEventHandlers();
-        eventManager().addListener(BehaviorChangedEvent.KEY, priority(), this::onBehaviorChanged);
-    }
-
-    public void onBehaviorChanged(BehaviorChangedEvent event) {
-        if (event.consumed() || event.cancelled() || event.source() == this || parent().isEmpty() || !event.source().equals(parent().get()))
-            return;
-        active(event.current().active());
-        event.consumed(true);
     }
 
     @Override
@@ -54,17 +43,13 @@ public class Label extends AbstractWidget {
     public void renderContent(ThemeGraphics graphics, Point pMouse, Rect renderedRect, float pPartialTick) {
         int xOffset = (int) Math.ceil((double) (renderedRect.width() - graphics.textWidth(text())) / 2);
         int yOffset = (int) Math.ceil((double) (renderedRect.height() - graphics.textHeight()) / 2);
-        graphics.text(text(), Point.of(renderedRect.x() + xOffset, renderedRect.y() + yOffset),
-                zIndex(), color(), appearance().shadow());
+        Point renderPoint = Point.of(renderedRect.x() + xOffset, renderedRect.y() + yOffset);
+        graphics.text(text(), renderPoint, zIndex(), color(), appearance().shadow());
     }
 
     @Override
-    public void render(@NotNull ThemeGraphics graphics, Point pMouse, float pPartialTick) {
-        // A label inside a Button should not render itself independently;
-        // the Button renders it via renderContent.
-        if (!(parentOrThrow() instanceof Button)) {
-            super.render(graphics, pMouse, pPartialTick);
-        }
+    public String toString() {
+        return "Label{text=" + text();
     }
 
     @Override
@@ -96,6 +81,7 @@ public class Label extends AbstractWidget {
         public Builder(AbstractContainer parent) {
             super(parent);
             style("label");
+            visible(true);
             active(true);
         }
 

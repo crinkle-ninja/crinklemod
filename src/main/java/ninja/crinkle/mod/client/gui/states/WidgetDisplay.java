@@ -3,9 +3,9 @@ package ninja.crinkle.mod.client.gui.states;
 import ninja.crinkle.mod.client.gui.managers.DragManager;
 import org.jetbrains.annotations.NotNull;
 
-public record WidgetDisplay(boolean visible, float alpha, int zIndex) {
+public record WidgetDisplay(boolean visible, float alpha, int zIndex, int zOffset) {
     public WidgetDisplay() {
-        this(true, 1, DragManager.Z_MIN);
+        this(true, 1, DragManager.Z_MIN, 0);
     }
 
     public WidgetDisplay {
@@ -23,19 +23,25 @@ public record WidgetDisplay(boolean visible, float alpha, int zIndex) {
                 "visible=" + visible +
                 ", alpha=" + alpha +
                 ", zIndex=" + zIndex +
+                ", zOffset=" + zOffset +
                 '}';
     }
 
     public WidgetDisplay withAlpha(float alpha) {
-        return new WidgetDisplay(visible, alpha, zIndex);
+        return new WidgetDisplay(visible, alpha, zIndex, zOffset);
     }
 
     public WidgetDisplay withVisible(boolean visible) {
-        return new WidgetDisplay(visible, alpha, zIndex);
+        return new WidgetDisplay(visible, alpha, zIndex, zOffset);
     }
 
     public WidgetDisplay withZIndex(int zIndex) {
         assert zIndex >= DragManager.Z_MIN && zIndex <= DragManager.Z_MAX;
-        return new WidgetDisplay(visible, alpha, zIndex);
+        return new WidgetDisplay(visible, alpha, zIndex, zOffset);
+    }
+
+    public WidgetDisplay withZOffset(int zOffset) {
+        assert zOffset >= DragManager.Z_MIN && zIndex <= DragManager.Z_MAX;
+        return new WidgetDisplay(visible, alpha, zIndex, zOffset);
     }
 }

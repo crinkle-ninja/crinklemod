@@ -1,6 +1,6 @@
 package ninja.crinkle.mod.client.gui.screens;
 
-import com.mojang.logging.LogUtils;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.network.chat.Component;
@@ -8,7 +8,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
 import ninja.crinkle.mod.client.color.Color;
-import ninja.crinkle.mod.client.gui.events.TabChangedEvent;
+import ninja.crinkle.mod.client.gui.actors.TabActor;
 import ninja.crinkle.mod.client.gui.properties.Sizing;
 import ninja.crinkle.mod.client.gui.widgets.*;
 import ninja.crinkle.mod.config.ClientConfig;
@@ -20,14 +20,12 @@ import ninja.crinkle.mod.undergarment.DiaperDesignRegistry;
 import ninja.crinkle.mod.undergarment.Undergarment;
 import ninja.crinkle.mod.util.ClientUtil;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class CrinkleModConfigScreen extends AbstractScreen {
+public class CrinkleModConfigScreen extends AbstractScreen implements TabActor {
     private final Player player;
-    private Label errorLabel;
     private Label tabTitle;
     private TabbedPanelContainer tabs;
     private CenterContainer titleRow;
@@ -35,6 +33,13 @@ public class CrinkleModConfigScreen extends AbstractScreen {
     public CrinkleModConfigScreen() {
         super(Component.translatable("gui.crinklemod.screen.config.title"), ClientUtil.screenWidth(), ClientUtil.screenHeight());
         this.player = ClientUtil.getPlayer();
+    }
+
+    @Override
+    public void onClose() {
+        MetabolismTab.Mess.onClose();
+        MetabolismTab.Wet.onClose();
+        super.onClose();
     }
 
     @Override
@@ -69,6 +74,7 @@ public class CrinkleModConfigScreen extends AbstractScreen {
                 .separation(2)
                 .style("panel")
                 .draggable(true)
+                .focusable(true)
                 .horizontalSizing(Sizing.ShrinkCenter)
                 .verticalSizing(Sizing.ShrinkCenter)
                 .pushAndReturn();
@@ -124,12 +130,11 @@ public class CrinkleModConfigScreen extends AbstractScreen {
                 .verticalSizing(Sizing.Expand, Sizing.Fill)
                 .build();
         window.add(tabs);
-        eventManager().addListener(TabChangedEvent.KEY, 0, this::onTabChanged);
 
-        // === Wet tab ===
-        MetabolismTab.Wet.buildTab(tabs.addTab("wet", MetabolismSettings.WET.label().getString()), rowHeight);
         // === Mess tab ===
         MetabolismTab.Mess.buildTab(tabs.addTab("mess", MetabolismSettings.MESS.label().getString()), rowHeight);
+        // === Wet tab ===
+        MetabolismTab.Wet.buildTab(tabs.addTab("wet", MetabolismSettings.WET.label().getString()), rowHeight);
 
 
         // === Undergarment tab ===
@@ -137,25 +142,6 @@ public class CrinkleModConfigScreen extends AbstractScreen {
         if (Undergarment.hasUndergarmentData(itemStack)) {
             buildUndergarmentTab(tabs.addTab("undergarment", itemStack.getDisplayName().getString()), rowHeight, itemStack);
         }
-
-        MarginContainer labelContainer = new MarginContainer.Builder(window)
-                .name("info.container")
-                .margins(4)
-                .minSize(290, fontHeight + 8)
-                .style("textbox")
-                .horizontalSizing(Sizing.ShrinkCenter)
-                .verticalSizing(Sizing.ShrinkCenter)
-                .visible(true)
-                .build();
-        errorLabel = new Label.Builder(window)
-                .name("error.label")
-                .minSize(0, fontHeight + 6)
-                .horizontalSizing(Sizing.ShrinkCenter)
-                .verticalSizing(Sizing.ShrinkCenter)
-                .color(Color.RED)
-                .build();
-        labelContainer.add(errorLabel);
-        window.add(labelContainer);
 
         // Footer
         MarginContainer footerMargin = new MarginContainer.Builder(window)
@@ -175,7 +161,7 @@ public class CrinkleModConfigScreen extends AbstractScreen {
                 .style("button_secondary")
                 .minSize(60, rowHeight)
                 .horizontalSizing(Sizing.Expand, Sizing.Fill)
-                .onClick((e, w) -> onReset())
+                .onClick(w -> onReset())
                 .push();
 
         new Button.Builder(footer)
@@ -184,23 +170,16 @@ public class CrinkleModConfigScreen extends AbstractScreen {
                 .style("button")
                 .minSize(60, rowHeight)
                 .horizontalSizing(Sizing.Expand, Sizing.Fill)
-                .onClick((e, w) -> onClose())
+                .onClick(w -> onClose())
                 .push();
 
         super.init();
     }
 
-    public void onTabChanged(TabChangedEvent event) {
-        tabTitle.text(event.currentTab().tabButton().text().text());
-        titleRow.arrange();
-    }
-
     @Override
-    public void tick() {
-        super.tick();
-        List<String> errors = MetabolismTab.Wet.errors();
-        errors.addAll(MetabolismTab.Mess.errors());
-        errorLabel.text(String.join(" ", errors));
+    public void onTabChanged(TabbedPanelContainer.@NotNull Entry tab) {
+        tabTitle.text(tab.tabButton().text().text());
+        titleRow.arrange();
     }
 
     private void buildUndergarmentTab(VBoxContainer parent, int rowHeight, ItemStack itemStack) {
@@ -268,7 +247,7 @@ public class CrinkleModConfigScreen extends AbstractScreen {
                 .name("undergarment_clean_action")
                 .text("Clean")
                 .minSize(20, rowHeight)
-                .onClick((e, w) -> {
+                .onClick(w -> {
                     if (player() == null) return;
                     undergarment.setLiquids(0);
                     undergarment.setSolids(0);
@@ -324,12 +303,12 @@ public class CrinkleModConfigScreen extends AbstractScreen {
             for (int j = i; j < Math.min(i + columns, designList.size()); j++) {
                 DiaperDesign design = designList.get(j);
                 new IconButton.Builder(row)
-                        .name("design_" + design.id().getPath())
                         .atlas(blockAtlas)
                         .texture(design.itemTexture())
                         .minSize(iconSize, iconSize)
                         .activePredicate(w -> design != Undergarment.of(player).getDesign().orElse(null))
-                        .onClick((e, w) -> onDesignSelected(design, w))
+                        .onClick(w -> onDesignSelected(design, w))
+                        .name("design_" + design.id().getPath())
                         .pushAndReturn();
             }
         }
@@ -382,9 +361,7 @@ public class CrinkleModConfigScreen extends AbstractScreen {
         Mess(MetabolismSettings.MESS);
 
         private final MetabolismSettings settings;
-        private final List<String> errors = new ArrayList<>();
         private final Map<Setting<?>, TextBox> valueBoxes = new HashMap<>();
-        private static final Logger LOGGER = LogUtils.getLogger();
         private Button enableButton;
 
         MetabolismTab(MetabolismSettings setting) {
@@ -402,6 +379,7 @@ public class CrinkleModConfigScreen extends AbstractScreen {
                     .separation(4)
                     .minSize(0, rowHeight)
                     .horizontalSizing(Sizing.Fill)
+                    .hoverable(true)
                     .verticalSizing(Sizing.ShrinkBegin)
                     .pushAndReturn();
 
@@ -418,6 +396,7 @@ public class CrinkleModConfigScreen extends AbstractScreen {
                     .verticalSizing(Sizing.Fill)
                     .pushAndReturn();
 
+            List<String> errors = new ArrayList<>();
             final TextBox valueBox = new TextBox.Builder(controls)
                     .name("%s.control.textbox".formatted(setting.key()))
                     .style("config.value.textbox")
@@ -426,22 +405,52 @@ public class CrinkleModConfigScreen extends AbstractScreen {
                     .activePredicate(w -> metabolism().enabled())
                     .horizontalSizing(Sizing.ShrinkCenter)
                     .verticalSizing(Sizing.Expand)
+                    .onTextChanged(v -> {
+                        errors.clear();
+                        rowContainer.tooltip(null);
+                        try {
+                            if (setting instanceof Setting.DoubleValue dv) {
+                                double value = Double.parseDouble(v);
+                                errors.addAll(setValue(dv, value));
+                            } else if (setting instanceof Setting.IntValue iv) {
+                                int value = Integer.parseInt(v);
+                                errors.addAll(setValue(iv, value));
+                            }
+                        } catch (NumberFormatException numberFormatException) {
+                            errors.add(Component.translatable("validation.crinklemod.metabolism.failure.invalid.general",
+                                    v, setting.displayName()).getString());
+                        }
+                        if (!errors.isEmpty()) {
+                            List<Component> lines = new ArrayList<>();
+                            lines.add(Component.literal("Errors found:").withStyle(ChatFormatting.WHITE));
+                            for (String error : errors) {
+                                if (error.isBlank()) continue;
+                                lines.add(Component.translatable(error).withStyle(ChatFormatting.RED));
+                            }
+                            rowContainer.tooltip(lines);
+                            return true;
+                        }
+                        return true;
+                    })
                     .build();
-            valueBox.text(metabolism().getAsString(setting));
+            valueBox.value(metabolism().getAsString(setting));
             valueBoxes.put(setting, valueBox);
 
             Button minus = new Button.Builder(controls)
                     .name("%s.control.minus".formatted(setting.key()))
                     .text("-")
                     .minSize(20, rowHeight)
-                    .onClick((e, w) -> {
+                    .onClick(w -> {
+                        errors.clear();
+                        rowContainer.tooltip(null);
                         if (setting instanceof Setting.DoubleValue dv) {
                             double value = metabolism().getAsDouble(dv);
-                            setValue(dv, valueBox, dv.subtract(value, modifierValue(dv)));
+                            errors.addAll(setValue(dv, dv.subtract(value, modifierValue(dv))));
                         } else if (setting instanceof Setting.IntValue iv) {
                             int value = metabolism().getAsInt(iv);
-                            setValue(iv, valueBox, iv.subtract(value, modifierValue(iv)));
+                            errors.addAll(setValue(iv, iv.subtract(value, modifierValue(iv))));
                         }
+                        valueBox.value(metabolism().getAsString(setting));
                     })
                     .activePredicate(w -> metabolism().enabled())
                     .build();
@@ -451,14 +460,17 @@ public class CrinkleModConfigScreen extends AbstractScreen {
                     .name("%s.control.plus".formatted(setting.key()))
                     .text("+")
                     .minSize(20, rowHeight)
-                    .onClick((e, w) -> {
+                    .onClick(w -> {
+                        errors.clear();
+                        rowContainer.tooltip(null);
                         if (setting instanceof Setting.DoubleValue dv) {
                             double value = metabolism().getAsDouble(dv);
-                            setValue(dv, valueBox, dv.add(value, modifierValue(dv)));
+                            errors.addAll(setValue(dv, dv.add(value, modifierValue(dv))));
                         } else if (setting instanceof Setting.IntValue iv) {
                             int value = metabolism().getAsInt(iv);
-                            setValue(iv, valueBox, iv.add(value, modifierValue(iv)));
+                            errors.addAll(setValue(iv, iv.add(value, modifierValue(iv))));
                         }
+                        valueBox.value(metabolism().getAsString(setting));
                     })
                     .activePredicate(w -> metabolism().enabled())
                     .build();
@@ -466,17 +478,25 @@ public class CrinkleModConfigScreen extends AbstractScreen {
             controls.add(minus);
             controls.add(valueBox);
             controls.add(plus);
+
+            new Label.Builder(controls).text("?")
+                    .tooltip(Collections.singletonList(setting.tooltip()))
+                    .hoverable(true)
+                    .pushAndReturn();
+
+            new Label.Builder(controls).text("*")
+                    .visiblePredicate(w -> !errors.isEmpty())
+                    .color(Color.RED).pushAndReturn();
         }
 
-        private <T extends Comparable<? super T>> void setValue(Setting<T> setting, TextBox valueBox, T value) {
-            errors().clear();
+        private <T extends Comparable<? super T>> List<String> setValue(Setting<T> setting, T value) {
+            List<String> errors = new ArrayList<>();
             if (setting.isValid(value)) {
-                valueBox.text(setting.formattedString(value));
                 metabolism().setValue(setting, value);
-                metabolism().reset();
             } else {
-                errors().add(setting.errors(value).stream().map(Component::getString).collect(Collectors.joining(" ")));
+                errors.add(setting.errors(value).stream().map(Component::getString).collect(Collectors.joining(" ")));
             }
+            return errors;
         }
 
         void buildTab(VBoxContainer parent, int rowHeight) {
@@ -499,7 +519,7 @@ public class CrinkleModConfigScreen extends AbstractScreen {
                     .name("%s.button".formatted(settings.enabled().key()))
                     .text(metabolism().enabled() ? "ON" : "OFF")
                     .minSize(92, rowHeight)
-                    .onClick((e, w) -> {
+                    .onClick(w -> {
                         metabolism().enabled(!metabolism().enabled());
                         ((Button) w).text(metabolism().enabled() ? "ON" : "OFF");
                         Metabolism.of(ClientUtil.getPlayer(), settings().type()).syncServer();
@@ -516,30 +536,6 @@ public class CrinkleModConfigScreen extends AbstractScreen {
             buildSettingRow(parent, rowHeight, settings().intervalDecay());
             // intensity
             buildSettingRow(parent, rowHeight, settings().intensity());
-
-
-//            // Void button
-//            HBoxContainer voidButtonRow = new HBoxContainer.Builder(parent)
-//                    .name("%s.void.row".formatted(settings().type().name().toLowerCase()))
-//                    .separation(4)
-//                    .minSize(0, rowHeight)
-//                    .horizontalSizing(Sizing.Fill)
-//                    .verticalSizing(Sizing.Expand)
-//                    .pushAndReturn();
-//
-//            new Button.Builder(voidButtonRow)
-//                    .name("%s.void.button".formatted(settings().type().name().toLowerCase()))
-//                    .text("Void")
-//                    .minSize(20, rowHeight)
-//                    .onClick((e, w) -> {
-//                        switch(this) {
-//                            case Wet -> Metabolism.wetOf(ClientUtil.getPlayer()).wet();
-//                            case Mess -> Metabolism.messOf(ClientUtil.getPlayer()).mess();
-//                        }
-//                    })
-//                    .activePredicate(w -> metabolism().enabled())
-//                    .pushAndReturn();
-
         }
 
         private <T extends Comparable<? super T>> T modifierValue(Setting<T> setting) {
@@ -551,18 +547,19 @@ public class CrinkleModConfigScreen extends AbstractScreen {
             return setting.modifierValue(modifierValues);
         }
 
-        public List<String> errors() {
-            return errors;
-        }
-
         private void onReset() {
             metabolism().resetDefaults();
             enableButton.text(metabolism().enabled() ? "ON" : "OFF");
             for (Map.Entry<Setting<?>, TextBox> entry : valueBoxes.entrySet()) {
                 TextBox valueBox = entry.getValue();
                 Setting<?> setting = entry.getKey();
-                valueBox.text(metabolism().getAsString(setting));
+                valueBox.value(metabolism().getAsString(setting));
             }
+        }
+
+        private void onClose() {
+            valueBoxes.forEach((key, value) -> value.focused(false));
+            metabolism().reset();
         }
 
         public MetabolismSettings settings() {

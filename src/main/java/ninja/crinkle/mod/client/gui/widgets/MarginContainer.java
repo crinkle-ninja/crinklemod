@@ -15,7 +15,7 @@ public class MarginContainer extends AbstractContainer {
     private int marginRight;
     private int marginTop;
 
-    protected MarginContainer(@NotNull BaseBuilder<?> builder) {
+    protected MarginContainer(@NotNull MarginContainer.MarginBuilder<?> builder) {
         super(builder);
         this.marginTop = builder.marginTop;
         this.marginRight = builder.marginRight;
@@ -50,6 +50,7 @@ public class MarginContainer extends AbstractContainer {
         return marginTop;
     }
 
+    @SuppressWarnings("unused")
     public void margins(int all) {
         margins(all, all, all, all);
     }
@@ -82,19 +83,19 @@ public class MarginContainer extends AbstractContainer {
         return copy;
     }
 
-    protected static abstract class BaseBuilder<T extends BaseBuilder<T>>
+    protected static abstract class MarginBuilder<T extends MarginBuilder<T>>
             extends AbstractContainerBuilder<T> {
         int marginBottom = 0;
         int marginLeft = 0;
         int marginRight = 0;
         int marginTop = 0;
 
-        public BaseBuilder(AbstractContainer container) {
+        public MarginBuilder(AbstractContainer container) {
             super(container);
             active(true);
         }
 
-        public BaseBuilder(GuiManager manager) {
+        public MarginBuilder(GuiManager manager) {
             super(manager);
             active(true);
         }
@@ -112,7 +113,7 @@ public class MarginContainer extends AbstractContainer {
         }
     }
 
-    public static class Builder extends BaseBuilder<Builder> {
+    public static class Builder extends MarginBuilder<Builder> {
         public Builder(AbstractContainer container) {
             super(container);
         }

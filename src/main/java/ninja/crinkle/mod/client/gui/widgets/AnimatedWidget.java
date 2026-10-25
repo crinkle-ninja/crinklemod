@@ -1,11 +1,9 @@
 package ninja.crinkle.mod.client.gui.widgets;
 
 import com.mojang.logging.LogUtils;
+import ninja.crinkle.mod.client.gui.actors.DragActor;
 import ninja.crinkle.mod.client.gui.animations.Animation;
 import ninja.crinkle.mod.client.gui.animations.Player;
-import ninja.crinkle.mod.client.gui.events.DragEvent;
-import ninja.crinkle.mod.client.gui.events.DragStoppedEvent;
-import ninja.crinkle.mod.client.gui.events.MoveEvent;
 import ninja.crinkle.mod.client.gui.properties.Point;
 import ninja.crinkle.mod.client.gui.properties.Rect;
 import ninja.crinkle.mod.client.gui.renderers.ThemeGraphics;
@@ -13,7 +11,7 @@ import ninja.crinkle.mod.client.gui.themes.Theme;
 import ninja.crinkle.mod.client.gui.themes.ThemeRegistry;
 import org.slf4j.Logger;
 
-public class AnimatedWidget extends AbstractWidget {
+public class AnimatedWidget extends AbstractWidget implements DragActor {
     private static final Logger LOGGER = LogUtils.getLogger();
     private final Player player;
 
@@ -40,31 +38,21 @@ public class AnimatedWidget extends AbstractWidget {
     }
 
     @Override
-    public void onDrag(DragEvent event) {
-        if (!visible() || !active()) return;
-        super.onDrag(event);
-    }
-
-    @Override
-    public void onMove(MoveEvent event) {
-        super.onMove(event);
+    public void onDragStopped(AbstractWidget widget, Point point) {
         this.player.position(Point.of(rect().x(), rect().y()));
     }
 
     @Override
-    protected void registerEventHandlers() {
-        super.registerEventHandlers();
-        eventManager().addListener(DragStoppedEvent.KEY, priority(), this::onDragStopped);
+    public boolean onDrag(AbstractWidget widget, Point mousePoint, Point dragPoint, int button) {
+        if (!visible() || !active() || !dragged()) return false;
+        this.player.position(Point.of(rect().x(), rect().y()));
+        return true;
     }
 
     @Override
     public void setRect(Rect rect) {
         super.setRect(rect);
         this.player.position(Point.of(rect.x(), rect.y()));
-    }
-
-    public void onDragStopped(DragStoppedEvent event) {
-        this.player.position(Point.of(rect().x(), rect().y()));
     }
 
     protected boolean trySetAnimation(double speed, String animationId, String... sprites) {

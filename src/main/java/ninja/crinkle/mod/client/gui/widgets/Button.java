@@ -1,105 +1,68 @@
 package ninja.crinkle.mod.client.gui.widgets;
 
-import ninja.crinkle.mod.client.gui.events.ClickEvent;
-import ninja.crinkle.mod.client.gui.managers.EventManager;
+import ninja.crinkle.mod.client.gui.actors.MouseActor;
+import ninja.crinkle.mod.client.gui.actors.MouseButton;
 import ninja.crinkle.mod.client.gui.properties.Point;
-import ninja.crinkle.mod.client.gui.properties.Rect;
-import ninja.crinkle.mod.client.gui.renderers.ThemeGraphics;
+import ninja.crinkle.mod.client.gui.properties.Sizing;
 import ninja.crinkle.mod.client.gui.textures.Texture;
-import ninja.crinkle.mod.client.gui.textures.Texture.Slice;
+import ninja.crinkle.mod.client.gui.themes.Style;
 import ninja.crinkle.mod.client.gui.themes.StyleVariant;
 
-import java.util.function.BiConsumer;
+import java.util.Optional;
+import java.util.function.Consumer;
 
-public class Button extends AbstractContainer {
-    private final BiConsumer<ClickEvent, AbstractWidget> onClick;
-    private Label text;
+public class Button extends MarginContainer implements MouseActor {
+    private final Consumer<AbstractWidget> onClick;
+    private final Label text;
 
     protected Button(Builder builder) {
         super(builder);
         this.text = new Label.Builder(this)
                 .text(builder.text())
-                .build();
+                .pushAndReturn();
         this.onClick = builder.onClick();
-        if (text != null) {
-            text.zIndex(zIndex() + 1);
-            text.priority(EventManager.PRIORITY_IGNORE);
-            add(text);
-        }
+        setMargins();
+    }
+
+    private void setMargins() {
+        margins(Optional.ofNullable(style())
+                        .map(s -> s.variant(Style.Variant.active))
+                        .map(StyleVariant::backgroundTexture)
+                        .map(t -> t.boundsOf(Texture.Slice.Location.top)
+                                .height())
+                        .orElse(0) + marginTop(),
+                Optional.ofNullable(style())
+                        .map(s -> s.variant(Style.Variant.active))
+                        .map(StyleVariant::backgroundTexture)
+                        .map(t -> t.boundsOf(Texture.Slice.Location.right)
+                                .width())
+                        .orElse(0) + marginRight(),
+                Optional.ofNullable(style())
+                        .map(s -> s.variant(Style.Variant.active))
+                        .map(StyleVariant::backgroundTexture)
+                        .map(t -> t.boundsOf(Texture.Slice.Location.bottom)
+                                .height())
+                        .orElse(0) + marginBottom(),
+                Optional.ofNullable(style())
+                        .map(s -> s.variant(Style.Variant.active))
+                        .map(StyleVariant::backgroundTexture)
+                        .map(t -> t.boundsOf(Texture.Slice.Location.left)
+                                .width())
+                        .orElse(0) + marginLeft());
     }
 
     @Override
-    public int minimumHeight() {
-        int explicit = super.minimumHeight();
-        int childMin = children().stream().mapToInt(AbstractWidget::minimumHeight).max().orElse(0);
-        return Math.max(explicit, childMin + borderTop() + borderBottom());
-    }
-
-    @Override
-    public int minimumWidth() {
-        int explicit = super.minimumWidth();
-        int childMin = children().stream().mapToInt(AbstractWidget::minimumWidth).max().orElse(0);
-        return Math.max(explicit, childMin + borderLeft() + borderRight());
+    protected void copyVisualProperties(AbstractWidget source) {
+        super.copyVisualProperties(source);
+        if (source instanceof MarginContainer m)
+            margins(m.marginTop(), m.marginRight(), m.marginBottom(), m.marginLeft());
     }
 
     @Override
     public AbstractWidget visualCopy(AbstractContainer newParent) {
-        Button copy = new Button.Builder(newParent).build();
+        Button copy = new Button.Builder(newParent).text(text().text()).build();
         copy.copyVisualProperties(this);
-        if (text != null) {
-            Label labelCopy = (Label) text.visualCopy(copy);
-            copy.text = labelCopy;
-            copy.add(labelCopy);
-        }
         return copy;
-    }
-
-    private int borderLeft() {
-        Texture tex = backgroundTexture();
-        return tex != null ? tex.boundsOf(Slice.Location.topLeft).width() : 0;
-    }
-
-    private int borderRight() {
-        Texture tex = backgroundTexture();
-        return tex != null ? tex.boundsOf(Slice.Location.topRight).width() : 0;
-    }
-
-    private Texture backgroundTexture() {
-        StyleVariant sv = appearance();
-        return sv != null ? sv.backgroundTexture() : null;
-    }
-
-    private int borderTop() {
-        Texture tex = backgroundTexture();
-        return tex != null ? tex.boundsOf(Slice.Location.topLeft).height() : 0;
-    }
-
-    private int borderBottom() {
-        Texture tex = backgroundTexture();
-        return tex != null ? tex.boundsOf(Slice.Location.bottomLeft).height() : 0;
-    }
-
-    @Override
-    protected void registerEventHandlers() {
-        super.registerEventHandlers();
-        eventManager().addListener(ClickEvent.KEY, priority(), this::onClick);
-    }
-
-    @Override
-    public void arrange() {
-        if (children().isEmpty() || rect().equals(Rect.ZERO)) return;
-        for (AbstractWidget child : children()) {
-            Rect fitted = fitChildInRect(child, rect());
-            child.setRect(fitted);
-        }
-    }
-
-    @Override
-    public void renderContent(ThemeGraphics graphics, Point pMouse, Rect renderRect, float pPartialTick) {
-        super.renderContent(graphics, pMouse, renderRect, pPartialTick);
-        if (text != null) {
-            text.renderContent(graphics, pMouse, renderRect, pPartialTick);
-        }
     }
 
     @Override
@@ -107,45 +70,65 @@ public class Button extends AbstractContainer {
         return "Button{" + "text=" + text + ", onClick=" + (onClick != null) + ", " + super.toString() + '}';
     }
 
-    public void onClick(ClickEvent event) {
-        if (!visible() || !active() || !event.propagate())
-            return;
-        if (mouseOver(event.position()) && event.isLeftButton() && onClick != null && visible() && active() && event.released()) {
-            event.consumer(this);
-            onClick.accept(event, this);
+    @Override
+    public boolean onClick(Point point, MouseButton button) {
+        if (!visible() || !active())
+            return false;
+        if (mouseOver(point) && button == MouseButton.LEFT && onClick != null && visible() && active()) {
+            onClick.accept(this);
+            return true;
         }
+        return false;
     }
 
     public Label text() {
         return text;
     }
 
-    public void text(Label text) {
-        this.text = text;
-    }
-
     public void text(String text) {
-        if (this.text == null) {
-            this.text = new Label.Builder(this)
-                    .text(text)
-                    .build();
-        } else {
-            this.text.text(text);
-        }
+        this.text.text(text);
     }
 
-    public static class Builder extends AbstractContainerBuilder<Builder> {
-        private BiConsumer<ClickEvent, AbstractWidget> onClick;
-        private String textString;
+    protected static abstract class ButtonBuilder<T extends MarginBuilder<T>>
+        extends MarginBuilder<T> {
 
-        public Builder(AbstractContainer container) {
+        private Consumer<AbstractWidget> onClick;
+        private String text;
+
+        public ButtonBuilder(AbstractContainer container) {
             super(container);
             // Button defaults
             hoverable(true);
-            focusable(true);
             active(true);
             pressable(true);
+            verticalSizing(Sizing.Expand);
+            horizontalSizing(Sizing.Expand);
             style("button");
+            margins(4);
+        }
+
+        public T text(String text) {
+            this.text = text;
+            return self();
+        }
+
+        public String text() {
+            return text;
+        }
+
+        public Consumer<AbstractWidget> onClick() {
+            return onClick;
+        }
+
+        public T onClick(Consumer<AbstractWidget> onClick) {
+            this.onClick = onClick;
+            return self();
+        }
+    }
+
+    public static class Builder extends ButtonBuilder<Builder> {
+        public Builder(AbstractContainer container) {
+            super(container);
         }
 
         @Override
@@ -168,24 +151,6 @@ public class Button extends AbstractContainer {
             Button b = new Button(this);
             parent().add(b);
             return b;
-        }
-
-        public BiConsumer<ClickEvent, AbstractWidget> onClick() {
-            return onClick;
-        }
-
-        public Builder onClick(BiConsumer<ClickEvent, AbstractWidget> onClick) {
-            this.onClick = onClick;
-            return self();
-        }
-
-        public Builder text(String text) {
-            textString = text;
-            return self();
-        }
-
-        public String text() {
-            return textString;
         }
     }
 }
