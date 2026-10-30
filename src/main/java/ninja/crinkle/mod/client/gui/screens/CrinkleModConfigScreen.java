@@ -305,6 +305,7 @@ public class CrinkleModConfigScreen extends AbstractScreen implements TabActor {
                 new IconButton.Builder(row)
                         .atlas(blockAtlas)
                         .texture(design.itemTexture())
+                        .tooltip(Collections.singletonList(Component.translatable(design.displayName())))
                         .minSize(iconSize, iconSize)
                         .activePredicate(w -> design != Undergarment.of(player).getDesign().orElse(null))
                         .onClick(w -> onDesignSelected(design, w))
