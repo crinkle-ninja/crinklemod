@@ -156,7 +156,6 @@ public abstract class AbstractScreen extends Screen implements GuiManager, IMana
 
     private AbstractWidget hoveredWidget(Point point) {
         return widgets().stream()
-                .filter(AbstractWidget::active)
                 .filter(AbstractWidget::visible)
                 .filter(AbstractWidget::hoverable)
                 .filter(w -> w.rect().contains(point))

@@ -280,7 +280,7 @@ public abstract class AbstractWidget implements Renderable, Widget, ThemeRendera
     }
 
     public void hovered(boolean hovered) {
-        if (!behavior().hoverable() || !behavior().active())
+        if (!behavior().hoverable())
             return;
         behavior(behavior().withHovered(hovered));
     }
