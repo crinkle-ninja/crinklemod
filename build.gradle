@@ -86,6 +86,8 @@ minecraft {
                 property 'forge.logging.console.level', 'debug'
             }
 
+            property "geckolib.disable_examples", 'true'
+
             mods {
                 "${mod_id}" {
                     source sourceSets.main

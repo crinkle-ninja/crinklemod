@@ -2,9 +2,7 @@ package ninja.crinkle.mod.capabilities;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import ninja.crinkle.mod.config.UndergarmentConfig;
 import ninja.crinkle.mod.items.custom.DiaperArmorItem;
 import ninja.crinkle.mod.undergarment.DiaperDesign;
@@ -109,7 +107,7 @@ public class UndergarmentImpl implements IUndergarment {
         if (nbt.contains(NBT_KEY_MAX_SOLIDS))
             maxSolids = nbt.getInt(NBT_KEY_MAX_SOLIDS);
         if (nbt.contains(NBT_KEY_DESIGN)) {
-            ResourceLocation designId = new ResourceLocation(nbt.getString(NBT_KEY_DESIGN));
+            ResourceLocation designId = ResourceLocation.parse(nbt.getString(NBT_KEY_DESIGN));
             DiaperDesignRegistry.getDesign(designId, true).ifPresent(this::setDesign);
         }
         setLiquids(nbt.getInt(NBT_KEY_LIQUIDS));

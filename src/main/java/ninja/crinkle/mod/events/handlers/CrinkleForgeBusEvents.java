@@ -1,8 +1,6 @@
 package ninja.crinkle.mod.events.handlers;
 
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -32,6 +30,7 @@ import ninja.crinkle.mod.network.CrinkleChannel;
 import ninja.crinkle.mod.network.messages.DiaperDesignSyncMessage;
 import ninja.crinkle.mod.undergarment.DiaperDesignRegistry;
 import ninja.crinkle.mod.undergarment.Undergarment;
+import ninja.crinkle.mod.util.ClientUtil;
 import org.jetbrains.annotations.NotNull;
 
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE, modid = CrinkleMod.MODID)
@@ -53,17 +52,17 @@ public class CrinkleForgeBusEvents {
 
     @SubscribeEvent
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
-        if (event.getEntity() instanceof ServerPlayer player) {
-            Metabolism.wetOf(player).syncClient();
-            Metabolism.messOf(player).syncClient();
+        if (ClientUtil.isDedicatedServer()) {
+            Metabolism.wetOf(event.getEntity()).syncClient();
+            Metabolism.messOf(event.getEntity()).syncClient();
         }
     }
 
     @SubscribeEvent
     public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
-        if (event.getEntity() instanceof LocalPlayer player) {
-            Metabolism.wetOf(player).syncServer();
-            Metabolism.messOf(player).syncServer();
+        if (ClientUtil.isClient()) {
+            Metabolism.wetOf(event.getEntity()).syncServer();
+            Metabolism.messOf(event.getEntity()).syncServer();
         }
     }
 
