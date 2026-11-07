@@ -537,6 +537,13 @@ public class CrinkleModConfigScreen extends AbstractScreen implements TabActor {
             buildSettingRow(parent, rowHeight, settings().intervalDecay());
             // intensity
             buildSettingRow(parent, rowHeight, settings().intensity());
+
+            new Button.Builder(parent)
+                    .name("%s.void.button".formatted(metabolism().type().name()))
+                    .minSize(92, rowHeight)
+                    .text("Void")
+                    .onClick(w -> metabolism().triggerAccident())
+                    .push();
         }
 
         private <T extends Comparable<? super T>> T modifierValue(Setting<T> setting) {

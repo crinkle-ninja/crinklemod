@@ -8,7 +8,7 @@ import software.bernie.geckolib.model.GeoModel;
 public class DiaperArmorModel extends GeoModel<DiaperArmorItem> {
     @Override
     public ResourceLocation getModelResource(DiaperArmorItem animatable) {
-        return new ResourceLocation(CrinkleMod.MODID, "geo/armor/diaper.geo.json");
+        return ResourceLocation.fromNamespaceAndPath(CrinkleMod.MODID, "geo/armor/diaper.geo.json");
     }
 
     @Override
@@ -18,6 +18,6 @@ public class DiaperArmorModel extends GeoModel<DiaperArmorItem> {
 
     @Override
     public ResourceLocation getAnimationResource(DiaperArmorItem animatable) {
-        return new ResourceLocation(CrinkleMod.MODID, "animations/armor/diaper.animation.json");
+        return CrinkleMod.loc("animations/armor/diaper.animation.json");
     }
 }

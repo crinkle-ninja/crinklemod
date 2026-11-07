@@ -1,6 +1,7 @@
 package ninja.crinkle.mod.undergarment;
 
 import com.mojang.logging.LogUtils;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -10,6 +11,8 @@ import ninja.crinkle.mod.CrinkleMod;
 import ninja.crinkle.mod.api.ServerUpdater;
 import ninja.crinkle.mod.capabilities.IUndergarment;
 import ninja.crinkle.mod.capabilities.UndergarmentImpl;
+import ninja.crinkle.mod.client.textures.Textures;
+import ninja.crinkle.mod.client.textures.generators.DiaperTextureGenerator;
 import ninja.crinkle.mod.config.UndergarmentConfig;
 import ninja.crinkle.mod.items.custom.DiaperArmorItem;
 import ninja.crinkle.mod.network.CrinkleChannel;
@@ -164,16 +167,6 @@ public class Undergarment implements ServerUpdater {
         return getLiquids() > getMaxLiquids() || getSolids() > getMaxSolids();
     }
 
-    public void modifyLiquids(int amount) {
-        int newAmount = getLiquids() + amount;
-        saveCapability(c -> setLiquids(newAmount));
-    }
-
-    public void modifySolids(int amount) {
-        int newAmount = getSolids() + amount;
-        saveCapability(c -> c.setSolids(newAmount));
-    }
-
     @Override
     public void syncServer() {
         if (ClientUtil.isClient()) {
@@ -182,4 +175,11 @@ public class Undergarment implements ServerUpdater {
         }
     }
 
+    public ResourceLocation texture() {
+        DiaperDesign design = getDesign().orElse(DiaperArmorItem.getDesign(getItemStack(), true));
+        ResourceLocation armorTexture = design != null ? design.armorTexture() : DiaperArmorItem.DEFAULT_TEXTURE;
+        DiaperTextureGenerator.Data data =
+                new DiaperTextureGenerator.Data(armorTexture.toString(), DiaperArmorItem.SHARED_MODEL, this);
+        return Textures.getInstance().getTexture(armorTexture, data);
+    }
 }

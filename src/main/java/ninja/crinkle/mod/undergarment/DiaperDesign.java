@@ -23,8 +23,8 @@ public record DiaperDesign(
 ) {
     public static DiaperDesign fromJson(ResourceLocation id, @NotNull JsonObject json) {
         String displayName = json.get("display_name").getAsString();
-        ResourceLocation armorTexture = new ResourceLocation(json.get("armor_texture").getAsString());
-        ResourceLocation itemTexture = new ResourceLocation(json.get("item_texture").getAsString());
+        ResourceLocation armorTexture = ResourceLocation.parse(json.get("armor_texture").getAsString());
+        ResourceLocation itemTexture = ResourceLocation.parse(json.get("item_texture").getAsString());
 
         Integer maxLiquids = null;
         Integer maxSolids = null;

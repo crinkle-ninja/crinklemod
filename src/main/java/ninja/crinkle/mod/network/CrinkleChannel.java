@@ -18,7 +18,7 @@ public class CrinkleChannel {
     private static final String NAME = "crinklenet";
     private static final String PROTOCOL_VERSION = "1";
     public static final SimpleChannel INSTANCE = NetworkRegistry.ChannelBuilder
-            .named(new ResourceLocation(CrinkleMod.MODID, NAME))
+            .named(ResourceLocation.fromNamespaceAndPath(CrinkleMod.MODID, NAME))
             .clientAcceptedVersions(PROTOCOL_VERSION::equals)
             .serverAcceptedVersions(PROTOCOL_VERSION::equals)
             .networkProtocolVersion(() -> PROTOCOL_VERSION)
