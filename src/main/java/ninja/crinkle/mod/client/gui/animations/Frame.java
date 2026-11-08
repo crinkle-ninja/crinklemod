@@ -17,7 +17,7 @@ public record Frame(String namespace, String animationId, String frameId) {
                 ThemeAtlas.getTextureLocation(ThemeRegistry.current().id(), "animations", textureId);
         if (resourceLocation.isEmpty()) {
             LOGGER.error("Failed to find textureId '{}' in theme '{}'", textureId, ThemeRegistry.current().id());
-            return new ResourceLocation(namespace, "missingno");
+            return ResourceLocation.fromNamespaceAndPath(namespace, "missingno");
         }
         return resourceLocation.get();
     }

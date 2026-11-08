@@ -28,8 +28,8 @@ public class CrinkleAdvancements implements ForgeAdvancementProvider.Advancement
                 .display(new DisplayInfo(CrinkleItems.DIAPER.get().getDefaultInstance(),
                         Component.translatable("advancements.crinklemod.wearing_diaper.title"),
                         Component.translatable("advancements.crinklemod.wearing_diaper.description"),
-                        new ResourceLocation("minecraft:textures/block/white_wool.png"),
-                        FrameType.CHALLENGE,
+                        ResourceLocation.fromNamespaceAndPath("minecraft", "textures/block/white_wool.png"),
+                        FrameType.GOAL,
                         true,
                         true,
                         true))

@@ -48,17 +48,17 @@ public class CrinkleMod {
         LogUtils.getLogger().debug("{} = {}", GeckoLibMod.DISABLE_EXAMPLES_PROPERTY_KEY, Boolean.getBoolean(GeckoLibMod.DISABLE_EXAMPLES_PROPERTY_KEY));
     }
 
-    public CrinkleMod() {
+    public CrinkleMod(FMLJavaModLoadingContext context) {
         // Metabolism
-        MinecraftForge.EVENT_BUS.addGenericListener(Entity.class, WetProvider::attach);
-        MinecraftForge.EVENT_BUS.addGenericListener(Entity.class, MessProvider::attach);
+        MinecraftForge.EVENT_BUS.addGenericListener(Entity.class, WetProvider::onAttachCapabilitiesPlayer);
+        MinecraftForge.EVENT_BUS.addGenericListener(Entity.class, MessProvider::onAttachCapabilitiesPlayer);
         CrinkleChannel.register();
 
         // Undergarments
-        UndergarmentConfig.register();
+        UndergarmentConfig.register(context);
 
         // Common
-        IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
+        IEventBus modEventBus = context.getModEventBus();
         CrinkleSounds.register(modEventBus);
         CrinkleBlocks.register(modEventBus);
         CrinkleItems.register(modEventBus);
@@ -66,7 +66,7 @@ public class CrinkleMod {
         CrinkleMenus.register(modEventBus);
 
         // Client
-        ClientConfig.register();
+        ClientConfig.register(context);
 
         // DataGen
         modEventBus.addListener(CrinkleDataGeneration::generate);

@@ -1,7 +1,6 @@
 package ninja.crinkle.mod.datagen;
 
 import net.minecraft.data.PackOutput;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.common.data.SoundDefinition;
 import net.minecraftforge.common.data.SoundDefinitionsProvider;
@@ -29,10 +28,7 @@ public class CrinkleSoundProvider extends SoundDefinitionsProvider {
     public void registerSounds() {
         List<SoundDefinition.Sound> sounds = new ArrayList<>();
         IntStream.range(0, COUNT).forEach(i ->
-                sounds.add(
-                        sound(new ResourceLocation(CrinkleMod.MODID, String.format("%s%02d", PREFIX, i)))
-                                .preload()
-                ));
+                sounds.add(sound(CrinkleMod.loc(String.format("%s%02d", PREFIX, i))).preload()));
         this.add("crinkle_sound", definition()
                 .subtitle("sound.crinklemod.crinkle_sound.subtitle")
                 .with(sounds.toArray(new SoundDefinition.Sound[0]))

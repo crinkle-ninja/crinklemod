@@ -38,7 +38,7 @@ public record Texture(String id, String location, Map<Slice.Location, Slice> sli
         if (!isLoadedFor(theme)) {
             LOGGER.warn("Texture '{}' could not be created since '{}' is not loaded.", key,
                     ThemeAtlas.getTextureLocation(theme.id(), id()));
-            return new ResourceLocation("minecraft", "missingno");
+            return ResourceLocation.fromNamespaceAndPath("minecraft", "missingno");
         }
         TextureAtlasSprite sprite = ThemeAtlas.getSprite(resourceLocation());
         final NativeImage original = new NativeImage(sprite.contents().width(), sprite.contents().height(), true);
@@ -64,7 +64,7 @@ public record Texture(String id, String location, Map<Slice.Location, Slice> sli
                         default -> throw new IllegalStateException("Unexpected value: " + location);
                     };
                     if (isOutOfBounds(originalBox, slice, key)) {
-                        return new ResourceLocation("minecraft", "missingno");
+                        return ResourceLocation.fromNamespaceAndPath("minecraft", "missingno");
                     }
                     original.copyRect(image, (int) from.x(), (int) from.y(), (int) to.x(), (int) to.y(),
                             slice.size().width(),
@@ -87,7 +87,7 @@ public record Texture(String id, String location, Map<Slice.Location, Slice> sli
                             default -> throw new IllegalStateException("Unexpected value: " + location);
                         };
                         if (isOutOfBounds(originalBox, slice, key)) {
-                            return new ResourceLocation("minecraft", "missingno");
+                            return ResourceLocation.fromNamespaceAndPath("minecraft", "missingno");
                         }
                         original.copyRect(image, (int) from.x(), (int) from.y(), (int) to.x(), (int) to.y(),
                                 slice.size().width(),
@@ -111,7 +111,7 @@ public record Texture(String id, String location, Map<Slice.Location, Slice> sli
                             default -> throw new IllegalStateException("Unexpected value: " + location);
                         };
                         if (isOutOfBounds(originalBox, slice, key)) {
-                            return new ResourceLocation("minecraft", "missingno");
+                            return ResourceLocation.fromNamespaceAndPath("minecraft", "missingno");
                         }
                         original.copyRect(image, (int) from.x(), (int) from.y(), (int) to.x(), (int) to.y(),
                                 slice.size().width(),
@@ -132,7 +132,7 @@ public record Texture(String id, String location, Map<Slice.Location, Slice> sli
                             // The x,y coords of the destination image
                             final Point to = new Point(x, y);
                             if (isOutOfBounds(originalBox, slice, key)) {
-                                return new ResourceLocation("minecraft", "missingno");
+                                return ResourceLocation.fromNamespaceAndPath("minecraft", "missingno");
                             }
                             original.copyRect(image, (int) from.x(), (int) from.y(), (int) to.x(), (int) to.y(),
                                     slice.size().width(),
@@ -156,7 +156,7 @@ public record Texture(String id, String location, Map<Slice.Location, Slice> sli
 
     public ResourceLocation resourceLocation() {
         return ThemeAtlas.getTextureLocation(theme.id(), id())
-                .orElse(new ResourceLocation("minecraft", "missingno"));
+                .orElse(ResourceLocation.fromNamespaceAndPath("minecraft", "missingno"));
     }
 
     private boolean isOutOfBounds(TextureBox a, Slice b, String key) {
@@ -179,17 +179,19 @@ public record Texture(String id, String location, Map<Slice.Location, Slice> sli
             styleVariant = s != null ? s.variant(Style.Variant.active) : StyleVariant.EMPTY;
         }
         Color color = styleVariant.backgroundColor() == null ? Color.RAINBOW : styleVariant.backgroundColor();
-        for (var filter : styleVariant.backgroundColorFilters()) {
-            color = Color.of(filter.filter().applyAsInt(color.color()));
+        if (color != null) {
+            for (var filter : styleVariant.backgroundColorFilters()) {
+                color = Color.of(filter.filter().applyAsInt(color.color()));
+            }
+            ninja.crinkle.mod.client.gui.properties.Rect widgetRect = widget.rect();
+            TextureSize textureSize = TextureSize.of(widgetRect.width(), widgetRect.height());
+            if (textureSize.equals(TextureSize.ZERO)) {
+                return;
+            }
+            ResourceLocation texture = theme.generateTexture(this, textureSize, colorFilters);
+            graphics.blit(texture, Point.of(widgetRect.x(), widgetRect.y()), textureSize, widget.zIndex(),
+                    color.withAlpha(widget.alpha()));
         }
-        ninja.crinkle.mod.client.gui.properties.Rect widgetRect = widget.rect();
-        TextureSize textureSize = TextureSize.of(widgetRect.width(), widgetRect.height());
-        if (textureSize.equals(TextureSize.ZERO)) {
-            return;
-        }
-        ResourceLocation texture = theme.generateTexture(this, textureSize, colorFilters);
-        graphics.blit(texture, Point.of(widgetRect.x(), widgetRect.y()), textureSize, widget.zIndex(),
-                color.withAlpha(widget.alpha()));
     }
 
     public static class Builder extends GenericBuilder<Builder, Texture> {
@@ -230,9 +232,6 @@ public record Texture(String id, String location, Map<Slice.Location, Slice> sli
     }
 
     public record Slice(Point start, TextureSize size) {
-        public Slice(int x, int y, int width, int height) {
-            this(new Point(x, y), TextureSize.of(width, height));
-        }
 
         public TextureBox box() {
             return new TextureBox(size);

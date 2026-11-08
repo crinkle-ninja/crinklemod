@@ -1,7 +1,6 @@
 package ninja.crinkle.mod.network.messages;
 
 import com.mojang.logging.LogUtils;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
@@ -59,7 +58,7 @@ public class UndergarmentUpdateMessage {
             this.maxSolids = buffer.readInt();
         }
         if (buffer.readBoolean()) {
-            this.design = new ResourceLocation(buffer.readUtf());
+            this.design = ResourceLocation.parse(buffer.readUtf());
         }
     }
 
@@ -134,6 +133,7 @@ public class UndergarmentUpdateMessage {
         }
     }
 
+    @SuppressWarnings({"unused"})
     public static class Builder {
         private Integer liquids;
         private Integer maxLiquids;
@@ -146,6 +146,10 @@ public class UndergarmentUpdateMessage {
 
         public UndergarmentUpdateMessage build() {
             return new UndergarmentUpdateMessage(this.liquids, this.solids, this.maxLiquids, this.maxSolids, this.design);
+        }
+
+        public void design(ResourceLocation design) {
+            this.design = design;
         }
 
         public Builder liquids(int liquids) {

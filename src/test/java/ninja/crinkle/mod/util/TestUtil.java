@@ -68,7 +68,7 @@ public class TestUtil {
     public static Theme spyTheme() {
         Theme theme = spy(Theme.builder("test").name("Test").description("Test theme").version("0.0.0").build());
         Texture texture = spyTexture(theme);
-        ThemeAtlas.register(new ResourceLocation(FULL_TEXTURE_PATH));
+        ThemeAtlas.register(ResourceLocation.parse(FULL_TEXTURE_PATH));
         theme.addTexture(texture);
         theme.addColor("background", Color.of("#AA7FD6"));
         theme.addColor("primary", Color.of("#D6AA7F"));
