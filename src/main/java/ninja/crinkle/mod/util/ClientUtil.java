@@ -6,7 +6,6 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.loading.FMLLoader;
 import ninja.crinkle.mod.client.ClientHooks;
-import ninja.crinkle.mod.client.gui.properties.Point;
 
 import java.util.Optional;
 
@@ -25,10 +24,6 @@ public class ClientUtil {
 
     public static void setClipboard(String text) {
         getMinecraft().keyboardHandler.setClipboard(text);
-    }
-
-    public static Point getMousePosition() {
-        return new Point(getMinecraft().mouseHandler.xpos(), getMinecraft().mouseHandler.ypos());
     }
 
     public static Player getPlayer() {

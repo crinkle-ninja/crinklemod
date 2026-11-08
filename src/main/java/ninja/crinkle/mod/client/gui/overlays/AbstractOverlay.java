@@ -18,7 +18,7 @@ public abstract class AbstractOverlay implements IGuiOverlay, IManagedGUI {
     private final GuiManager manager;
     private int lastScreenHeight;
     private int lastScreenWidth;
-    private boolean ready = false;
+    protected boolean ready = false;
 
     public AbstractOverlay() {
         this(GuiManager.create());

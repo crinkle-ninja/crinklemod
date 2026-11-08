@@ -1,6 +1,5 @@
 package ninja.crinkle.mod.sounds;
 
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
@@ -13,7 +12,7 @@ public class CrinkleSounds {
             DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, CrinkleMod.MODID);
 
     public static final RegistryObject<SoundEvent> CRINKLE_SOUND = SOUNDS.register("crinkle_sound",
-            () -> SoundEvent.createFixedRangeEvent(new ResourceLocation(CrinkleMod.MODID, "crinkle_sound"), 1f));
+            () -> SoundEvent.createFixedRangeEvent(CrinkleMod.loc("crinkle_sound"), 1f));
 
     public static void register(IEventBus bus) {
         SOUNDS.register(bus);

@@ -1,7 +1,6 @@
 package ninja.crinkle.mod.items.custom;
 
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
@@ -31,8 +30,7 @@ public class DunnyItem extends BlockItem implements GeoItem {
             public BlockEntityWithoutLevelRenderer getCustomRenderer() {
                 if (this.renderer == null)
                     this.renderer =
-                            new GeoItemRenderer<>(new DefaultedBlockGeoModel<>(new ResourceLocation(CrinkleMod.MODID,
-                                    "dunny")));
+                            new GeoItemRenderer<>(new DefaultedBlockGeoModel<>(CrinkleMod.loc("dunny")));
                 return this.renderer;
             }
         });

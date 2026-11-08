@@ -2,11 +2,11 @@ package ninja.crinkle.mod.capabilities;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraftforge.common.util.INBTSerializable;
-import net.minecraftforge.entity.IEntityAdditionalSpawnData;
 import ninja.crinkle.mod.metabolism.Metabolism;
 import ninja.crinkle.mod.settings.Setting;
 
-public interface IMetabolism extends INBTSerializable<CompoundTag>, IEntityAdditionalSpawnData {
+public interface IMetabolism extends INBTSerializable<CompoundTag> {
+    void copyFrom(IMetabolism other);
     String getAsString(Setting<?> setting);
     double getAsDouble(Setting<?> setting);
     int getAsInt(Setting<?> setting);

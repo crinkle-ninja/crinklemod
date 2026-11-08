@@ -2,6 +2,7 @@ package ninja.crinkle.mod.events.handlers;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -12,7 +13,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.OnDatapackSyncEvent;
 import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.LogicalSide;
@@ -23,6 +24,7 @@ import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.MissingMappingsEvent;
 import ninja.crinkle.mod.CrinkleMod;
+import ninja.crinkle.mod.client.gui.overlays.CrinkleOverlay;
 import ninja.crinkle.mod.client.textures.Textures;
 import ninja.crinkle.mod.items.CrinkleItems;
 import ninja.crinkle.mod.metabolism.Metabolism;
@@ -35,6 +37,16 @@ import org.jetbrains.annotations.NotNull;
 
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE, modid = CrinkleMod.MODID)
 public class CrinkleForgeBusEvents {
+
+    @SubscribeEvent
+    public static void onEntityJoinLevel(EntityJoinLevelEvent event) {
+        if (event.getEntity() instanceof Player p && (ClientUtil.isDedicatedServer()
+                || ClientUtil.getMinecraft().isLocalServer())) {
+            Metabolism.wetOf(p).syncClient();
+            Metabolism.messOf(p).syncClient();
+        }
+    }
+
     @SubscribeEvent
     public static void onAddReloadListeners(@NotNull AddReloadListenerEvent event) {
         event.addListener(new DiaperDesignRegistry());
@@ -50,22 +62,6 @@ public class CrinkleForgeBusEvents {
         }
     }
 
-    @SubscribeEvent
-    public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
-        if (ClientUtil.isDedicatedServer()) {
-            Metabolism.wetOf(event.getEntity()).syncClient();
-            Metabolism.messOf(event.getEntity()).syncClient();
-        }
-    }
-
-    @SubscribeEvent
-    public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
-        if (ClientUtil.isClient()) {
-            Metabolism.wetOf(event.getEntity()).syncServer();
-            Metabolism.messOf(event.getEntity()).syncServer();
-        }
-    }
-
     /**
      * Hook on when a player ticks. This is used to tick the metabolism of a player.
      * It only ticks the metabolism every 100 ticks, or 5 seconds.
@@ -76,7 +72,8 @@ public class CrinkleForgeBusEvents {
     @SubscribeEvent
     public static void onPlayerTick(TickEvent.@NotNull PlayerTickEvent event) {
         if (event.side.isServer()) return;
-        if (event.phase == TickEvent.Phase.END) {
+        if (event.player.isDeadOrDying()) return;
+        if (event.phase == TickEvent.Phase.END && CrinkleOverlay.HUD.isReady()) {
             Metabolism.wetOf(event.player).tick(event.player.tickCount);
             Metabolism.messOf(event.player).tick(event.player.tickCount);
         }

@@ -1,9 +1,9 @@
 package ninja.crinkle.mod.config;
 
 import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import ninja.crinkle.mod.CrinkleMod;
 import ninja.crinkle.mod.client.color.Color;
 import ninja.crinkle.mod.client.gui.themes.ThemeRegistry;
@@ -105,8 +105,8 @@ public class ClientConfig {
         return INSTANCE.overlay;
     }
 
-    public static void register() {
-        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, CONFIG);
+    public static void register(FMLJavaModLoadingContext context) {
+        context.registerConfig(ModConfig.Type.CLIENT, CONFIG);
     }
 
     public static String themeId() {

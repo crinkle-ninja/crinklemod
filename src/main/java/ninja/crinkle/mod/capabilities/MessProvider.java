@@ -1,47 +1,49 @@
 package ninja.crinkle.mod.capabilities;
 
-import com.mojang.logging.LogUtils;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.common.util.INBTSerializable;
+import net.minecraftforge.common.capabilities.CapabilityManager;
+import net.minecraftforge.common.capabilities.CapabilityToken;
+import net.minecraftforge.common.capabilities.ICapabilitySerializable;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import ninja.crinkle.mod.CrinkleMod;
 import ninja.crinkle.mod.capabilities.versioning.MetabolismVersion;
 import ninja.crinkle.mod.metabolism.Metabolism;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
 
-public class MessProvider implements ICapabilityProvider, INBTSerializable<CompoundTag> {
-    public static final String NAME_FORMAT = "metabolism.mess";
-    private static final Logger LOGGER = LogUtils.getLogger();
+public class MessProvider implements ICapabilitySerializable<CompoundTag> {
+    public static final Capability<MessCapability> CAPABILITY = CapabilityManager.get(new CapabilityToken<>() {
+    });
+    public static final ResourceLocation RESOURCE_LOCATION = CrinkleMod.loc("metabolism.mess");
     private final Player player;
-    private final MessCapability storage;
-    private final LazyOptional<MessCapability> instance;
+    private MessCapability storage;
+    private final LazyOptional<MessCapability> instance = LazyOptional.of(this::getOrCreateStorage);
 
     public MessProvider(Player player) {
         this.player = player;
-        this.storage = new MetabolismImpl(Metabolism.Type.Mess);
-        this.instance = LazyOptional.of(() -> storage);
     }
 
-    /**
-     * Attach the metabolism capability to an entity.
-     *
-     * @param event The event that is fired when an entity is created and ready for attachment.
-     * @see net.minecraftforge.event.AttachCapabilitiesEvent
-     */
-    public static void attach(final @NotNull AttachCapabilitiesEvent<Entity> event) {
-        if (event.getObject() instanceof Player player) {
-            LOGGER.debug("Attaching mess metabolism capability to player");
-            event.addCapability(new ResourceLocation(CrinkleMod.MODID, NAME_FORMAT), new MessProvider(player));
+    @SubscribeEvent
+    public static void onAttachCapabilitiesPlayer(AttachCapabilitiesEvent<Entity> event) {
+        if (event.getObject() instanceof Player p) {
+            if (!event.getObject().getCapability(MessProvider.CAPABILITY).isPresent()) {
+                event.addCapability(MessProvider.RESOURCE_LOCATION, new MessProvider(p));
+            }
         }
+    }
+
+    private MessCapability getOrCreateStorage() {
+        if (this.storage == null) {
+            this.storage = new MetabolismImpl(Metabolism.Type.Mess);
+        }
+        return this.storage;
     }
 
     /**
@@ -56,7 +58,10 @@ public class MessProvider implements ICapabilityProvider, INBTSerializable<Compo
     @NotNull
     @Override
     public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
-        return MetabolismCapabilities.MESS.orEmpty(cap, instance);
+        if (cap == CAPABILITY) {
+            return instance.cast();
+        }
+        return LazyOptional.empty();
     }
 
     /**
@@ -66,7 +71,7 @@ public class MessProvider implements ICapabilityProvider, INBTSerializable<Compo
      */
     @Override
     public CompoundTag serializeNBT() {
-        return storage.serializeNBT();
+        return getOrCreateStorage().serializeNBT();
     }
 
     /**
@@ -76,6 +81,6 @@ public class MessProvider implements ICapabilityProvider, INBTSerializable<Compo
      */
     @Override
     public void deserializeNBT(CompoundTag nbt) {
-        storage.deserializeNBT(MetabolismVersion.performUpgrades(this.player, nbt));
+        getOrCreateStorage().deserializeNBT(MetabolismVersion.performUpgrades(this.player, nbt));
     }
 }

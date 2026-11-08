@@ -7,7 +7,6 @@ import ninja.crinkle.mod.CrinkleMod;
 import ninja.crinkle.mod.client.gui.properties.Sizing;
 import ninja.crinkle.mod.client.gui.widgets.MetabolismWidget;
 import ninja.crinkle.mod.client.gui.widgets.UndergarmentWidget;
-import ninja.crinkle.mod.events.CrinkleEvent;
 import ninja.crinkle.mod.undergarment.Undergarment;
 import ninja.crinkle.mod.util.ClientUtil;
 
@@ -26,8 +25,13 @@ public class CrinkleOverlay extends AbstractOverlay {
         CrinkleMod.EVENT_BUS.register(undergarmentWidget);
     }
 
+    public boolean isReady() {
+        return this.ready;
+    }
+
     @Override
     public void render(ForgeGui gui, GuiGraphics guiGraphics, float partialTick, int screenWidth, int screenHeight) {
+        if (ClientUtil.getPlayer().isDeadOrDying()) return;
         undergarmentWidget.visible(Undergarment.getWornUndergarment(ClientUtil.getPlayer()) != ItemStack.EMPTY);
         super.render(gui, guiGraphics, partialTick, screenWidth, screenHeight);
     }

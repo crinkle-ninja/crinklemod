@@ -2,10 +2,10 @@ package ninja.crinkle.mod.config;
 
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.config.ModConfigEvent;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import ninja.crinkle.mod.CrinkleMod;
 
 @Mod.EventBusSubscriber(modid = CrinkleMod.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
@@ -38,7 +38,7 @@ public class UndergarmentConfig {
         return defaultMaxSolids;
     }
 
-    public static void register() {
-        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, SPEC, CONFIG_FILE_NAME);
+    public static void register(FMLJavaModLoadingContext context) {
+        context.registerConfig(ModConfig.Type.COMMON, SPEC, CONFIG_FILE_NAME);
     }
 }

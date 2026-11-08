@@ -13,8 +13,8 @@ public enum SpriteLoaderType {
     private final ResourceLocation atlasLocation;
 
     SpriteLoaderType(String atlasLocation, String atlasInfoLocation) {
-        this.atlasLocation = new ResourceLocation(CrinkleMod.MODID, atlasLocation);
-        this.atlasInfoLocation = new ResourceLocation(CrinkleMod.MODID, atlasInfoLocation);
+        this.atlasLocation = CrinkleMod.loc(atlasLocation);
+        this.atlasInfoLocation = CrinkleMod.loc(atlasInfoLocation);
     }
 
     public static SpriteLoaderType fromResourceLocation(ResourceLocation resourceLocation) {

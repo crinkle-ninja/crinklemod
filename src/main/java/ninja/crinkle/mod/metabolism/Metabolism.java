@@ -6,8 +6,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.network.PacketDistributor;
 import ninja.crinkle.mod.CrinkleMod;
-import ninja.crinkle.mod.capabilities.IMetabolism;
-import ninja.crinkle.mod.capabilities.MetabolismCapabilities;
+import ninja.crinkle.mod.capabilities.*;
 import ninja.crinkle.mod.events.CrinkleEvent;
 import ninja.crinkle.mod.events.PangEvent;
 import ninja.crinkle.mod.network.CrinkleChannel;
@@ -60,6 +59,10 @@ public class Metabolism {
         setValue(MetabolismSettings.of(metabolismType).control(), control);
     }
 
+    public void copyFrom(IMetabolism other) {
+        capability().copyFrom(other);
+    }
+
     public <T extends Comparable<? super T>> void setValue(Setting<T> setting, T value) {
         capability().updateValue(setting, value);
         dirty = true;
@@ -67,8 +70,8 @@ public class Metabolism {
 
     protected IMetabolism capability() {
         return switch (metabolismType) {
-            case Mess -> player.getCapability(MetabolismCapabilities.MESS).resolve().orElseThrow();
-            case Wet -> player.getCapability(MetabolismCapabilities.WET).resolve().orElseThrow();
+            case Mess -> player.getCapability(MessProvider.CAPABILITY).orElse(new MetabolismImpl(Type.Mess));
+            case Wet -> player.getCapability(WetProvider.CAPABILITY).orElse(new MetabolismImpl(Type.Wet));
         };
     }
 
@@ -214,6 +217,7 @@ public class Metabolism {
     private void handleRelief() {
         if (pangDuration() <= 0) {
             pangStop();
+            reset();
             pangStart(Pang.Delay, DELAY_SECONDS);
         } else {
             pangTick();

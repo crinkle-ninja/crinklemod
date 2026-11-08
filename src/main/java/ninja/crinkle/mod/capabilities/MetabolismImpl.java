@@ -1,7 +1,6 @@
 package ninja.crinkle.mod.capabilities;
 
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
 import ninja.crinkle.mod.capabilities.versioning.MetabolismVersion;
 import ninja.crinkle.mod.metabolism.Metabolism;
 import ninja.crinkle.mod.metabolism.MetabolismSettings;
@@ -9,8 +8,6 @@ import ninja.crinkle.mod.metabolism.Pang;
 import ninja.crinkle.mod.settings.Setting;
 import org.jetbrains.annotations.NotNull;
 
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -66,6 +63,10 @@ public class MetabolismImpl implements IMetabolism, WetCapability, MessCapabilit
     @Override
     public Metabolism.Type type() {
         return type;
+    }
+
+    @Override public void copyFrom(IMetabolism other) {
+        this.deserializeNBT(other.serializeNBT());
     }
 
     @Override
@@ -227,35 +228,5 @@ public class MetabolismImpl implements IMetabolism, WetCapability, MessCapabilit
                 ", pangDuration=" + pangDuration +
                 ", tickCount=" + tickCount +
                 '}';
-    }
-
-    @Override
-    public void writeSpawnData(FriendlyByteBuf buffer) {
-        buffer.writeBoolean(enabled);
-        buffer.writeDouble(control);
-        buffer.writeInt(interval);
-        buffer.writeDouble(controlDecay);
-        buffer.writeDouble(intervalDecay);
-        buffer.writeDouble(intensity);
-        buffer.writeUtf(pang.name());
-        buffer.writeDouble(currentInterval);
-        buffer.writeDouble(currentControl);
-        buffer.writeInt(pangDuration);
-        buffer.writeInt(tickCount);
-    }
-
-    @Override
-    public void readSpawnData(FriendlyByteBuf additionalData) {
-        enabled = additionalData.readBoolean();
-        control = additionalData.readDouble();
-        interval = additionalData.readInt();
-        controlDecay = additionalData.readDouble();
-        intervalDecay = additionalData.readDouble();
-        intensity = additionalData.readDouble();
-        pang = Pang.from(additionalData.readUtf());
-        currentInterval = additionalData.readDouble();
-        currentControl = additionalData.readDouble();
-        pangDuration = additionalData.readInt();
-        tickCount = additionalData.readInt();
     }
 }
