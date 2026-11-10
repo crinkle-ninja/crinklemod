@@ -25,10 +25,10 @@ public class MarginContainer extends AbstractContainer {
 
     @Override
     public void arrange() {
-        List<AbstractWidget> kids = children();
+        List<Widget> kids = children();
         if (kids.isEmpty() || rect().equals(Rect.ZERO)) return;
         // Only the first child is arranged
-        AbstractWidget child = kids.get(0);
+        Widget child = kids.get(0);
         Rect inner = rect().shrink(marginTop, marginRight, marginBottom, marginLeft);
         Rect fitted = fitChildInRect(child, inner);
         child.setRect(fitted);
@@ -64,18 +64,18 @@ public class MarginContainer extends AbstractContainer {
 
     @Override
     public int minimumHeight() {
-        int childMin = children().stream().mapToInt(AbstractWidget::minimumHeight).max().orElse(0);
+        int childMin = children().stream().mapToInt(Widget::minimumHeight).max().orElse(0);
         return Math.max(super.minimumHeight(), childMin + marginTop + marginBottom);
     }
 
     @Override
     public int minimumWidth() {
-        int childMin = children().stream().mapToInt(AbstractWidget::minimumWidth).max().orElse(0);
+        int childMin = children().stream().mapToInt(Widget::minimumWidth).max().orElse(0);
         return Math.max(super.minimumWidth(), childMin + marginLeft + marginRight);
     }
 
     @Override
-    public AbstractWidget visualCopy(AbstractContainer newParent) {
+    public Widget visualCopy(AbstractContainer newParent) {
         MarginContainer copy = new MarginContainer.Builder(newParent)
                 .margins(marginTop, marginRight, marginBottom, marginLeft).build();
         copy.copyVisualProperties(this);

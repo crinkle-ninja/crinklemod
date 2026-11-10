@@ -5,6 +5,7 @@ import ninja.crinkle.mod.client.gui.properties.Rect;
 import ninja.crinkle.mod.client.gui.properties.ScreenRegion;
 import ninja.crinkle.mod.client.gui.widgets.AbstractContainer;
 import ninja.crinkle.mod.client.gui.widgets.AbstractWidget;
+import ninja.crinkle.mod.client.gui.widgets.Widget;
 import ninja.crinkle.mod.config.ClientConfig;
 
 import java.util.*;
@@ -15,10 +16,6 @@ import java.util.function.Supplier;
 public class LayoutRegistry {
 
     private static final Map<String, Entry> entries = new LinkedHashMap<>();
-
-    public static Collection<Entry> entries() {
-        return Collections.unmodifiableCollection(entries.values());
-    }
 
     public static Collection<Entry> entries(IManagedGUI gui) {
         return entries.values().stream().filter(entry -> entry.gui() == gui).toList();
@@ -52,7 +49,7 @@ public class LayoutRegistry {
 
     public record Entry(String id,
                         IManagedGUI gui,
-                        Function<AbstractContainer, AbstractWidget> editorWidgetFactory,
+                        Function<AbstractContainer, Widget> editorWidgetFactory,
                         Supplier<Rect> currentRect,
                         Consumer<Rect> onApply) {
     }

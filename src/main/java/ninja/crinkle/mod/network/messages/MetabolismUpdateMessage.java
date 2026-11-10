@@ -30,6 +30,7 @@ public class MetabolismUpdateMessage {
     private final double controlDecay;
     private final double intervalDecay;
     private final double intensity;
+    private final int delaySeconds;
     private final double currentControl;
     private final Pang pang;
     private final int pangDuration;
@@ -50,6 +51,7 @@ public class MetabolismUpdateMessage {
         this.controlDecay = metabolism.controlDecay();
         this.intervalDecay = metabolism.intervalDecay();
         this.intensity = metabolism.intensity();
+        this.delaySeconds = metabolism.delaySeconds();
         this.currentControl = metabolism.currentControl();
         this.pang = metabolism.pang();
         this.pangDuration = metabolism.pangDuration();
@@ -71,6 +73,7 @@ public class MetabolismUpdateMessage {
         this.controlDecay = buffer.readDouble();
         this.intervalDecay = buffer.readDouble();
         this.intensity = buffer.readDouble();
+        this.delaySeconds = buffer.readInt();
         this.currentControl = buffer.readDouble();
         this.pang = buffer.readEnum(Pang.class);
         this.pangDuration = buffer.readInt();
@@ -103,6 +106,7 @@ public class MetabolismUpdateMessage {
         buffer.writeDouble(this.controlDecay);
         buffer.writeDouble(this.intervalDecay);
         buffer.writeDouble(this.intensity);
+        buffer.writeInt(this.delaySeconds);
         buffer.writeDouble(this.currentControl);
         buffer.writeEnum(this.pang);
         buffer.writeInt(this.pangDuration);
@@ -129,6 +133,7 @@ public class MetabolismUpdateMessage {
         metabolism.controlDecay(controlDecay);
         metabolism.intervalDecay(intervalDecay);
         metabolism.intensity(intensity);
+        metabolism.delaySeconds(delaySeconds);
         metabolism.currentControl(currentControl);
         metabolism.pang(pang);
         metabolism.currentInterval(currentInterval);

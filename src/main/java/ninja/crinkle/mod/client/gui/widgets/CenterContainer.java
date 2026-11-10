@@ -17,10 +17,10 @@ public class CenterContainer extends AbstractContainer {
 
     @Override
     public void arrange() {
-        List<AbstractWidget> kids = children();
+        List<Widget> kids = children();
         if (kids.isEmpty() || rect().equals(Rect.ZERO)) return;
         // Only the first child is arranged
-        AbstractWidget child = kids.get(0);
+        Widget child = kids.get(0);
         int childW = child.minimumWidth();
         int childH = child.minimumHeight();
         int x = rect().x() + (rect().width() - childW) / 2;
@@ -31,13 +31,13 @@ public class CenterContainer extends AbstractContainer {
     @Override
     public int minimumHeight() {
         return Math.max(super.minimumHeight(),
-                children().stream().mapToInt(AbstractWidget::minimumHeight).max().orElse(0));
+                children().stream().mapToInt(Widget::minimumHeight).max().orElse(0));
     }
 
     @Override
     public int minimumWidth() {
         return Math.max(super.minimumWidth(),
-                children().stream().mapToInt(AbstractWidget::minimumWidth).max().orElse(0));
+                children().stream().mapToInt(Widget::minimumWidth).max().orElse(0));
     }
 
     @Override

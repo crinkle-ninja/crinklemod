@@ -1,7 +1,6 @@
 package ninja.crinkle.mod.client.gui.widgets;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import com.mojang.logging.LogUtils;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -13,7 +12,6 @@ import ninja.crinkle.mod.client.gui.renderers.ThemeGraphics;
 import ninja.crinkle.mod.client.gui.textures.Texture;
 import ninja.crinkle.mod.client.gui.textures.TextureSize;
 import ninja.crinkle.mod.util.ClientUtil;
-import org.slf4j.Logger;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -22,7 +20,6 @@ import java.util.function.Supplier;
 
 
 public class TextBox extends AbstractWidget implements KeyActor, MouseActor, FocusActor {
-    private static final Logger LOGGER = LogUtils.getLogger();
     private int cursorPos = -1;
     private boolean insertMode = true;
     private Component placeholder;
@@ -425,7 +422,7 @@ public class TextBox extends AbstractWidget implements KeyActor, MouseActor, Foc
         TextureSize background = appearance().backgroundTexture().boundsOf(Texture.Slice.Location.topLeft);
         int offset = (renderedRect.height() / 2) - (graphics.textHeight() / 2);
         Point renderPos = Point.of(renderedRect.x() + background.width(), renderedRect.y() + offset);
-        if (text().isEmpty() && !focused()) {
+        if ((text() == null || text().isEmpty()) && !focused()) {
             graphics.text(placeholder().getString(), renderPos, zIndex(), appearance().foregroundColor().halftone(),
                     appearance().shadow());
         } else {

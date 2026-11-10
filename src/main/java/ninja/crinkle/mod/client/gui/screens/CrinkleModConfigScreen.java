@@ -7,6 +7,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
+import ninja.crinkle.mod.capabilities.IMetabolism;
+import ninja.crinkle.mod.capabilities.MetabolismImpl;
 import ninja.crinkle.mod.client.color.Color;
 import ninja.crinkle.mod.client.gui.actors.TabActor;
 import ninja.crinkle.mod.client.gui.properties.Sizing;
@@ -27,7 +29,6 @@ import java.util.stream.Collectors;
 public class CrinkleModConfigScreen extends AbstractScreen implements TabActor {
     private final Player player;
     private Label tabTitle;
-    private TabbedPanelContainer tabs;
     private CenterContainer titleRow;
 
     public CrinkleModConfigScreen() {
@@ -40,11 +41,6 @@ public class CrinkleModConfigScreen extends AbstractScreen implements TabActor {
         MetabolismTab.Mess.onClose();
         MetabolismTab.Wet.onClose();
         super.onClose();
-    }
-
-    @Override
-    public boolean layoutEditorEnabled() {
-        return false;
     }
 
     @Override
@@ -65,7 +61,7 @@ public class CrinkleModConfigScreen extends AbstractScreen implements TabActor {
     @Override
     public void init() {
         int fontHeight = ClientUtil.getMinecraft().font.lineHeight;
-        int rowHeight = fontHeight + 8;
+        int rowHeight = fontHeight + 10;
 
         // Root window container (centered, draggable panel)
         VBoxContainer window = new VBoxContainer.Builder(root())
@@ -79,12 +75,19 @@ public class CrinkleModConfigScreen extends AbstractScreen implements TabActor {
                 .verticalSizing(Sizing.ShrinkCenter)
                 .pushAndReturn();
 
-        titleRow = new CenterContainer.Builder(window)
+        HBoxContainer header = new HBoxContainer.Builder(window)
+                .horizontalSizing(Sizing.Fill, Sizing.Expand)
+                .pushAndReturn();
+
+        new HBoxContainer.Builder(header)
+                .horizontalSizing(Sizing.ShrinkBegin)
+                .pushAndReturn();
+
+        titleRow = new CenterContainer.Builder(header)
                 .name("title_row")
                 .separation(2)
                 .horizontalSizing(Sizing.Expand, Sizing.Fill)
                 .pushAndReturn();
-
 
         HBoxContainer titleContainer = new HBoxContainer.Builder(titleRow)
                 .name("title_container")
@@ -120,8 +123,21 @@ public class CrinkleModConfigScreen extends AbstractScreen implements TabActor {
                 .horizontalSizing(Sizing.ShrinkCenter)
                 .pushAndReturn();
 
+        HBoxContainer headerRight = new HBoxContainer.Builder(header)
+                .horizontalSizing(Sizing.ShrinkEnd)
+                .pushAndReturn();
+
+        MarginContainer rightMargin = new MarginContainer.Builder(headerRight)
+                .margins(2, 2, 0, 0)
+                .pushAndReturn();
+
+        new Button.Builder(rightMargin)
+                .text("Close")
+                .onClick(w -> onClose())
+                .push();
+
         // Tabbed panel
-        tabs = new TabbedPanelContainer.Builder(window)
+        TabbedPanelContainer tabs = new TabbedPanelContainer.Builder(window)
                 .name("tabs")
                 .tabWidth(90)
                 .tabMargin(4)
@@ -132,9 +148,9 @@ public class CrinkleModConfigScreen extends AbstractScreen implements TabActor {
         window.add(tabs);
 
         // === Mess tab ===
-        MetabolismTab.Mess.buildTab(tabs.addTab("mess", MetabolismSettings.MESS.label().getString()), rowHeight);
+        MetabolismTab.Mess.buildTab(player(), tabs.addTab("mess", MetabolismSettings.MESS.label().getString()), rowHeight);
         // === Wet tab ===
-        MetabolismTab.Wet.buildTab(tabs.addTab("wet", MetabolismSettings.WET.label().getString()), rowHeight);
+        MetabolismTab.Wet.buildTab(player(), tabs.addTab("wet", MetabolismSettings.WET.label().getString()), rowHeight);
 
 
         // === Undergarment tab ===
@@ -142,36 +158,6 @@ public class CrinkleModConfigScreen extends AbstractScreen implements TabActor {
         if (Undergarment.hasUndergarmentData(itemStack)) {
             buildUndergarmentTab(tabs.addTab("undergarment", itemStack.getDisplayName().getString()), rowHeight, itemStack);
         }
-
-        // Footer
-        MarginContainer footerMargin = new MarginContainer.Builder(window)
-                .margins(4)
-                .pushAndReturn();
-        HBoxContainer footer = new HBoxContainer.Builder(footerMargin)
-                .name("footer")
-                .separation(6)
-                .minSize(0, rowHeight)
-                .horizontalSizing(Sizing.Fill)
-                .verticalSizing(Sizing.ShrinkEnd)
-                .pushAndReturn();
-
-        new Button.Builder(footer)
-                .name("reset_btn")
-                .text(Component.translatable("gui.crinklemod.shared.reset_button.title").getString())
-                .style("button_secondary")
-                .minSize(60, rowHeight)
-                .horizontalSizing(Sizing.Expand, Sizing.Fill)
-                .onClick(w -> onReset())
-                .push();
-
-        new Button.Builder(footer)
-                .name("back_btn")
-                .text(Component.translatable("gui.crinklemod.shared.back_button.title").getString())
-                .style("button")
-                .minSize(60, rowHeight)
-                .horizontalSizing(Sizing.Expand, Sizing.Fill)
-                .onClick(w -> onClose())
-                .push();
 
         super.init();
     }
@@ -323,18 +309,10 @@ public class CrinkleModConfigScreen extends AbstractScreen implements TabActor {
         widget.active(false);
     }
 
-    private void onReset() {
-        switch (tabs.selectedIndex()) {
-            case 0:
-                MetabolismTab.Wet.onReset();
-                break;
-            case 1:
-                MetabolismTab.Mess.onReset();
-                break;
-            case 2:
-                // todo
-                break;
-        }
+    @Override public void tick() {
+        MetabolismTab.Wet.tick();
+        MetabolismTab.Mess.tick();
+        super.tick();
     }
 
     private Player player() {
@@ -361,8 +339,12 @@ public class CrinkleModConfigScreen extends AbstractScreen implements TabActor {
         Wet(MetabolismSettings.WET),
         Mess(MetabolismSettings.MESS);
 
+        private Player player;
         private final MetabolismSettings settings;
+        private IMetabolism original;
+        private IMetabolism updates;
         private final Map<Setting<?>, TextBox> valueBoxes = new HashMap<>();
+        private final Map<Setting<?>, TextBox> stateBoxes = new HashMap<>();
         private Button enableButton;
 
         MetabolismTab(MetabolismSettings setting) {
@@ -370,11 +352,10 @@ public class CrinkleModConfigScreen extends AbstractScreen implements TabActor {
         }
 
         private Metabolism metabolism() {
-            Player player = ClientUtil.getPlayer();
             return Metabolism.of(player, settings().type());
         }
 
-        private <T extends Comparable<? super T>> void buildSettingRow(VBoxContainer parent, int rowHeight, Setting<T> setting) {
+        private <T extends Comparable<? super T>> void buildSettingRow(ScrollContainer parent, int rowHeight, Setting<T> setting) {
             HBoxContainer rowContainer = new HBoxContainer.Builder(parent)
                     .name("%s.row".formatted(setting.key()))
                     .separation(4)
@@ -403,7 +384,7 @@ public class CrinkleModConfigScreen extends AbstractScreen implements TabActor {
                     .style("config.value.textbox")
                     .minSize(50, rowHeight)
                     .readOnly(false)
-                    .activePredicate(w -> metabolism().enabled())
+                    .activePredicate(w -> updates.getAsBool(settings.enabled()))
                     .horizontalSizing(Sizing.ShrinkCenter)
                     .verticalSizing(Sizing.Expand)
                     .onTextChanged(v -> {
@@ -434,7 +415,7 @@ public class CrinkleModConfigScreen extends AbstractScreen implements TabActor {
                         return true;
                     })
                     .build();
-            valueBox.value(metabolism().getAsString(setting));
+            valueBox.value(updates.getAsString(setting));
             valueBoxes.put(setting, valueBox);
 
             Button minus = new Button.Builder(controls)
@@ -445,15 +426,15 @@ public class CrinkleModConfigScreen extends AbstractScreen implements TabActor {
                         errors.clear();
                         rowContainer.tooltip(null);
                         if (setting instanceof Setting.DoubleValue dv) {
-                            double value = metabolism().getAsDouble(dv);
+                            double value = updates.getAsDouble(dv);
                             errors.addAll(setValue(dv, dv.subtract(value, modifierValue(dv))));
                         } else if (setting instanceof Setting.IntValue iv) {
-                            int value = metabolism().getAsInt(iv);
+                            int value = updates.getAsInt(iv);
                             errors.addAll(setValue(iv, iv.subtract(value, modifierValue(iv))));
                         }
-                        valueBox.value(metabolism().getAsString(setting));
+                        valueBox.value(updates.getAsString(setting));
                     })
-                    .activePredicate(w -> metabolism().enabled())
+                    .activePredicate(w -> updates.getAsBool(settings.enabled()))
                     .build();
 
 
@@ -465,15 +446,15 @@ public class CrinkleModConfigScreen extends AbstractScreen implements TabActor {
                         errors.clear();
                         rowContainer.tooltip(null);
                         if (setting instanceof Setting.DoubleValue dv) {
-                            double value = metabolism().getAsDouble(dv);
+                            double value = updates.getAsDouble(dv);
                             errors.addAll(setValue(dv, dv.add(value, modifierValue(dv))));
                         } else if (setting instanceof Setting.IntValue iv) {
-                            int value = metabolism().getAsInt(iv);
+                            int value = updates.getAsInt(iv);
                             errors.addAll(setValue(iv, iv.add(value, modifierValue(iv))));
                         }
-                        valueBox.value(metabolism().getAsString(setting));
+                        valueBox.value(updates.getAsString(setting));
                     })
-                    .activePredicate(w -> metabolism().enabled())
+                    .activePredicate(w -> updates.getAsBool(settings.enabled()))
                     .build();
 
             controls.add(minus);
@@ -490,19 +471,85 @@ public class CrinkleModConfigScreen extends AbstractScreen implements TabActor {
                     .color(Color.RED).pushAndReturn();
         }
 
+        private <T extends Comparable<? super T>> void buildStateRow(ScrollContainer parent, int rowHeight, Setting<T> setting) {
+            HBoxContainer rowContainer = new HBoxContainer.Builder(parent)
+                    .name("%s.row".formatted(setting.key()))
+                    .separation(4)
+                    .minSize(0, rowHeight)
+                    .horizontalSizing(Sizing.Fill)
+                    .hoverable(true)
+                    .verticalSizing(Sizing.ShrinkBegin)
+                    .pushAndReturn();
+
+            new Label.Builder(rowContainer)
+                    .name("%s.label".formatted(setting.key()))
+                    .text(setting.label().getString())
+                    .horizontalSizing(Sizing.ShrinkBegin)
+                    .push();
+
+            // spacer
+            new MarginContainer.Builder(rowContainer)
+                    .horizontalSizing(Sizing.Fill, Sizing.Expand)
+                    .pushAndReturn();
+
+            HBoxContainer controls = new HBoxContainer.Builder(rowContainer)
+                    .name("%s.controls".formatted(setting.key()))
+                    .separation(1)
+                    .horizontalSizing(Sizing.ShrinkEnd)
+                    .verticalSizing(Sizing.Fill)
+                    .pushAndReturn();
+
+            final TextBox valueBox = new TextBox.Builder(controls)
+                    .name("%s.control.textbox".formatted(setting.key()))
+                    .style("config.value.textbox")
+                    .minSize(50, rowHeight)
+                    .readOnly(true)
+                    .activePredicate(w -> updates.getAsBool(settings.enabled()))
+                    .horizontalSizing(Sizing.ShrinkCenter)
+                    .verticalSizing(Sizing.Expand)
+                    .pushAndReturn();
+            stateBoxes.put(setting, valueBox);
+
+            new Label.Builder(controls).text("? ")
+                    .tooltip(Collections.singletonList(setting.tooltip()))
+                    .hoverable(true)
+                    .pushAndReturn();
+        }
+
         private <T extends Comparable<? super T>> List<String> setValue(Setting<T> setting, T value) {
             List<String> errors = new ArrayList<>();
             if (setting.isValid(value)) {
-                metabolism().setValue(setting, value);
+                this.updates.setValue(setting, value);
             } else {
                 errors.add(setting.errors(value).stream().map(Component::getString).collect(Collectors.joining(" ")));
             }
             return errors;
         }
 
-        void buildTab(VBoxContainer parent, int rowHeight) {
+        void buildTab(Player player, VBoxContainer parent, int rowHeight) {
+            this.player = player;
+            this.original = metabolism().copy();
+            this.updates = metabolism().copy();
+
+            ScrollContainer scrollContainer = new ScrollContainer.Builder(parent)
+                    .scrollable(true)
+                    .horizontalSizing(Sizing.Fill)
+                    .separation(4)
+                    .minSize(0, 64)
+                    .verticalSizing(Sizing.Expand, Sizing.Fill)
+                    .pushAndReturn();
+
+            CenterContainer settingsTitle = new CenterContainer.Builder(scrollContainer)
+                    .horizontalSizing(Sizing.Fill, Sizing.Expand)
+                    .pushAndReturn();
+
+            new Label.Builder(settingsTitle)
+                    .text("Settings")
+                    .color(Color.WHITE)
+                    .push();
+
             // Enabled toggle row
-            HBoxContainer enabledRow = new HBoxContainer.Builder(parent)
+            HBoxContainer enabledRow = new HBoxContainer.Builder(scrollContainer)
                     .name("%s.row".formatted(settings.enabled().key()))
                     .separation(4)
                     .minSize(0, rowHeight)
@@ -518,31 +565,97 @@ public class CrinkleModConfigScreen extends AbstractScreen implements TabActor {
 
             enableButton = new Button.Builder(enabledRow)
                     .name("%s.button".formatted(settings.enabled().key()))
-                    .text(metabolism().enabled() ? "ON" : "OFF")
-                    .minSize(92, rowHeight)
+                    .text(updates.getAsBool(settings.enabled()) ? "ON" : "OFF")
+                    .minSize(90, rowHeight)
                     .onClick(w -> {
-                        metabolism().enabled(!metabolism().enabled());
-                        ((Button) w).text(metabolism().enabled() ? "ON" : "OFF");
-                        Metabolism.of(ClientUtil.getPlayer(), settings().type()).syncServer();
+                        updates.setValue(settings.enabled(), !updates.getAsBool(settings.enabled()));
+                        ((Button) w).text(updates.getAsBool(settings.enabled()) ? "ON" : "OFF");
                     })
                     .pushAndReturn();
+            new Label.Builder(enabledRow)
+                    .text("? ")
+                    .tooltip(Collections.singletonList(settings.enabled().tooltip()))
+                    .push();
 
             // control
-            buildSettingRow(parent, rowHeight, settings().control());
+            buildSettingRow(scrollContainer, rowHeight, settings().control());
             // ticks
-            buildSettingRow(parent, rowHeight, settings().interval());
+            buildSettingRow(scrollContainer, rowHeight, settings().interval());
             // slopeDegradation
-            buildSettingRow(parent, rowHeight, settings().controlDecay());
+            buildSettingRow(scrollContainer, rowHeight, settings().controlDecay());
             // frequencyCompression
-            buildSettingRow(parent, rowHeight, settings().intervalDecay());
+            buildSettingRow(scrollContainer, rowHeight, settings().intervalDecay());
             // intensity
-            buildSettingRow(parent, rowHeight, settings().intensity());
+            buildSettingRow(scrollContainer, rowHeight, settings().intensity());
+            // delaySeconds
+            buildSettingRow(scrollContainer, rowHeight, settings().delaySeconds());
 
-            new Button.Builder(parent)
-                    .name("%s.void.button".formatted(metabolism().type().name()))
-                    .minSize(92, rowHeight)
+            CenterContainer stateTitle = new CenterContainer.Builder(scrollContainer)
+                    .horizontalSizing(Sizing.Fill, Sizing.Expand)
+                    .pushAndReturn();
+
+            new Label.Builder(stateTitle)
+                    .text("Current State")
+                    .color(Color.WHITE)
+                    .push();
+
+            buildStateRow(scrollContainer, rowHeight, settings().pang());
+            buildStateRow(scrollContainer, rowHeight, settings().pangDuration());
+            buildStateRow(scrollContainer, rowHeight, settings().currentControl());
+            buildStateRow(scrollContainer, rowHeight, settings().currentInterval());
+            buildStateRow(scrollContainer, rowHeight, settings().tickCount());
+
+            MarginContainer controlPanel = new MarginContainer.Builder(parent)
+                    .margins(4)
+                    .style("button_panel")
+                    .horizontalSizing(Sizing.Fill, Sizing.Expand)
+                    .verticalSizing(Sizing.ShrinkEnd)
+                    .pushAndReturn();
+
+            HBoxContainer controlRow = new HBoxContainer.Builder(controlPanel)
+                    .name("%s.controlRow".formatted(settings.type().name()))
+                    .horizontalSizing(Sizing.Fill, Sizing.Expand)
+                    .pushAndReturn();
+
+            // void
+            new Button.Builder(controlRow)
+                    .name("%s.void.button".formatted(updates.type().name()))
                     .text("Void")
                     .onClick(w -> metabolism().triggerAccident())
+                    .activePredicate(w -> updates.getAsBool(settings.enabled()))
+                    .push();
+
+            new MarginContainer.Builder(controlRow)
+                    .horizontalSizing(Sizing.Expand, Sizing.Fill)
+                    .pushAndReturn();
+
+            HBoxContainer controls = new HBoxContainer.Builder(controlRow)
+                    .separation(4)
+                    .horizontalSizing(Sizing.ShrinkEnd)
+                    .pushAndReturn();
+
+            // defaults
+            new Button.Builder(controls)
+                    .name("%s.defaults.button".formatted(updates.type().name()))
+                    .text("Defaults")
+                    .onClick(w -> onResetDefaults())
+                    .activePredicate(w -> !original.equals(new MetabolismImpl(settings().type())))
+                    .push();
+            // clear
+            new Button.Builder(controls)
+                    .name("%s.clear.button".formatted(updates.type().name()))
+                    .text("Clear")
+                    .style("button_secondary")
+                    .onClick(w -> onClearChanges())
+                    .activePredicate(w -> !original.equals(updates))
+                    .push();
+            // save
+            new Button.Builder(controls)
+                    .name("%s.save.button".formatted(updates.type().name()))
+                    .text("Save")
+                    .style("button_primary")
+                    .onClick(w -> onSave())
+                    .activePredicate(w -> !original.equals(updates))
                     .push();
         }
 
@@ -555,23 +668,45 @@ public class CrinkleModConfigScreen extends AbstractScreen implements TabActor {
             return setting.modifierValue(modifierValues);
         }
 
-        private void onReset() {
-            metabolism().resetDefaults();
-            enableButton.text(metabolism().enabled() ? "ON" : "OFF");
+        private void refreshTab() {
+            enableButton.text(updates.getAsBool(settings.enabled()) ? "ON" : "OFF");
             for (Map.Entry<Setting<?>, TextBox> entry : valueBoxes.entrySet()) {
                 TextBox valueBox = entry.getValue();
                 Setting<?> setting = entry.getKey();
-                valueBox.value(metabolism().getAsString(setting));
+                valueBox.value(updates.getAsString(setting));
             }
+        }
+
+        private void onResetDefaults() {
+            updates.reset();
+            refreshTab();
+        }
+
+        private void onClearChanges() {
+            updates.copyFrom(original);
+            refreshTab();
         }
 
         private void onClose() {
             valueBoxes.forEach((key, value) -> value.focused(false));
-            metabolism().reset();
+        }
+
+        private void onSave() {
+            metabolism().copyFrom(updates);
+            this.original = metabolism().copy();
+            this.updates = metabolism().copy();
+            metabolism().resetState();
+            refreshTab();
         }
 
         public MetabolismSettings settings() {
             return settings;
+        }
+
+        public void tick() {
+            for(Map.Entry<Setting<?>, TextBox> entry : stateBoxes.entrySet()) {
+                entry.getValue().value(metabolism().getAsString(entry.getKey()));
+            }
         }
     }
 }

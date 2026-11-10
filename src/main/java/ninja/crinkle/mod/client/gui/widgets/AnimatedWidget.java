@@ -38,12 +38,12 @@ public class AnimatedWidget extends AbstractWidget implements DragActor {
     }
 
     @Override
-    public void onDragStopped(AbstractWidget widget, Point point) {
+    public void onDragStopped(Widget widget, Point point) {
         this.player.position(Point.of(rect().x(), rect().y()));
     }
 
     @Override
-    public boolean onDrag(AbstractWidget widget, Point mousePoint, Point dragPoint, int button) {
+    public boolean onDrag(Widget widget, Point mousePoint, Point dragPoint, int button) {
         if (!visible() || !active() || !dragged()) return false;
         this.player.position(Point.of(rect().x(), rect().y()));
         return true;
@@ -55,11 +55,11 @@ public class AnimatedWidget extends AbstractWidget implements DragActor {
         this.player.position(Point.of(rect.x(), rect.y()));
     }
 
-    protected boolean trySetAnimation(double speed, String animationId, String... sprites) {
+    protected boolean trySetAnimation(double speed, @SuppressWarnings("SameParameterValue") String animationId, String... sprites) {
         return trySetAnimation(speed, false, animationId, sprites);
     }
 
-    protected boolean trySetAnimation(double speed, boolean interrupt, String animationId, String... sprites) {
+    protected boolean trySetAnimation(double speed, @SuppressWarnings("SameParameterValue") boolean interrupt, String animationId, String... sprites) {
         Theme theme = ThemeRegistry.current();
         if (theme == null) return false;
         boolean shouldClearPlayer = true;
@@ -98,7 +98,7 @@ public class AnimatedWidget extends AbstractWidget implements DragActor {
         }
     }
 
-    public static class Builder extends AbstractWidget.AbstractBuilder<Builder> {
+    @SuppressWarnings("unused") public static class Builder extends AbstractWidget.AbstractBuilder<Builder> {
         private int fps = 10;
         private int textureSize = 64;
 

@@ -19,19 +19,17 @@ public class HBoxContainer extends AbstractContainer {
 
     @Override
     public void arrange() {
-        List<AbstractWidget> kids = children();
+        List<Widget> kids = children();
         if (kids.isEmpty() || rect().equals(Rect.ZERO)) return;
 
         int available = rect().width() - (separation() * Math.max(0, kids.size() - 1));
 
         // Measure children
         int nonExpandSum = 0;
-        int expandMinSum = 0;
         float totalRatio = 0;
-        for (AbstractWidget child : kids) {
+        for (Widget child : kids) {
             if (child.horizontalSizing().contains(Sizing.Expand)) {
                 totalRatio += child.stretchRatio();
-                expandMinSum += child.minimumWidth();
             } else {
                 nonExpandSum += child.minimumWidth();
             }
@@ -40,14 +38,13 @@ public class HBoxContainer extends AbstractContainer {
         // Space available for Expand children: whatever is left after non-Expand.
         // If negative, Expand children get 0.
         int expandPool = Math.max(0, available - nonExpandSum);
-        int leftover = Math.max(0, expandPool - expandMinSum);
 
         // Place children
         int offset = rect().x();
-        for (AbstractWidget child : kids) {
+        for (Widget child : kids) {
             int allocW;
             if (child.horizontalSizing().contains(Sizing.Expand)) {
-                if (expandPool <= 0) {
+                if (expandPool == 0) {
                     allocW = 0;
                 } else if (totalRatio > 0) {
                     allocW = (int) (expandPool * (child.stretchRatio() / totalRatio));
@@ -69,16 +66,16 @@ public class HBoxContainer extends AbstractContainer {
     @Override
     public int minimumHeight() {
         int minH = super.minimumHeight();
-        return Math.max(minH, children().stream().mapToInt(AbstractWidget::minimumHeight).max().orElse(0));
+        return Math.max(minH, children().stream().mapToInt(Widget::minimumHeight).max().orElse(0));
     }
 
     @SuppressWarnings("DuplicatedCode")
     @Override
     public int minimumWidth() {
         int minW = super.minimumWidth();
-        List<AbstractWidget> kids = children();
+        List<Widget> kids = children();
         if (kids.isEmpty()) return minW;
-        int childSum = kids.stream().mapToInt(AbstractWidget::minimumWidth).sum();
+        int childSum = kids.stream().mapToInt(Widget::minimumWidth).sum();
         int gaps = separation() * (kids.size() - 1);
         return Math.max(minW, childSum + gaps);
     }

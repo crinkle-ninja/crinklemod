@@ -43,7 +43,7 @@ public class IconButton extends Button implements MouseActor {
     @Override
     public int minimumHeight() {
         int explicit = super.minimumHeight();
-        int childMin = children().stream().mapToInt(AbstractWidget::minimumHeight).max().orElse(0);
+        int childMin = children().stream().mapToInt(Widget::minimumHeight).max().orElse(0);
         return Math.max(explicit, childMin + borderTop() + borderBottom());
     }
 
@@ -52,7 +52,7 @@ public class IconButton extends Button implements MouseActor {
         int explicit = super.minimumWidth();
         int iconWidth = children().stream()
                 .filter(c -> c instanceof Icon || c instanceof ItemIcon)
-                .mapToInt(AbstractWidget::minimumWidth).sum();
+                .mapToInt(Widget::minimumWidth).sum();
         int labelWidth = label != null ? label.minimumWidth() : 0;
         int contentWidth = iconWidth + (iconWidth > 0 && labelWidth > 0 ? separation() : 0) + labelWidth;
         return Math.max(explicit, contentWidth + borderLeft() + borderRight());
@@ -61,7 +61,7 @@ public class IconButton extends Button implements MouseActor {
     @Override
     public void arrange() {
         if (children().isEmpty() || rect().equals(Rect.ZERO)) return;
-        for (AbstractWidget child : children()) {
+        for (Widget child : children()) {
             Rect fitted = fitChildInRect(child, rect());
             child.setRect(fitted);
         }
@@ -73,10 +73,6 @@ public class IconButton extends Button implements MouseActor {
         if (label != null) {
             label.renderContent(graphics, pMouse, renderRect, pPartialTick);
         }
-    }
-
-    public Icon icon() {
-        return icon;
     }
 
     public Label label() {
@@ -130,7 +126,7 @@ public class IconButton extends Button implements MouseActor {
         return "IconButton{icon=" + icon + ", label=" + label + '}';
     }
 
-    public static class Builder extends Button.Builder {
+    @SuppressWarnings("unused") public static class Builder extends Button.Builder {
         private TextureAtlas atlas;
         private boolean dropShadow;
         private ResourceLocation texture;

@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 
 public abstract class AbstractContainer extends AbstractWidget {
     private static final Logger LOGGER = LogUtils.getLogger();
-    private final List<AbstractWidget> children = new ArrayList<>();
+    private final List<Widget> children = new ArrayList<>();
     private int separation;
 
     protected AbstractContainer(@NotNull AbstractContainerBuilder<?> builder) {
@@ -32,7 +32,7 @@ public abstract class AbstractContainer extends AbstractWidget {
      * Applies a child's sizing to an allocated rectangle.
      * Per-axis: if FILL → use allocated size; if SHRINK_* → use min size + align within allocated rect.
      */
-    protected static Rect fitChildInRect(AbstractWidget child, Rect allocated) {
+    protected static Rect fitChildInRect(Widget child, Rect allocated) {
         int x = allocated.x();
         int y = allocated.y();
         int w = allocated.width();
@@ -74,7 +74,7 @@ public abstract class AbstractContainer extends AbstractWidget {
         return add(builder.build());
     }
 
-    public AbstractContainer add(AbstractWidget widget) {
+    public AbstractContainer add(Widget widget) {
         if (widget == this) {
             LOGGER.warn("Attempted to add widget to itself: {}", widget);
             return this;
@@ -92,11 +92,11 @@ public abstract class AbstractContainer extends AbstractWidget {
         return this;
     }
 
-    public List<AbstractWidget> children() {
+    public List<Widget> children() {
         return children.stream().toList();
     }
 
-    public void remove(AbstractWidget widget) {
+    public void remove(Widget widget) {
         children.remove(widget);
         widget.parent(null);
     }
@@ -110,7 +110,7 @@ public abstract class AbstractContainer extends AbstractWidget {
         return new Button.Builder(this);
     }
 
-    public List<AbstractWidget> children(Predicate<? super AbstractWidget> predicate) {
+    public List<Widget> children(Predicate<? super Widget> predicate) {
         return children().stream().filter(predicate).toList();
     }
 
@@ -133,7 +133,7 @@ public abstract class AbstractContainer extends AbstractWidget {
     @Override
     public String toString() {
         return "Container{" +
-                "children=[" + children().stream().map(AbstractWidget::toString)
+                "children=[" + children().stream().map(Widget::toString)
                 .collect(Collectors.joining(",")) +
                 "](" + children().size() + ")" +
                 ", separation=" + separation +
@@ -145,7 +145,7 @@ public abstract class AbstractContainer extends AbstractWidget {
     public void init() {
         super.init();
         arrange();
-        children().forEach(AbstractWidget::init);
+        children().forEach(Widget::init);
     }
 
     @Override
@@ -162,12 +162,12 @@ public abstract class AbstractContainer extends AbstractWidget {
     }
 
     private void renderTooltips(ThemeGraphics graphics, Point pMouse) {
-        children().stream().sorted(Comparator.comparingInt(AbstractWidget::zIndex))
+        children().stream().sorted(Comparator.comparingInt(Widget::zIndex))
                 .forEach(child -> child.renderTooltip(graphics, pMouse));
     }
 
     protected void renderChildren(ThemeGraphics graphics, Point pMouse, float pPartialTick) {
-        children().stream().sorted(Comparator.comparingInt(AbstractWidget::zIndex))
+        children().stream().sorted(Comparator.comparingInt(Widget::zIndex))
                 .forEach(child -> child.render(graphics, pMouse, pPartialTick));
     }
 
@@ -183,12 +183,12 @@ public abstract class AbstractContainer extends AbstractWidget {
 
     @Override
     public void tick() {
-        children().forEach(AbstractWidget::tick);
+        children().forEach(Widget::tick);
     }
 
     protected void visualCopyChildrenInto(AbstractContainer target) {
-        for (AbstractWidget child : children()) {
-            AbstractWidget copied = child.visualCopy(target);
+        for (Widget child : children()) {
+            Widget copied = child.visualCopy(target);
             target.add(copied);
         }
     }
