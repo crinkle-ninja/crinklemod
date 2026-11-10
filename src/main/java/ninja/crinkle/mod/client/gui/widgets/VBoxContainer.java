@@ -19,19 +19,17 @@ public class VBoxContainer extends AbstractContainer {
 
     @Override
     public void arrange() {
-        List<AbstractWidget> kids = children();
+        List<Widget> kids = children();
         if (kids.isEmpty() || rect().equals(Rect.ZERO)) return;
 
         int available = rect().height() - (separation() * Math.max(0, kids.size() - 1));
 
         // Measure children
         int nonExpandSum = 0;
-        int expandMinSum = 0;
         float totalRatio = 0;
-        for (AbstractWidget child : kids) {
+        for (Widget child : kids) {
             if (child.verticalSizing().contains(Sizing.Expand)) {
                 totalRatio += child.stretchRatio();
-                expandMinSum += child.minimumHeight();
             } else {
                 nonExpandSum += child.minimumHeight();
             }
@@ -40,14 +38,13 @@ public class VBoxContainer extends AbstractContainer {
         // Space available for Expand children: whatever is left after non-Expand.
         // If negative, Expand children get 0.
         int expandPool = Math.max(0, available - nonExpandSum);
-        int leftover = Math.max(0, expandPool - expandMinSum);
 
         // Place children
         int offset = rect().y();
-        for (AbstractWidget child : kids) {
+        for (Widget child : kids) {
             int allocH;
             if (child.verticalSizing().contains(Sizing.Expand)) {
-                if (expandPool <= 0) {
+                if (expandPool == 0) {
                     allocH = 0;
                 } else if (totalRatio > 0) {
                     allocH = (int) (expandPool * (child.stretchRatio() / totalRatio));
@@ -70,9 +67,9 @@ public class VBoxContainer extends AbstractContainer {
     @Override
     public int minimumHeight() {
         int minH = super.minimumHeight();
-        List<AbstractWidget> kids = children();
+        List<Widget> kids = children();
         if (kids.isEmpty()) return minH;
-        int childSum = kids.stream().mapToInt(AbstractWidget::minimumHeight).sum();
+        int childSum = kids.stream().mapToInt(Widget::minimumHeight).sum();
         int gaps = separation() * (kids.size() - 1);
         return Math.max(minH, childSum + gaps);
     }
@@ -80,7 +77,7 @@ public class VBoxContainer extends AbstractContainer {
     @Override
     public int minimumWidth() {
         int minW = super.minimumWidth();
-        return Math.max(minW, children().stream().mapToInt(AbstractWidget::minimumWidth).max().orElse(0));
+        return Math.max(minW, children().stream().mapToInt(Widget::minimumWidth).max().orElse(0));
     }
 
     @Override

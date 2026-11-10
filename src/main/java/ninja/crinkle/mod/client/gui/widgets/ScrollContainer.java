@@ -52,15 +52,15 @@ public class ScrollContainer extends AbstractContainer implements MouseActor {
 
     @Override
     public void arrange() {
-        List<AbstractWidget> kids = children();
+        List<Widget> kids = children();
         if (kids.isEmpty() || rect().equals(Rect.ZERO)) return;
 
         // Give each child the full viewport width but its own natural height,
         // positioned as a vertical stack offset by -scrollOffset.
         int offset = rect().y() - scrollOffset;
-        for (AbstractWidget child : kids) {
+        for (Widget child : kids) {
             int childH = child.minimumHeight();
-            Rect allocated = new Rect(rect().x(), offset, rect().width(), childH);
+            Rect allocated = new Rect(rect().x(), offset, rect().width() - SCROLLBAR_WIDTH, childH);
             Rect fitted = fitChildInRect(child, allocated);
             child.setRect(fitted);
             offset += childH + separation();
@@ -105,9 +105,9 @@ public class ScrollContainer extends AbstractContainer implements MouseActor {
      * Total height of all children plus separations.
      */
     private int contentHeight() {
-        List<AbstractWidget> kids = children();
+        List<Widget> kids = children();
         if (kids.isEmpty()) return 0;
-        int sum = kids.stream().mapToInt(AbstractWidget::minimumHeight).sum();
+        int sum = kids.stream().mapToInt(Widget::minimumHeight).sum();
         int gaps = separation() * Math.max(0, kids.size() - 1);
         return sum + gaps;
     }
@@ -118,7 +118,7 @@ public class ScrollContainer extends AbstractContainer implements MouseActor {
     }
 
     @Override
-    public AbstractWidget visualCopy(AbstractContainer newParent) {
+    public Widget visualCopy(AbstractContainer newParent) {
         ScrollContainer copy = new ScrollContainer.Builder(newParent)
                 .separation(separation()).build();
         copy.copyVisualProperties(this);

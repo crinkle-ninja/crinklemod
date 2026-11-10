@@ -22,7 +22,7 @@ import java.util.Map;
 public class LayoutEditorScreen extends AbstractScreen implements IManagedGUI {
     private static final int DIM_COLOR = 0xA0000000; // semi-transparent black
     private static final String TOOLBAR_ID = "layout_toolbar";
-    private final Map<String, AbstractWidget> editorWidgets = new LinkedHashMap<>();
+    private final Map<String, Widget> editorWidgets = new LinkedHashMap<>();
     private final @Nullable Screen parentScreen;
     private final IManagedGUI source;
     private boolean cursorIsHand;
@@ -71,7 +71,7 @@ public class LayoutEditorScreen extends AbstractScreen implements IManagedGUI {
         }
 
         for (LayoutRegistry.Entry entry : LayoutRegistry.entries(source)) {
-            AbstractWidget widget = entry.editorWidgetFactory().apply(root());
+            Widget widget = entry.editorWidgetFactory().apply(root());
             widget.draggable(true);
             widget.active(true);
             widget.visible(true);
@@ -159,7 +159,7 @@ public class LayoutEditorScreen extends AbstractScreen implements IManagedGUI {
     }
 
     private void positionWidget(LayoutRegistry.Entry entry) {
-        AbstractWidget widget = editorWidgets.get(entry.id());
+        Widget widget = editorWidgets.get(entry.id());
         if (widget == null) return;
 
         Rect liveRect = entry.currentRect().get();
@@ -197,7 +197,7 @@ public class LayoutEditorScreen extends AbstractScreen implements IManagedGUI {
         }
         super.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         // Draw outlines around draggable widgets
-        for (AbstractWidget widget : editorWidgets.values()) {
+        for (Widget widget : editorWidgets.values()) {
             Rect r = widget.rect();
             if (r.equals(Rect.ZERO)) continue;
             int c = widget.rect().contains(pMouseX, pMouseY)
@@ -216,7 +216,7 @@ public class LayoutEditorScreen extends AbstractScreen implements IManagedGUI {
 
     private void save() {
         for (LayoutRegistry.Entry entry : LayoutRegistry.entries(source)) {
-            AbstractWidget widget = editorWidgets.get(entry.id());
+            Widget widget = editorWidgets.get(entry.id());
             if (widget != null) {
                 LayoutRegistry.savePosition(entry.id(), widget.rect(), width, height);
                 entry.onApply().accept(widget.rect());

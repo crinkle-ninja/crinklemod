@@ -14,6 +14,7 @@ public class MetabolismSettings {
     public static final int DEFAULT_INTERVAL = 300;
     public static final double DEFAULT_CONTROL = 1.0;
     public static final double DEFAULT_CONTROL_DECAY = -0.0008;
+    public static final int DEFAULT_DELAY_SECONDS = 60;
 
     public static final MetabolismSettings WET = new MetabolismSettings(Profile.of(Metabolism.Type.Wet)
             .control(0.6)
@@ -21,6 +22,7 @@ public class MetabolismSettings {
             .controlDecay(-0.0009)
             .intervalDecay(0.5)
             .intensity(0.5)
+            .delaySeconds(60)
             .enabled(false));
     public static final MetabolismSettings MESS = new MetabolismSettings(Profile.of(Metabolism.Type.Mess)
             .control(0.75)
@@ -28,6 +30,7 @@ public class MetabolismSettings {
             .controlDecay(-0.0007)
             .intervalDecay(0.5)
             .intensity(0.5)
+            .delaySeconds(60)
             .enabled(false));
 
     private final Component label;
@@ -43,7 +46,12 @@ public class MetabolismSettings {
     private final Setting<Double> currentInterval;
     private final Setting<Integer> pangDuration;
     private final Setting<Integer> tickCount;
+    private final Setting<Integer> delaySeconds;
     private final Map<String, Setting<?>> registry = new HashMap<>();
+
+    public Setting<Integer> delaySeconds() {
+        return delaySeconds;
+    }
 
     public static class Profile {
         private final Metabolism.Type type;
@@ -53,6 +61,7 @@ public class MetabolismSettings {
         private double controlDecay;
         private double intervalDecay;
         private double intensity;
+        private int delaySeconds;
 
         Profile(Metabolism.Type type) {
             this.type = type;
@@ -62,10 +71,20 @@ public class MetabolismSettings {
             this.controlDecay = DEFAULT_CONTROL_DECAY;
             this.intervalDecay = DEFAULT_INTERVAL_DECAY;
             this.intensity = DEFAULT_INTENSITY;
+            this.delaySeconds = DEFAULT_DELAY_SECONDS;
         }
 
         public static Profile of(Metabolism.Type type) {
             return new Profile(type);
+        }
+
+        public int delaySeconds() {
+            return delaySeconds;
+        }
+
+        public Profile delaySeconds(int delaySeconds) {
+            this.delaySeconds = delaySeconds;
+            return this;
         }
 
         public Profile enabled(boolean enabled) {
@@ -137,8 +156,8 @@ public class MetabolismSettings {
                 .build());
         this.control = register(Setting.doubleBuilder(type() + ".control")
                 .range(0.0, 1.0)
-                .label(Component.translatable("setting.crinklemod.metabolism.%s.control.label".formatted(type())))
-                .tooltip(Component.translatable("setting.crinklemod.metabolism.%s.control.tooltip".formatted(type())))
+                .label(Component.translatable("setting.crinklemod.metabolism.both.control.label"))
+                .tooltip(Component.translatable("setting.crinklemod.metabolism.both.control.tooltip"))
                 .numberFormat("#.###")
                 .defaultValue(profile.control())
                 .modifierValue(Setting.ModifierValue.Ctrl, 0.1)
@@ -147,8 +166,8 @@ public class MetabolismSettings {
                 .build());
         this.interval = register(Setting.intBuilder(type() + ".interval")
                 .range(10, 3600)
-                .label(Component.translatable("setting.crinklemod.metabolism.%s.interval.label".formatted(type())))
-                .tooltip(Component.translatable("setting.crinklemod.metabolism.%s.interval.tooltip".formatted(type())))
+                .label(Component.translatable("setting.crinklemod.metabolism.both.interval.label"))
+                .tooltip(Component.translatable("setting.crinklemod.metabolism.both.interval.tooltip"))
                 .defaultValue(profile.interval())
                 .modifierValue(Setting.ModifierValue.Alt, 100)
                 .modifierValue(Setting.ModifierValue.Ctrl, 10)
@@ -157,8 +176,8 @@ public class MetabolismSettings {
                 .build());
         this.controlDecay = register(Setting.doubleBuilder(type() + ".controlDecay")
                 .range(-1.0, 0.0)
-                .label(Component.translatable("setting.crinklemod.metabolism.%s.controlDecay.label".formatted(type())))
-                .tooltip(Component.translatable("setting.crinklemod.metabolism.%s.controlDecay.tooltip".formatted(type())))
+                .label(Component.translatable("setting.crinklemod.metabolism.both.controlDecay.label"))
+                .tooltip(Component.translatable("setting.crinklemod.metabolism.both.controlDecay.tooltip"))
                 .numberFormat("#.#####")
                 .defaultValue(profile.controlDecay())
                 .modifierValue(Setting.ModifierValue.Ctrl, -0.001)
@@ -167,8 +186,8 @@ public class MetabolismSettings {
                 .build());
         this.intervalDecay = register(Setting.doubleBuilder(type() + ".intervalDecay")
                 .range(0.0, 1.0)
-                .label(Component.translatable("setting.crinklemod.metabolism.%s.intervalDecay.label".formatted(type())))
-                .tooltip(Component.translatable("setting.crinklemod.metabolism.%s.intervalDecay.tooltip".formatted(type())))
+                .label(Component.translatable("setting.crinklemod.metabolism.both.intervalDecay.label"))
+                .tooltip(Component.translatable("setting.crinklemod.metabolism.both.intervalDecay.tooltip"))
                 .numberFormat("#.###")
                 .defaultValue(profile.intervalDecay())
                 .modifierValue(Setting.ModifierValue.Ctrl, 0.01)
@@ -177,41 +196,51 @@ public class MetabolismSettings {
                 .build());
         this.intensity = register(Setting.doubleBuilder(type() + ".intensity")
                 .range(0.0, 1.0)
-                .label(Component.translatable("setting.crinklemod.metabolism.%s.intensity.label".formatted(type())))
-                .tooltip(Component.translatable("setting.crinklemod.metabolism.%s.intensity.tooltip".formatted(type())))
+                .label(Component.translatable("setting.crinklemod.metabolism.both.intensity.label"))
+                .tooltip(Component.translatable("setting.crinklemod.metabolism.both.intensity.tooltip"))
                 .numberFormat("#.###")
                 .defaultValue(profile.intensity())
                 .modifierValue(Setting.ModifierValue.Ctrl, 0.1)
                 .modifierValue(Setting.ModifierValue.Shift, 0.05)
                 .modifierValue(Setting.ModifierValue.None, 0.01)
                 .build());
+        this.delaySeconds = register(Setting.intBuilder(type() + ".delaySeconds")
+                .range(0, Integer.MAX_VALUE)
+                .label(Component.translatable("setting.crinklemod.metabolism.both.delaySeconds.label"))
+                .tooltip(Component.translatable("setting.crinklemod.metabolism.both.delaySeconds.tooltip"))
+                .defaultValue(profile.delaySeconds())
+                .modifierValue(Setting.ModifierValue.Alt, 100)
+                .modifierValue(Setting.ModifierValue.Ctrl, 10)
+                .modifierValue(Setting.ModifierValue.Shift, 5)
+                .modifierValue(Setting.ModifierValue.None, 1)
+                .build());
         this.currentInterval = register(Setting.doubleBuilder(type() + ".currentInterval")
                 .range(1.0, 3600.0)
-                .label(Component.translatable("setting.crinklemod.metabolism.%s.currentInterval.label".formatted(type())))
-                .tooltip(Component.translatable("setting.crinklemod.metabolism.%s.currentInterval.tooltip".formatted(type())))
+                .label(Component.translatable("setting.crinklemod.metabolism.both.currentInterval.label"))
+                .tooltip(Component.translatable("setting.crinklemod.metabolism.both.currentInterval.tooltip"))
                 .defaultValue(Double.valueOf(interval().getDefault()))
                 .build());
         this.pang = register(Setting.stringBuilder(type() + ".pang")
-                .label(Component.translatable("setting.crinklemod.metabolism.%s.pang.label".formatted(type())))
-                .tooltip(Component.translatable("setting.crinklemod.metabolism.%s.pang.tooltip".formatted(type())))
+                .label(Component.translatable("setting.crinklemod.metabolism.both.pang.label"))
+                .tooltip(Component.translatable("setting.crinklemod.metabolism.both.pang.tooltip"))
                 .defaultValue("None")
                 .build());
         this.pangDuration = register(Setting.intBuilder(type() + ".pangDuration")
                 .range(0, 3600)
-                .label(Component.translatable("setting.crinklemod.metabolism.%s.pangDuration.label".formatted(type())))
-                .tooltip(Component.translatable("setting.crinklemod.metabolism.%s.pangDuration.tooltip".formatted(type())))
+                .label(Component.translatable("setting.crinklemod.metabolism.both.pangDuration.label"))
+                .tooltip(Component.translatable("setting.crinklemod.metabolism.both.pangDuration.tooltip"))
                 .defaultValue(0)
                 .build());
         this.currentControl = register(Setting.doubleBuilder(type() + ".currentControl")
                 .range(0.0, 1.0)
-                .label(Component.translatable("setting.crinklemod.metabolism.%s.currentControl.label".formatted(type())))
-                .tooltip(Component.translatable("setting.crinklemod.metabolism.%s.currentControl.tooltip".formatted(type())))
+                .label(Component.translatable("setting.crinklemod.metabolism.both.currentControl.label"))
+                .tooltip(Component.translatable("setting.crinklemod.metabolism.both.currentControl.tooltip"))
                 .numberFormat("#.###")
                 .defaultValue(control().getDefault())
                 .build());
         this.tickCount = register(Setting.intBuilder(type() + ".tickCount")
-                .label(Component.translatable("setting.crinklemod.metabolism.%s.tickCount.label".formatted(type())))
-                .tooltip(Component.translatable("setting.crinklemod.metabolism.%s.tickCount.tooltip".formatted(type())))
+                .label(Component.translatable("setting.crinklemod.metabolism.both.tickCount.label"))
+                .tooltip(Component.translatable("setting.crinklemod.metabolism.both.tickCount.tooltip"))
                 .defaultValue(0)
                 .build());
     }

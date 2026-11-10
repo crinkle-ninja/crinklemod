@@ -2,17 +2,14 @@ package ninja.crinkle.mod.client.gui.managers;
 
 import ninja.crinkle.mod.client.gui.editors.LayoutRegistry;
 import ninja.crinkle.mod.client.gui.properties.Rect;
-import ninja.crinkle.mod.client.gui.widgets.AbstractWidget;
+import ninja.crinkle.mod.client.gui.widgets.Widget;
 
 import java.util.Optional;
 
 public interface IManagedGUI {
-    default boolean layoutEditorEnabled() {
-        return true;
-    }
 
     default void registerLayoutEntries() {
-        for (AbstractWidget widget : manager().root().children()) {
+        for (Widget widget : manager().root().children()) {
             LayoutRegistry.register(new LayoutRegistry.Entry(
                     widget.name(),
                     gui(),

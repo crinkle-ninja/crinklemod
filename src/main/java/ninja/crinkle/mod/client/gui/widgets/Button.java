@@ -3,7 +3,8 @@ package ninja.crinkle.mod.client.gui.widgets;
 import ninja.crinkle.mod.client.gui.actors.MouseActor;
 import ninja.crinkle.mod.client.gui.actors.MouseButton;
 import ninja.crinkle.mod.client.gui.properties.Point;
-import ninja.crinkle.mod.client.gui.properties.Sizing;
+import ninja.crinkle.mod.client.gui.properties.Rect;
+import ninja.crinkle.mod.client.gui.renderers.ThemeGraphics;
 import ninja.crinkle.mod.client.gui.textures.Texture;
 import ninja.crinkle.mod.client.gui.themes.Style;
 import ninja.crinkle.mod.client.gui.themes.StyleVariant;
@@ -22,6 +23,11 @@ public class Button extends MarginContainer implements MouseActor {
                 .pushAndReturn();
         this.onClick = builder.onClick();
         setMargins();
+    }
+
+    @Override public void renderContent(ThemeGraphics graphics, Point pMouse, Rect renderRect, float pPartialTick) {
+        this.text.shadow(active());
+        super.renderContent(graphics, pMouse, renderRect, pPartialTick);
     }
 
     private void setMargins() {
@@ -101,8 +107,6 @@ public class Button extends MarginContainer implements MouseActor {
             hoverable(true);
             active(true);
             pressable(true);
-            verticalSizing(Sizing.Expand);
-            horizontalSizing(Sizing.Expand);
             style("button");
             margins(4);
         }

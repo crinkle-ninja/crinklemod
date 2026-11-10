@@ -24,6 +24,7 @@
       "white": "#FFFFFF",
       "rainbow": "rainbow",
       "tabContent": "#bbe0f0",
+      "buttonPanel": "#bbe0f0",
       "config.textbox.bg": "#6699B0"
     },
     "textures": [
@@ -845,6 +846,21 @@
             "background": {
               "texture": "panel_background",
               "color": "background"
+            },
+            "foreground": {
+              "color": "text",
+              "shadow": "transparent"
+            }
+          }
+        }
+      },
+      {
+        "id": "button_panel",
+        "variants": {
+          "base": {
+            "background": {
+              "texture": "panel_background",
+              "color": "buttonPanel"
             },
             "foreground": {
               "color": "text",

@@ -14,11 +14,13 @@ public class Label extends AbstractWidget {
     public static final Logger LOGGER = LogUtils.getLogger();
     private Color color;
     private String text;
+    private boolean shadow;
 
     protected Label(@NotNull Builder builder) {
         super(builder);
         this.text = builder.text();
         this.color = builder.color();
+        this.shadow = appearance().hasShadow();
     }
 
     public void color(Color color) {
@@ -43,8 +45,17 @@ public class Label extends AbstractWidget {
     public void renderContent(ThemeGraphics graphics, Point pMouse, Rect renderedRect, float pPartialTick) {
         int xOffset = (int) Math.ceil((double) (renderedRect.width() - graphics.textWidth(text())) / 2);
         int yOffset = (int) Math.ceil((double) (renderedRect.height() - graphics.textHeight()) / 2);
-        Point renderPoint = Point.of(renderedRect.x() + xOffset, renderedRect.y() + yOffset);
-        graphics.text(text(), renderPoint, zIndex(), color(), appearance().shadow());
+        if (shadow) {
+            Point renderPoint = Point.of(renderedRect.x() + xOffset, renderedRect.y() + yOffset);
+            graphics.text(text(), renderPoint, zIndex(), color(), appearance().shadow());
+        } else {
+            Point renderPoint = Point.of(renderedRect.x() + xOffset + 1, renderedRect.y() + yOffset + 1);
+            graphics.text(text(), renderPoint, zIndex(), color());
+        }
+    }
+
+    public void shadow(boolean shadow) {
+        this.shadow = shadow;
     }
 
     @Override

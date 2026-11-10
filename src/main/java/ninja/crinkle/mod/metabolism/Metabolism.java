@@ -25,7 +25,6 @@ import java.util.Random;
 
 public class Metabolism {
     private static final int DEFAULT_PANG_DURATION = 10;
-    private static final int DELAY_SECONDS = 60;
     private static final Logger LOGGER = LogUtils.getLogger();
     private static final int MIN_INTERVAL = 10; // seconds
     private static final String OUTPUT_CSV_FILE = "crinklemod-metabolism-%s.csv";
@@ -59,12 +58,26 @@ public class Metabolism {
         setValue(MetabolismSettings.of(metabolismType).control(), control);
     }
 
+    public IMetabolism copy() {
+        IMetabolism metabolism = new MetabolismImpl(type());
+        metabolism.copyFrom(capability());
+        return metabolism;
+    }
+
     public void copyFrom(IMetabolism other) {
         capability().copyFrom(other);
     }
 
+    public int delaySeconds() {
+        return capability().getAsInt(MetabolismSettings.of(metabolismType).delaySeconds());
+    }
+
+    public void delaySeconds(int delaySeconds) {
+        capability().setValue(MetabolismSettings.of(metabolismType).delaySeconds(), delaySeconds);
+    }
+
     public <T extends Comparable<? super T>> void setValue(Setting<T> setting, T value) {
-        capability().updateValue(setting, value);
+        capability().setValue(setting, value);
         dirty = true;
     }
 
@@ -112,14 +125,6 @@ public class Metabolism {
         setValue(MetabolismSettings.of(metabolismType).enabled(), enabled);
     }
 
-    public double getAsDouble(Setting<?> setting) {
-        return capability().getAsDouble(setting);
-    }
-
-    public int getAsInt(Setting<?> setting) {
-        return capability().getAsInt(setting);
-    }
-
     public String getAsString(Setting<?> setting) {
         return capability().getAsString(setting);
     }
@@ -165,14 +170,14 @@ public class Metabolism {
     private void handleDelay() {
         if (pangDuration() <= 0) {
             pangStop();
-            reset();
+            resetState();
         } else {
             pangTick();
         }
     }
 
     private void handleIntervalDecay() {
-        if (isDelayed() || tickCount() % Math.max(DEFAULT_PANG_DURATION, Math.ceil(currentInterval())) != 0) return;
+        if (isDelayed() || tickCount() == 0 || tickCount() % Math.max(DEFAULT_PANG_DURATION, Math.ceil(currentInterval())) != 0) return;
         double newInterval = currentInterval() * (1 - intervalDecay());
         if (newInterval <= MIN_INTERVAL) {
             triggerAccident();
@@ -217,8 +222,8 @@ public class Metabolism {
     private void handleRelief() {
         if (pangDuration() <= 0) {
             pangStop();
-            reset();
-            pangStart(Pang.Delay, DELAY_SECONDS);
+            resetState();
+            pangStart(Pang.Delay, delaySeconds());
         } else {
             pangTick();
         }
@@ -309,18 +314,13 @@ public class Metabolism {
                 CrinkleEvent.side(), metabolismType, pang(), this.capability().toString());
     }
 
-    public void reset() {
+    public void resetState() {
         LOGGER.trace(LogMarkers.MET, "({}) [{}] reset metabolism vars", CrinkleEvent.side(), metabolismType);
         currentControl(control());
         pang(Pang.None);
         currentInterval(interval());
         pangDuration(0);
         tickCount(0);
-    }
-
-    public void resetDefaults() {
-        capability().reset();
-        syncServer();
     }
 
     public void syncServer() {
@@ -346,8 +346,6 @@ public class Metabolism {
         // Minecraft ticks are 1/20th of a second
         if (mcTickCount % 20 != 0) return;
 
-        // Record our tick count
-        tickCount(tickCount() + 1);
 
         // Process
         handlePangState();
@@ -364,6 +362,9 @@ public class Metabolism {
             syncServer();
             dirty = false;
         }
+
+        // Record our tick count
+        tickCount(tickCount() + 1);
     }
 
     public void tickCount(int tickCount) {

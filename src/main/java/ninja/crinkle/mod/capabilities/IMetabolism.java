@@ -7,6 +7,7 @@ import ninja.crinkle.mod.settings.Setting;
 
 public interface IMetabolism extends INBTSerializable<CompoundTag> {
     void copyFrom(IMetabolism other);
+
     String getAsString(Setting<?> setting);
     double getAsDouble(Setting<?> setting);
     int getAsInt(Setting<?> setting);
@@ -16,5 +17,5 @@ public interface IMetabolism extends INBTSerializable<CompoundTag> {
     void reset();
 
     Metabolism.Type type();
-    void updateValue(Setting<?> setting, Object value);
+    void setValue(Setting<?> setting, Object value);
 }

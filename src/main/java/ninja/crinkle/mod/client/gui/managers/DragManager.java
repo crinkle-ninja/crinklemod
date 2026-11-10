@@ -3,7 +3,7 @@ package ninja.crinkle.mod.client.gui.managers;
 import com.mojang.logging.LogUtils;
 import ninja.crinkle.mod.client.gui.properties.Point;
 import ninja.crinkle.mod.client.gui.properties.Rect;
-import ninja.crinkle.mod.client.gui.widgets.AbstractWidget;
+import ninja.crinkle.mod.client.gui.widgets.Widget;
 import org.slf4j.Logger;
 
 public class DragManager {
@@ -12,7 +12,7 @@ public class DragManager {
     public static final int Z_MAX = Z_STEP * 64;
     public static final int Z_MODAL = Z_MAX / 2;
     private static final Logger LOGGER = LogUtils.getLogger();
-    private AbstractWidget current;
+    private Widget current;
     private boolean dragging;
     private double dragAccumulatorX = 0;
     private double dragAccumulatorY = 0;
@@ -21,7 +21,7 @@ public class DragManager {
         this.dragging = dragging;
     }
 
-    public AbstractWidget current() {
+    public Widget current() {
         return current;
     }
 
@@ -47,7 +47,7 @@ public class DragManager {
         current().setRect(new Rect(rect.x() + dx, rect.y() + dy, rect.width(), rect.height()));
     }
 
-    public void current(AbstractWidget current) {
+    public void current(Widget current) {
         this.current = current;
     }
 
@@ -55,7 +55,7 @@ public class DragManager {
         return dragging;
     }
 
-    public void startDragging(AbstractWidget widget) {
+    public void startDragging(Widget widget) {
         if (widget == null || !widget.draggable()) return;
         LOGGER.trace("start dragging: {}", widget.name());
         dragging(true);

@@ -140,7 +140,7 @@ public class TabbedPanelContainer extends AbstractContainer {
         if (manager() instanceof TabActor actor) {
             actor.onTabChanged(tab);
         }
-        for (AbstractWidget widget : children()) {
+        for (Widget widget : children()) {
             if (widget instanceof TabActor actor) {
                 actor.onTabChanged(tab);
             }

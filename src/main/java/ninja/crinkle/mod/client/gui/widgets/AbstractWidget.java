@@ -12,7 +12,6 @@ import ninja.crinkle.mod.client.gui.properties.Point;
 import ninja.crinkle.mod.client.gui.properties.Rect;
 import ninja.crinkle.mod.client.gui.properties.Sizing;
 import ninja.crinkle.mod.client.gui.renderers.ThemeGraphics;
-import ninja.crinkle.mod.client.gui.renderers.ThemeRenderable;
 import ninja.crinkle.mod.client.gui.states.WidgetBehavior;
 import ninja.crinkle.mod.client.gui.states.WidgetDisplay;
 import ninja.crinkle.mod.client.gui.textures.ThemeAtlas;
@@ -27,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.function.Predicate;
 
-public abstract class AbstractWidget implements Renderable, Widget, ThemeRenderable, GuiEventListener {
+public abstract class AbstractWidget implements Renderable, Widget, GuiEventListener {
     private final GuiManager manager;
     private Predicate<AbstractWidget> activePredicate;
     private Predicate<AbstractWidget> visiblePredicate;
@@ -101,7 +100,7 @@ public abstract class AbstractWidget implements Renderable, Widget, ThemeRendera
         display(display().withZOffset(zOffset));
     }
 
-    public int zIndex() {
+    @Override public int zIndex() {
         return display().zIndex() + zOffset();
     }
 
@@ -109,7 +108,7 @@ public abstract class AbstractWidget implements Renderable, Widget, ThemeRendera
         return display;
     }
 
-    public boolean active() {
+    @Override public boolean active() {
         if (activePredicate != null) {
             final boolean result = activePredicate.test(this);
             if (result != behavior().active()) {
@@ -119,7 +118,7 @@ public abstract class AbstractWidget implements Renderable, Widget, ThemeRendera
         return behavior().active();
     }
 
-    public void active(boolean active) {
+    @Override public void active(boolean active) {
         behavior(behavior().withActive(active));
     }
 
@@ -185,15 +184,15 @@ public abstract class AbstractWidget implements Renderable, Widget, ThemeRendera
                 source.behavior.repositionable(), source.behavior.scrollable());
     }
 
-    public boolean draggable() {
+    @Override public boolean draggable() {
         return behavior().draggable();
     }
 
-    public void draggable(boolean draggable) {
+    @Override public void draggable(boolean draggable) {
         behavior(behavior().withDraggable(draggable));
     }
 
-    public boolean scrollable() {
+    @Override public boolean scrollable() {
         return behavior().scrollable();
     }
 
@@ -216,7 +215,7 @@ public abstract class AbstractWidget implements Renderable, Widget, ThemeRendera
         return behavior().dragged();
     }
 
-    public void dragged(boolean dragged) {
+    @Override public void dragged(boolean dragged) {
         if (dragged == dragged()) return;
         behavior(behavior().withDragged(dragged));
     }
@@ -241,7 +240,7 @@ public abstract class AbstractWidget implements Renderable, Widget, ThemeRendera
         return "Widget{name=" + name + ", rect=" + rect + "}";
     }
 
-    public boolean focusable() {
+    @Override public boolean focusable() {
         return behavior().focusable() && visible();
     }
 
@@ -250,11 +249,11 @@ public abstract class AbstractWidget implements Renderable, Widget, ThemeRendera
         behavior(behavior().withFocusable(focusable));
     }
 
-    public void focused(boolean focused) {
+    @Override public void focused(boolean focused) {
         behavior(behavior().withFocused(focused));
     }
 
-    public boolean focused() {
+    @Override public boolean focused() {
         return behavior().focused();
     }
 
@@ -266,7 +265,7 @@ public abstract class AbstractWidget implements Renderable, Widget, ThemeRendera
         this.horizontalSizing = Sizing.of(flags);
     }
 
-    public boolean hoverable() {
+    @Override public boolean hoverable() {
         return behavior().hoverable();
     }
 
@@ -279,16 +278,16 @@ public abstract class AbstractWidget implements Renderable, Widget, ThemeRendera
         return behavior().hovered();
     }
 
-    public void hovered(boolean hovered) {
+    @Override public void hovered(boolean hovered) {
         if (!behavior().hoverable())
             return;
         behavior(behavior().withHovered(hovered));
     }
 
-    protected void init() {
+    @Override public void init() {
     }
 
-    public int minimumHeight() {
+    @Override public int minimumHeight() {
         return minHeight;
     }
 
@@ -297,7 +296,7 @@ public abstract class AbstractWidget implements Renderable, Widget, ThemeRendera
         this.minHeight = height;
     }
 
-    public int minimumWidth() {
+    @Override public int minimumWidth() {
         return minWidth;
     }
 
@@ -327,11 +326,11 @@ public abstract class AbstractWidget implements Renderable, Widget, ThemeRendera
         pGuiGraphics.drawBox(rect, debugColor, zIndex() + 1);
     }
 
-    public Optional<AbstractContainer> parent() {
+    @Override public Optional<AbstractContainer> parent() {
         return Optional.ofNullable(parent);
     }
 
-    public void parent(AbstractContainer parent) {
+    @Override public void parent(AbstractContainer parent) {
         this.parent = parent;
         if (parent != null) {
             zIndex(parent.zIndex() + DragManager.Z_STEP);
@@ -343,20 +342,20 @@ public abstract class AbstractWidget implements Renderable, Widget, ThemeRendera
             zIndex(DragManager.Z_MIN);
     }
 
-    public boolean pressable() {
+    @Override public boolean pressable() {
         return behavior().pressable();
     }
 
-    @SuppressWarnings("unused")
+    @Override @SuppressWarnings("unused")
     public void pressable(boolean pressable) {
         behavior(behavior().withPressable(pressable));
     }
 
-    public boolean pressed() {
+    @Override public boolean pressed() {
         return behavior().pressed();
     }
 
-    public void pressed(boolean pressed) {
+    @Override public void pressed(boolean pressed) {
         behavior(behavior().withPressed(pressed));
     }
 
@@ -403,7 +402,7 @@ public abstract class AbstractWidget implements Renderable, Widget, ThemeRendera
         behavior(behavior().withRepositionable(repositionable));
     }
 
-    public void setRect(Rect rect) {
+    @Override public void setRect(Rect rect) {
         this.rect = rect;
     }
 
@@ -412,7 +411,7 @@ public abstract class AbstractWidget implements Renderable, Widget, ThemeRendera
         focused(pFocused);
     }
 
-    public float stretchRatio() {
+    @Override public float stretchRatio() {
         return stretchRatio;
     }
 
@@ -430,14 +429,14 @@ public abstract class AbstractWidget implements Renderable, Widget, ThemeRendera
         return focused();
     }
 
-    public int tabIndex() {
+    @Override public int tabIndex() {
         return tabIndex;
     }
 
-    protected void tick() {
+    public void tick() {
     }
 
-    public EnumSet<Sizing> verticalSizing() {
+    @Override public EnumSet<Sizing> verticalSizing() {
         return verticalSizing;
     }
 
@@ -445,21 +444,21 @@ public abstract class AbstractWidget implements Renderable, Widget, ThemeRendera
         this.verticalSizing = Sizing.of(flags);
     }
 
-    public boolean visible() {
+    @Override public boolean visible() {
         boolean result = visiblePredicate == null || visiblePredicate.test(this);
         return result && this.display.visible() && (parent().isPresent() && parent().get().visible() || parent().isEmpty());
     }
 
-    public void visible(boolean visible) {
+    @Override public void visible(boolean visible) {
         this.display = display().withVisible(visible);
     }
 
-    public AbstractWidget visualCopy(AbstractContainer newParent) {
+    public Widget visualCopy(AbstractContainer newParent) {
         throw new UnsupportedOperationException(
                 getClass().getSimpleName() + " does not support visualCopy");
     }
 
-    public void zIndex(int zIndex) {
+    @Override public void zIndex(int zIndex) {
         if (zIndex >= DragManager.Z_MAX) {
             throw new IllegalArgumentException("Z-index cannot be set to maximum value");
         }

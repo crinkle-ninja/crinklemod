@@ -35,12 +35,29 @@ public class MetabolismImpl implements IMetabolism, WetCapability, MessCapabilit
     private double controlDecay;
     private double intervalDecay;
     private double intensity;
+    private int delaySeconds;
     private MetabolismVersion version;
 
     public MetabolismImpl(Metabolism.Type metabolismType) {
         version = MetabolismVersion.getLatest();
         type = metabolismType;
         reset();
+    }
+
+    @Override public boolean equals(Object obj) {
+        if (obj instanceof MetabolismImpl other) {
+            return this.enabled == other.enabled &&
+                    this.pangDuration == other.pangDuration &&
+                    this.type == other.type &&
+                    this.tickCount == other.tickCount &&
+                    this.control == other.control &&
+                    this.interval == other.interval &&
+                    this.controlDecay == other.controlDecay &&
+                    this.intervalDecay == other.intervalDecay &&
+                    this.intensity == other.intensity &&
+                    this.delaySeconds == other.delaySeconds;
+        }
+        return false;
     }
 
     public void reset() {
@@ -51,6 +68,7 @@ public class MetabolismImpl implements IMetabolism, WetCapability, MessCapabilit
         controlDecay = MetabolismSettings.of(type).controlDecay().getDefault();
         intervalDecay = MetabolismSettings.of(type).intervalDecay().getDefault();
         intensity = MetabolismSettings.of(type).intensity().getDefault();
+        delaySeconds = MetabolismSettings.of(type).delaySeconds().getDefault();
 
         // State machine values
         pang = Pang.None;
@@ -143,7 +161,7 @@ public class MetabolismImpl implements IMetabolism, WetCapability, MessCapabilit
     }
 
     @Override
-    public void updateValue(Setting<?> setting, Object value) {
+    public void setValue(Setting<?> setting, Object value) {
         CompoundTag current = serializeNBT();
         if (setting.isBoolean()) {
             current.putBoolean(setting.key(), (Boolean) value);
@@ -173,6 +191,7 @@ public class MetabolismImpl implements IMetabolism, WetCapability, MessCapabilit
         tag.putDouble(settings.controlDecay().key(), controlDecay);
         tag.putDouble(settings.intervalDecay().key(), intervalDecay);
         tag.putDouble(settings.intensity().key(), intensity);
+        tag.putInt(settings.delaySeconds().key(), delaySeconds);
         tag.putString(settings.pang().key(), pang.name());
         tag.putDouble(settings.currentControl().key(), currentControl);
         tag.putDouble(settings.currentInterval().key(), currentInterval);
@@ -196,6 +215,7 @@ public class MetabolismImpl implements IMetabolism, WetCapability, MessCapabilit
         safeSet(nbt, settings.controlDecay().key(), (tag, key) -> controlDecay = tag.getDouble(key));
         safeSet(nbt, settings.intervalDecay().key(), (tag, key) -> intervalDecay = tag.getDouble(key));
         safeSet(nbt, settings.intensity().key(), (tag, key) -> intensity = tag.getDouble(key));
+        safeSet(nbt, settings.delaySeconds().key(), (tag, key) -> delaySeconds = tag.getInt(key));
         safeSet(nbt, settings.pang().key(), (tag, key) -> pang = Pang.from(tag.getString(key)));
         safeSet(nbt, settings.currentControl().key(), (tag, key) -> currentControl = tag.getDouble(key));
         safeSet(nbt, settings.currentInterval().key(), (tag, key) -> currentInterval = tag.getDouble(key));
@@ -222,6 +242,7 @@ public class MetabolismImpl implements IMetabolism, WetCapability, MessCapabilit
                 ", controlDecay=" + controlDecay +
                 ", intervalDecay=" + intervalDecay +
                 ", intensity=" + intensity +
+                ", delaySeconds=" + delaySeconds +
                 ", pang=" + pang +
                 ", currentInterval=" + currentInterval +
                 ", currentControl=" + currentControl +

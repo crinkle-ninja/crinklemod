@@ -1,11 +1,11 @@
 package ninja.crinkle.mod.client.gui.managers;
 
-import ninja.crinkle.mod.client.gui.widgets.AbstractWidget;
+import ninja.crinkle.mod.client.gui.widgets.Widget;
 
 public class FocusManager {
-    private AbstractWidget currentFocus;
+    private Widget currentFocus;
 
-    public void currentFocus(AbstractWidget currentFocus) {
+    public void currentFocus(Widget currentFocus) {
         if (this.currentFocus != null) {
             this.currentFocus.focused(false);
         }
@@ -15,7 +15,7 @@ public class FocusManager {
         }
     }
 
-    public AbstractWidget currentFocus() {
+    public Widget currentFocus() {
         return currentFocus;
     }
 }

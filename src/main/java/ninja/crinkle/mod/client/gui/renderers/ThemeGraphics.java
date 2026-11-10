@@ -40,6 +40,10 @@ public class ThemeGraphics extends GuiGraphics {
         this.currentTheme = theme;
     }
 
+    public void text(String text, Point renderPoint, int i, Color color) {
+        text(text, renderPoint, i, color, null);
+    }
+
     public Theme theme() {
         return currentTheme;
     }
