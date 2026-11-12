@@ -3,7 +3,6 @@ package ninja.crinkle.mod.datagen;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
-import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraftforge.common.data.ForgeAdvancementProvider;
 import net.minecraftforge.data.event.GatherDataEvent;
 import ninja.crinkle.mod.CrinkleMod;
@@ -19,7 +18,10 @@ public class CrinkleDataGeneration {
 
         CrinkleBlockTags blockTags = new CrinkleBlockTags(packOutput, lookupProvider, CrinkleMod.MODID,
                 event.getExistingFileHelper());
+        CrinkleItemTags itemTags = new CrinkleItemTags(packOutput, lookupProvider, blockTags.contentsGetter(),
+                CrinkleMod.MODID, event.getExistingFileHelper());
         generator.addProvider(event.includeServer(), blockTags);
+        generator.addProvider(event.includeServer(), itemTags);
         generator.addProvider(event.includeClient(), new CrinkleItemModelProvider(packOutput,
                 event.getExistingFileHelper()));
         generator.addProvider(event.includeServer(), new CrinkleRecipes(packOutput));

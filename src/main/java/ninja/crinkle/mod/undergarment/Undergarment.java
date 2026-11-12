@@ -9,6 +9,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import ninja.crinkle.mod.CrinkleMod;
 import ninja.crinkle.mod.api.ServerUpdater;
+import ninja.crinkle.mod.capabilities.CrinkleGear;
+import ninja.crinkle.mod.capabilities.CrinkleGearProvider;
 import ninja.crinkle.mod.capabilities.IUndergarment;
 import ninja.crinkle.mod.capabilities.UndergarmentImpl;
 import ninja.crinkle.mod.client.textures.Textures;
@@ -46,16 +48,19 @@ public class Undergarment implements ServerUpdater {
     }
 
     public static ItemStack getWornUndergarment(@NotNull Player player) {
-        for (final ItemStack i : player.getArmorSlots()) {
-            if (!LivingEntity.getEquipmentSlotForItem(i).equals(EquipmentSlot.LEGS)) {
-                continue;
-            }
-            if (!hasUndergarmentData(i)) {
-                continue;
-            }
-            return i;
-        }
-        return ItemStack.EMPTY;
+        return player.getCapability(CrinkleGearProvider.CAPABILITY).map(CrinkleGear::getUndergarment)
+                .orElseGet(() -> {
+                    for (final ItemStack i : player.getArmorSlots()) {
+                        if (!LivingEntity.getEquipmentSlotForItem(i).equals(EquipmentSlot.LEGS)) {
+                            continue;
+                        }
+                        if (!hasUndergarmentData(i)) {
+                            continue;
+                        }
+                        return i;
+                    }
+                    return ItemStack.EMPTY;
+                });
     }
 
     public static boolean hasUndergarmentData(ItemStack itemStack) {

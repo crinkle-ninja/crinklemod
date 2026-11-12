@@ -1,6 +1,7 @@
 package ninja.crinkle.mod.datagen;
 
 import net.minecraft.data.PackOutput;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.client.model.generators.ItemModelProvider;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import ninja.crinkle.mod.CrinkleMod;
@@ -18,7 +19,7 @@ public class CrinkleItemModelProvider extends ItemModelProvider {
 
     private void simpleArmorItem() {
         String design_id = DiaperDesignRegistry.PLAIN_ID.getPath();
-        withExistingParent(design_id, CrinkleMod.loc("item" + "/generated"))
+        withExistingParent(design_id, ResourceLocation.parse("item" + "/generated"))
                 .texture("layer0", CrinkleMod.loc("item/" + design_id));
     }
 }

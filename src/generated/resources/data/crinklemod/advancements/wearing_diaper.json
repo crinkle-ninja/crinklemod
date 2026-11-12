@@ -19,7 +19,7 @@
     "description": {
       "translate": "advancements.crinklemod.wearing_diaper.description"
     },
-    "frame": "challenge",
+    "frame": "goal",
     "hidden": true,
     "icon": {
       "item": "crinklemod:diaper",
