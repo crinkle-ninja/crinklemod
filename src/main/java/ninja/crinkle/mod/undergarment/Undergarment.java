@@ -49,6 +49,7 @@ public class Undergarment implements ServerUpdater {
 
     public static ItemStack getWornUndergarment(@NotNull Player player) {
         return player.getCapability(CrinkleGearProvider.CAPABILITY).map(CrinkleGear::getUndergarment)
+                .filter(i -> !i.isEmpty())
                 .orElseGet(() -> {
                     for (final ItemStack i : player.getArmorSlots()) {
                         if (!LivingEntity.getEquipmentSlotForItem(i).equals(EquipmentSlot.LEGS)) {
