@@ -156,7 +156,7 @@ public class Theme {
             generatedTextures.remove(key);
         }
         if (size.equals(TextureSize.ZERO)) {
-            throw new IllegalArgumentException("Size must be greater than 1x1: " + texture.id() + " - " + texture.location());
+            throw new IllegalArgumentException("Size must be greater than 0x0: " + texture.id() + " - " + texture.location());
         }
         return generatedTextures.computeIfAbsent(key, k -> texture.generate(k, size, this, colorFilters));
     }

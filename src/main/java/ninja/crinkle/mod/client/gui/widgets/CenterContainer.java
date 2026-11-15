@@ -48,16 +48,25 @@ public class CenterContainer extends AbstractContainer {
         return copy;
     }
 
-    public static class Builder extends AbstractContainerBuilder<Builder> {
+    protected static abstract class CenterBuilder<T extends CenterContainer.CenterBuilder<T>>
+            extends AbstractContainerBuilder<T> {
 
+        public CenterBuilder(AbstractContainer container) {
+            super(container);
+        }
+
+        public CenterBuilder(GuiManager manager) {
+            super(manager);
+        }
+    }
+
+    public static class Builder extends CenterContainer.CenterBuilder<CenterContainer.Builder> {
         public Builder(AbstractContainer container) {
             super(container);
-            active(true);
         }
 
         public Builder(GuiManager manager) {
             super(manager);
-            active(true);
         }
 
         @Override
@@ -71,7 +80,7 @@ public class CenterContainer extends AbstractContainer {
         }
 
         @Override
-        protected Builder self() {
+        protected CenterContainer.Builder self() {
             return this;
         }
 

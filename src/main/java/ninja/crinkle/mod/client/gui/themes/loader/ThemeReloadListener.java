@@ -6,6 +6,7 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraftforge.common.MinecraftForge;
+import ninja.crinkle.mod.client.gui.addons.CrinkleGearAddOn;
 import ninja.crinkle.mod.client.gui.addons.PauseScreenAddOn;
 import ninja.crinkle.mod.client.gui.themes.Theme;
 import ninja.crinkle.mod.client.gui.themes.ThemeRegistry;
@@ -44,6 +45,7 @@ public class ThemeReloadListener extends SimplePreparableReloadListener<Map<Reso
         });
         if (!addOnsRegistered) {
             MinecraftForge.EVENT_BUS.register(new PauseScreenAddOn());
+            MinecraftForge.EVENT_BUS.register(new CrinkleGearAddOn());
             addOnsRegistered = true;
         }
         pProfiler.pop();

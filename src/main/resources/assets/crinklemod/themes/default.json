@@ -509,8 +509,200 @@
         }
       },
       {
+        "id": "slot_background",
+        "location": "widgets/slot_background",
+        "slices": {
+          "topLeft": {
+            "start": {
+              "x": 0,
+              "y": 0
+            },
+            "size": {
+              "width": 1,
+              "height": 1
+            }
+          },
+          "topRight": {
+            "start": {
+              "x": 2,
+              "y": 0
+            },
+            "size": {
+              "width": 1,
+              "height": 1
+            }
+          },
+          "bottomLeft": {
+            "start": {
+              "x": 0,
+              "y": 2
+            },
+            "size": {
+              "width": 1,
+              "height": 1
+            }
+          },
+          "bottomRight": {
+            "start": {
+              "x": 2,
+              "y": 2
+            },
+            "size": {
+              "width": 1,
+              "height": 1
+            }
+          },
+          "top": {
+            "start": {
+              "x": 1,
+              "y": 0
+            },
+            "size": {
+              "width": 1,
+              "height": 1
+            }
+          },
+          "right": {
+            "start": {
+              "x": 2,
+              "y": 1
+            },
+            "size": {
+              "width": 1,
+              "height": 1
+            }
+          },
+          "bottom": {
+            "start": {
+              "x": 1,
+              "y": 2
+            },
+            "size": {
+              "width": 1,
+              "height": 1
+            }
+          },
+          "left": {
+            "start": {
+              "x": 0,
+              "y": 1
+            },
+            "size": {
+              "width": 1,
+              "height": 1
+            }
+          },
+          "center": {
+            "start": {
+              "x": 1,
+              "y": 1
+            },
+            "size": {
+              "width": 1,
+              "height": 1
+            }
+          }
+        }
+      },
+      {
         "id": "panel_background",
         "location": "widgets/panel_background",
+        "slices": {
+          "topLeft": {
+            "start": {
+              "x": 0,
+              "y": 0
+            },
+            "size": {
+              "width": 5,
+              "height": 5
+            }
+          },
+          "topRight": {
+            "start": {
+              "x": 6,
+              "y": 0
+            },
+            "size": {
+              "width": 5,
+              "height": 5
+            }
+          },
+          "bottomLeft": {
+            "start": {
+              "x": 0,
+              "y": 6
+            },
+            "size": {
+              "width": 5,
+              "height": 5
+            }
+          },
+          "bottomRight": {
+            "start": {
+              "x": 6,
+              "y": 6
+            },
+            "size": {
+              "width": 5,
+              "height": 5
+            }
+          },
+          "top": {
+            "start": {
+              "x": 5,
+              "y": 0
+            },
+            "size": {
+              "width": 1,
+              "height": 5
+            }
+          },
+          "right": {
+            "start": {
+              "x": 6,
+              "y": 5
+            },
+            "size": {
+              "width": 5,
+              "height": 1
+            }
+          },
+          "bottom": {
+            "start": {
+              "x": 5,
+              "y": 6
+            },
+            "size": {
+              "width": 1,
+              "height": 5
+            }
+          },
+          "left": {
+            "start": {
+              "x": 0,
+              "y": 5
+            },
+            "size": {
+              "width": 5,
+              "height": 1
+            }
+          },
+          "center": {
+            "start": {
+              "x": 5,
+              "y": 5
+            },
+            "size": {
+              "width": 1,
+              "height": 1
+            }
+          }
+        }
+      },
+      {
+        "id": "panel_background_dark",
+        "location": "widgets/panel_background_dark",
         "slices": {
           "topLeft": {
             "start": {
@@ -845,6 +1037,36 @@
           "base": {
             "background": {
               "texture": "panel_background",
+              "color": "background"
+            },
+            "foreground": {
+              "color": "text",
+              "shadow": "transparent"
+            }
+          }
+        }
+      },
+      {
+        "id": "panel_dark",
+        "variants": {
+          "base": {
+            "background": {
+              "texture": "panel_background_dark",
+              "color": "background"
+            },
+            "foreground": {
+              "color": "text",
+              "shadow": "transparent"
+            }
+          }
+        }
+      },
+      {
+        "id": "slot",
+        "variants": {
+          "base": {
+            "background": {
+              "texture": "slot_background",
               "color": "background"
             },
             "foreground": {

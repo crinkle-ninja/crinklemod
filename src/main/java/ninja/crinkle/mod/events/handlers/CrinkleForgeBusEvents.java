@@ -14,6 +14,8 @@ import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.OnDatapackSyncEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
+import net.minecraftforge.event.entity.player.PlayerContainerEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.LogicalSide;
