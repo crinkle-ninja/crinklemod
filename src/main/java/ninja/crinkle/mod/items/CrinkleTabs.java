@@ -19,7 +19,7 @@ public class CrinkleTabs {
     private static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS =
             DeferredRegister.create(Registries.CREATIVE_MODE_TAB, CrinkleMod.MODID);
 
-    public static final RegistryObject<CreativeModeTab> CRINKLE_TAB = CREATIVE_MODE_TABS.register("crinkle_tab",
+    @SuppressWarnings("unused") public static final RegistryObject<CreativeModeTab> CRINKLE_TAB = CREATIVE_MODE_TABS.register("crinkle_tab",
             () -> CreativeModeTab.builder()
                     .icon(() -> new ItemStack(CrinkleItems.DUNNY_BLOCK_ITEM.get()))
                     .displayItems((p, o) -> {

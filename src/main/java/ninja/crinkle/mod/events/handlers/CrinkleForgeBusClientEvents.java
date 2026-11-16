@@ -10,12 +10,10 @@ import ninja.crinkle.mod.client.ClientSetup;
 import ninja.crinkle.mod.client.gui.overlays.CrinkleOverlay;
 import ninja.crinkle.mod.client.gui.screens.CrinkleModConfigScreen;
 import ninja.crinkle.mod.client.gui.screens.LayoutEditorScreen;
-import ninja.crinkle.mod.items.custom.UndergarmentArmorItem;
 import ninja.crinkle.mod.sounds.CrinkleSounds;
 import ninja.crinkle.mod.undergarment.Undergarment;
 import ninja.crinkle.mod.util.ClientUtil;
 import org.slf4j.Logger;
-import software.bernie.geckolib.event.GeoRenderEvent;
 
 import java.util.Random;
 
