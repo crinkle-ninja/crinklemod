@@ -12,7 +12,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
-import ninja.crinkle.mod.items.custom.DiaperArmorItem;
+import ninja.crinkle.mod.items.custom.UndergarmentArmorItem;
 import ninja.crinkle.mod.undergarment.DiaperDesign;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -80,11 +80,11 @@ public class DiaperItemModel implements BakedModel {
         @Override
         public BakedModel resolve(@NotNull BakedModel model, @NotNull ItemStack stack,
                                   @Nullable ClientLevel level, @Nullable LivingEntity entity, int seed) {
-            if (stack.getItem() instanceof DiaperArmorItem) {
-                DiaperDesign design = DiaperArmorItem.getDesign(stack, true);
+            if (stack.getItem() instanceof UndergarmentArmorItem) {
+                DiaperDesign design = UndergarmentArmorItem.getDesign(stack, true);
                 if (design == null) {
                     // Fall back to server-side registry if client hasn't synced yet
-                    design = DiaperArmorItem.getDesign(stack, false);
+                    design = UndergarmentArmorItem.getDesign(stack, false);
                 }
                 if (design != null) {
                     BakedModel designModel = designModels.get(design.itemTexture());
