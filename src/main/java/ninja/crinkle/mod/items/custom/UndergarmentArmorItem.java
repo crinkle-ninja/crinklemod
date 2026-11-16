@@ -7,10 +7,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ArmorItem;
-import net.minecraft.world.item.ArmorMaterial;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.*;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import ninja.crinkle.mod.CrinkleMod;
 import ninja.crinkle.mod.client.models.DiaperArmorModel;
@@ -33,14 +30,14 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.function.Consumer;
 
-public class DiaperArmorItem extends ArmorItem implements GeoItem {
+public class UndergarmentArmorItem extends ArmorItem implements GeoItem {
 
     private static final String DESIGN_TAG = CrinkleMod.MODID + ".design";
     public static final ResourceLocation DEFAULT_TEXTURE = CrinkleMod.loc("armor/diaper_white");
     public static final DiaperArmorModel SHARED_MODEL = new DiaperArmorModel();
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
 
-    public DiaperArmorItem(ArmorMaterial pMaterial, @NotNull Properties pProperties) {
+    public UndergarmentArmorItem(ArmorMaterial pMaterial, @NotNull Properties pProperties) {
         super(pMaterial, ArmorItem.Type.LEGGINGS, pProperties.rarity(Rarity.EPIC).durability(1000));
     }
 
@@ -71,7 +68,7 @@ public class DiaperArmorItem extends ArmorItem implements GeoItem {
     }
 
     public ResourceLocation getTexture() {
-        throw new IllegalCallerException();
+        return DiaperDesignRegistry.PLAIN_ID;
     }
 
     @Override
@@ -98,7 +95,7 @@ public class DiaperArmorItem extends ArmorItem implements GeoItem {
                 this::predicate));
     }
 
-    private PlayState predicate(AnimationState<DiaperArmorItem> state) {
+    private PlayState predicate(AnimationState<UndergarmentArmorItem> state) {
         Undergarment undergarment = Undergarment.EMPTY;
         if (state.getData(DataTickets.ENTITY) instanceof Player p) {
             undergarment = Undergarment.of(p);

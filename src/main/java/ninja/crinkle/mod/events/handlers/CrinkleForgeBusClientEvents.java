@@ -1,6 +1,5 @@
 package ninja.crinkle.mod.events.handlers;
 
-import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.client.event.sound.PlaySoundEvent;
@@ -13,12 +12,10 @@ import ninja.crinkle.mod.client.gui.screens.LayoutEditorScreen;
 import ninja.crinkle.mod.sounds.CrinkleSounds;
 import ninja.crinkle.mod.undergarment.Undergarment;
 import ninja.crinkle.mod.util.ClientUtil;
-import org.slf4j.Logger;
 
 import java.util.Random;
 
 public class CrinkleForgeBusClientEvents {
-    private static final Logger LOGGER = LogUtils.getLogger();
 
     @SubscribeEvent
     public void handleCrinkles(PlaySoundEvent event) {

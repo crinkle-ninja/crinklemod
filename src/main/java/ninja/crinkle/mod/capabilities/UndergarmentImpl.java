@@ -4,7 +4,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import ninja.crinkle.mod.config.UndergarmentConfig;
-import ninja.crinkle.mod.items.custom.DiaperArmorItem;
+import ninja.crinkle.mod.items.custom.UndergarmentArmorItem;
 import ninja.crinkle.mod.undergarment.DiaperDesign;
 import ninja.crinkle.mod.undergarment.DiaperDesignRegistry;
 import ninja.crinkle.mod.undergarment.Undergarment;
@@ -25,7 +25,7 @@ public class UndergarmentImpl implements IUndergarment {
     private DiaperDesign design;
 
     public UndergarmentImpl(ItemStack stack) {
-        Optional.ofNullable(DiaperArmorItem.getDesign(stack, false)).ifPresent(this::setDesign);
+        Optional.ofNullable(UndergarmentArmorItem.getDesign(stack, false)).ifPresent(this::setDesign);
         getDesign().ifPresentOrElse(d -> {
             setMaxLiquids(Optional.ofNullable(d.maxLiquids()).orElse(UndergarmentConfig.getDefaultMaxLiquids()));
             setMaxSolids(Optional.ofNullable(d.maxSolids()).orElse(UndergarmentConfig.getDefaultMaxSolids()));

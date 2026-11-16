@@ -14,7 +14,7 @@ import ninja.crinkle.mod.capabilities.UndergarmentImpl;
 import ninja.crinkle.mod.client.textures.Textures;
 import ninja.crinkle.mod.client.textures.generators.DiaperTextureGenerator;
 import ninja.crinkle.mod.config.UndergarmentConfig;
-import ninja.crinkle.mod.items.custom.DiaperArmorItem;
+import ninja.crinkle.mod.items.custom.UndergarmentArmorItem;
 import ninja.crinkle.mod.network.CrinkleChannel;
 import ninja.crinkle.mod.network.messages.UndergarmentUpdateMessage;
 import ninja.crinkle.mod.util.ClientUtil;
@@ -59,7 +59,7 @@ public class Undergarment implements ServerUpdater {
     }
 
     public static boolean hasUndergarmentData(ItemStack itemStack) {
-        return itemStack != null && itemStack.getItem() instanceof DiaperArmorItem;
+        return itemStack != null && itemStack.getItem() instanceof UndergarmentArmorItem;
     }
 
     public static @NotNull Undergarment of(ICapabilityProvider provider) {
@@ -176,10 +176,10 @@ public class Undergarment implements ServerUpdater {
     }
 
     public ResourceLocation texture() {
-        DiaperDesign design = getDesign().orElse(DiaperArmorItem.getDesign(getItemStack(), true));
-        ResourceLocation armorTexture = design != null ? design.armorTexture() : DiaperArmorItem.DEFAULT_TEXTURE;
+        DiaperDesign design = getDesign().orElse(UndergarmentArmorItem.getDesign(getItemStack(), true));
+        ResourceLocation armorTexture = design != null ? design.armorTexture() : UndergarmentArmorItem.DEFAULT_TEXTURE;
         DiaperTextureGenerator.Data data =
-                new DiaperTextureGenerator.Data(armorTexture.toString(), DiaperArmorItem.SHARED_MODEL, this);
+                new DiaperTextureGenerator.Data(armorTexture.toString(), UndergarmentArmorItem.SHARED_MODEL, this);
         return Textures.getInstance().getTexture(armorTexture, data);
     }
 }
