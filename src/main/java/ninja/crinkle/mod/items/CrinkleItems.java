@@ -6,7 +6,7 @@ import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 import ninja.crinkle.mod.CrinkleMod;
-import ninja.crinkle.mod.items.custom.DiaperArmorItem;
+import ninja.crinkle.mod.items.custom.UndergarmentArmorItem;
 import ninja.crinkle.mod.items.custom.DunnyItem;
 
 import static ninja.crinkle.mod.blocks.CrinkleBlocks.DUNNY_BLOCK;
@@ -19,7 +19,7 @@ public class CrinkleItems {
             () -> new DunnyItem(DUNNY_BLOCK.get(), new Item.Properties()));
 
     public static final RegistryObject<Item> DIAPER = ITEMS.register("diaper",
-            () -> new DiaperArmorItem(CrinkleArmorMaterials.DIAPER,
+            () -> new UndergarmentArmorItem(CrinkleArmorMaterials.DIAPER,
                     new Item.Properties().stacksTo(16)));
 
     public static void register(IEventBus bus) {
