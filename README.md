@@ -1,12 +1,12 @@
 CrinkleMod: A fully-loaded experience.
 ==========
 
-This is an ABDL mod for Minecraft. It adds diapers, metabolism, and more!
+This is an ABDL mod for Minecraft. It adds diapers, metabolism, and more (soon™)!
 
 ## Dependencies
 - [Minecraft](https://www.minecraft.net/) (Tested: version 1.20.1)
-- [Forge](https://files.minecraftforge.net/net/minecraftforge/forge/) (Tested: version 47.2.0)
-- [GeckoLib](https://www.curseforge.com/minecraft/mc-mods/geckolib) (Tested: version 4.3.1)
+- [Forge](https://files.minecraftforge.net/net/minecraftforge/forge/) (Tested: version 47.4.28)
+- [GeckoLib](https://www.curseforge.com/minecraft/mc-mods/geckolib) (Tested: version 4.8.4)
 
 ## Recommended Mods
 - JEI (Just Enough Items) for recipes.
