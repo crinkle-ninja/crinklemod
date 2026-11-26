@@ -51,5 +51,7 @@
   "setting.crinklemod.metabolism.both.tickCount.label": "Current Tick",
   "setting.crinklemod.metabolism.both.tickCount.tooltip": "The current tick or second since last accident.",
   "setting.crinklemod.metabolism.both.delaySeconds.label": "Delay",
-  "setting.crinklemod.metabolism.both.delaySeconds.tooltip": "Delay between accidents in seconds."
+  "setting.crinklemod.metabolism.both.delaySeconds.tooltip": "Delay between accidents in seconds.",
+  "gui.crinklemod.screen.gear.title": "CrinkleGear",
+  "gui.crinklemod.addon.inventory.button.gear": "CrinkleGear"
 }

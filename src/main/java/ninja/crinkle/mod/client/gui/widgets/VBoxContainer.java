@@ -18,9 +18,9 @@ public class VBoxContainer extends AbstractContainer {
     }
 
     @Override
-    public void arrange() {
+    public boolean arrangeContent() {
         List<Widget> kids = children();
-        if (kids.isEmpty() || rect().equals(Rect.ZERO)) return;
+        if (kids.isEmpty() || rect().equals(Rect.ZERO)) return false;
 
         int available = rect().height() - (separation() * Math.max(0, kids.size() - 1));
 
@@ -61,6 +61,7 @@ public class VBoxContainer extends AbstractContainer {
 
             offset += allocH + separation();
         }
+        return true;
     }
 
     @SuppressWarnings("DuplicatedCode")

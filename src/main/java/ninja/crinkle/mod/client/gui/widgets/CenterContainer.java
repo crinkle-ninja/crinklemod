@@ -16,9 +16,9 @@ public class CenterContainer extends AbstractContainer {
     }
 
     @Override
-    public void arrange() {
+    public boolean arrangeContent() {
         List<Widget> kids = children();
-        if (kids.isEmpty() || rect().equals(Rect.ZERO)) return;
+        if (kids.isEmpty() || rect().equals(Rect.ZERO)) return false;
         // Only the first child is arranged
         Widget child = kids.get(0);
         int childW = child.minimumWidth();
@@ -26,6 +26,7 @@ public class CenterContainer extends AbstractContainer {
         int x = rect().x() + (rect().width() - childW) / 2;
         int y = rect().y() + (rect().height() - childH) / 2;
         child.setRect(new Rect(x, y, childW, childH));
+        return true;
     }
 
     @Override

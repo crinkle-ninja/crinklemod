@@ -2,6 +2,7 @@ package ninja.crinkle.mod.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
+import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
@@ -10,7 +11,9 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import ninja.crinkle.mod.client.gui.containers.screens.CrinkleGearInventoryScreen;
 import ninja.crinkle.mod.client.gui.overlays.CrinkleOverlay;
+import ninja.crinkle.mod.menus.CrinkleMenus;
 import org.lwjgl.glfw.GLFW;
 
 import static ninja.crinkle.mod.CrinkleMod.MODID;
@@ -22,9 +25,8 @@ public class ClientSetup {
 
     @SubscribeEvent
     public static void init(FMLClientSetupEvent event) {
-        event.enqueueWork(() -> {
-            DistExecutor.safeRunWhenOn(Dist.CLIENT, () -> ClientHooks::registerEvents);
-        });
+        event.enqueueWork(() -> DistExecutor.safeRunWhenOn(Dist.CLIENT, () -> ClientHooks::registerEvents));
+        MenuScreens.register(CrinkleMenus.CRINKLE_GEAR_MENU.get(), CrinkleGearInventoryScreen::new);
     }
 
     @SubscribeEvent

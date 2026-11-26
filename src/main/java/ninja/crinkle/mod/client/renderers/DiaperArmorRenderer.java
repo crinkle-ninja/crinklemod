@@ -16,8 +16,6 @@ public class DiaperArmorRenderer extends GeoArmorRenderer<UndergarmentArmorItem>
         return Undergarment.of(getCurrentEntity()).texture();
     }
 
-
-
     @Override
     protected void applyBoneVisibilityBySlot(EquipmentSlot currentSlot) {
         super.applyBoneVisibilityBySlot(currentSlot);

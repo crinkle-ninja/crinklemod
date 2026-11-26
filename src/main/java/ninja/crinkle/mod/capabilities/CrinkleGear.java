@@ -2,10 +2,12 @@ package ninja.crinkle.mod.capabilities;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.IItemHandlerModifiable;
 import ninja.crinkle.mod.datagen.CrinkleItemTags;
 import org.jetbrains.annotations.NotNull;
 
@@ -14,12 +16,24 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.*;
 
-public interface CrinkleGear extends IItemHandler, INBTSerializable<CompoundTag> {
+public interface CrinkleGear extends IItemHandler, IItemHandlerModifiable, INBTSerializable<CompoundTag> {
+    static CrinkleGear of(Player player) {
+        return player.getCapability(CrinkleGearProvider.CAPABILITY).orElse(new CrinkleGearImpl());
+    }
+
     ItemStack getUndergarment();
     void setUndergarment(ItemStack itemStack);
 
     @Override default int getSlots() {
         return SlotType.values().length;
+    }
+
+    @Override default void setStackInSlot(int slot, @NotNull ItemStack stack) {
+        //noinspection SwitchStatementWithTooFewBranches
+        switch (SlotType.of(slot)) {
+            case Undergarment -> setUndergarment(stack);
+            default -> throw new IllegalStateException("Unexpected value: " + SlotType.of(slot));
+        }
     }
 
     @Override default @NotNull ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {

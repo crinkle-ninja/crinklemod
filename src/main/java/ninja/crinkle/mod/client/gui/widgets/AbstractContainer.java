@@ -6,16 +6,19 @@ import ninja.crinkle.mod.client.gui.properties.Point;
 import ninja.crinkle.mod.client.gui.properties.Rect;
 import ninja.crinkle.mod.client.gui.properties.Sizing;
 import ninja.crinkle.mod.client.gui.renderers.ThemeGraphics;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public abstract class AbstractContainer extends AbstractWidget {
     private static final Logger LOGGER = LogUtils.getLogger();
     private final List<Widget> children = new ArrayList<>();
+    private final List<Consumer<Widget>> onArrangeConsumers = new ArrayList<>();
     private int separation;
 
     protected AbstractContainer(@NotNull AbstractContainerBuilder<?> builder) {
@@ -32,7 +35,7 @@ public abstract class AbstractContainer extends AbstractWidget {
      * Applies a child's sizing to an allocated rectangle.
      * Per-axis: if FILL → use allocated size; if SHRINK_* → use min size + align within allocated rect.
      */
-    protected static Rect fitChildInRect(Widget child, Rect allocated) {
+    @Contract("_, _ -> new") protected static @NotNull Rect fitChildInRect(Widget child, Rect allocated) {
         int x = allocated.x();
         int y = allocated.y();
         int w = allocated.width();
@@ -68,8 +71,6 @@ public abstract class AbstractContainer extends AbstractWidget {
         return new Rect(x, y, w, h);
     }
 
-    // --- Children ---
-
     public AbstractContainer add(AbstractBuilder<?> builder) {
         return add(builder.build());
     }
@@ -96,6 +97,15 @@ public abstract class AbstractContainer extends AbstractWidget {
         return children.stream().toList();
     }
 
+
+    public void onArrange(Consumer<Widget> widgetConsumer) {
+        this.onArrangeConsumers.add(widgetConsumer);
+    }
+
+    protected boolean arrangeContent() {
+        return false;
+    }
+
     public void remove(Widget widget) {
         children.remove(widget);
         widget.parent(null);
@@ -118,13 +128,9 @@ public abstract class AbstractContainer extends AbstractWidget {
         return manager().root() == this;
     }
 
-    // --- Visual Copy ---
-
     public int separation() {
         return separation;
     }
-
-    // --- Layout ---
 
     public void separation(int separation) {
         this.separation = separation;
@@ -171,8 +177,15 @@ public abstract class AbstractContainer extends AbstractWidget {
                 .forEach(child -> child.render(graphics, pMouse, pPartialTick));
     }
 
+    /**
+     * Do not override, use this::arrangeContent instead
+     */
     public void arrange() {
-        // Default: no arrangement. Subclasses override.
+        if (arrangeContent()) {
+            for(Consumer<Widget> consumers : onArrangeConsumers) {
+                consumers.accept(this);
+            }
+        }
     }
 
     @Override

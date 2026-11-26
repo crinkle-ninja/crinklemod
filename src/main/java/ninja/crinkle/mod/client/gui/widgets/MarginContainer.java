@@ -24,14 +24,15 @@ public class MarginContainer extends AbstractContainer {
     }
 
     @Override
-    public void arrange() {
+    public boolean arrangeContent() {
         List<Widget> kids = children();
-        if (kids.isEmpty() || rect().equals(Rect.ZERO)) return;
+        if (kids.isEmpty() || rect().equals(Rect.ZERO)) return false;
         // Only the first child is arranged
         Widget child = kids.get(0);
         Rect inner = rect().shrink(marginTop, marginRight, marginBottom, marginLeft);
         Rect fitted = fitChildInRect(child, inner);
         child.setRect(fitted);
+        return true;
     }
 
     protected int marginBottom() {

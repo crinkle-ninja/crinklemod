@@ -1,16 +1,15 @@
 package ninja.crinkle.mod.items;
 
-import net.minecraft.world.Container;
-import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.items.SlotItemHandler;
 import ninja.crinkle.mod.capabilities.CrinkleGear;
 import org.jetbrains.annotations.NotNull;
 
-public class GearSlot extends Slot {
+public class GearSlot extends SlotItemHandler {
     private final CrinkleGear.SlotType slotType;
 
-    public GearSlot(Container pContainer, int pX, int pY, CrinkleGear.SlotType slotType) {
-        super(pContainer, CrinkleGear.SlotType.of(slotType), pX, pY);
+    public GearSlot(CrinkleGear crinkleGear, CrinkleGear.SlotType slotType, int pX, int pY) {
+        super(crinkleGear, CrinkleGear.SlotType.of(slotType), pX, pY);
         this.slotType = slotType;
     }
 

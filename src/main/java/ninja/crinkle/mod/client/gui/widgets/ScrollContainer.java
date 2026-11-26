@@ -51,9 +51,9 @@ public class ScrollContainer extends AbstractContainer implements MouseActor {
     }
 
     @Override
-    public void arrange() {
+    public boolean arrangeContent() {
         List<Widget> kids = children();
-        if (kids.isEmpty() || rect().equals(Rect.ZERO)) return;
+        if (kids.isEmpty() || rect().equals(Rect.ZERO)) return false;
 
         // Give each child the full viewport width but its own natural height,
         // positioned as a vertical stack offset by -scrollOffset.
@@ -65,6 +65,7 @@ public class ScrollContainer extends AbstractContainer implements MouseActor {
             child.setRect(fitted);
             offset += childH + separation();
         }
+        return true;
     }
 
     @Override

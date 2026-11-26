@@ -12,6 +12,7 @@ public class PauseScreenAddOn extends AbstractAddOn {
     public PauseScreenAddOn() {
         super(PauseScreen.class);
         MarginContainer container = new MarginContainer.Builder(root())
+                .name("pause.panel.buttons")
                 .margins(2)
                 .verticalSizing(Sizing.ShrinkCenter)
                 .horizontalSizing(Sizing.ShrinkCenter)
@@ -21,5 +22,6 @@ public class PauseScreenAddOn extends AbstractAddOn {
                 .margins(8)
                 .onClick((w) -> Minecraft.getInstance().setScreen(new CrinkleModConfigScreen()))
                 .push();
+
     }
 }

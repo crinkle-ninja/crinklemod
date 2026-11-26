@@ -18,9 +18,9 @@ public class HBoxContainer extends AbstractContainer {
     }
 
     @Override
-    public void arrange() {
+    public boolean arrangeContent() {
         List<Widget> kids = children();
-        if (kids.isEmpty() || rect().equals(Rect.ZERO)) return;
+        if (kids.isEmpty() || rect().equals(Rect.ZERO)) return false;
 
         int available = rect().width() - (separation() * Math.max(0, kids.size() - 1));
 
@@ -61,6 +61,7 @@ public class HBoxContainer extends AbstractContainer {
 
             offset += allocW + separation();
         }
+        return true;
     }
 
     @Override

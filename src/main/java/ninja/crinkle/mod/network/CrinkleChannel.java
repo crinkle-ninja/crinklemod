@@ -6,6 +6,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import ninja.crinkle.mod.CrinkleMod;
 import ninja.crinkle.mod.network.messages.DiaperDesignSyncMessage;
 import ninja.crinkle.mod.network.messages.MetabolismUpdateMessage;
+import ninja.crinkle.mod.network.messages.OpenCrinkleGearMessage;
 import ninja.crinkle.mod.network.messages.UndergarmentUpdateMessage;
 
 /**
@@ -40,6 +41,11 @@ public class CrinkleChannel {
                 .decoder(DiaperDesignSyncMessage::decoder)
                 .encoder(DiaperDesignSyncMessage::encoder)
                 .consumerMainThread(DiaperDesignSyncMessage::messageConsumer)
+                .add();
+        INSTANCE.messageBuilder(OpenCrinkleGearMessage.class, ++id)
+                .decoder(OpenCrinkleGearMessage::decoder)
+                .encoder(OpenCrinkleGearMessage::encoder)
+                .consumerMainThread(OpenCrinkleGearMessage::messageConsumer)
                 .add();
     }
 }

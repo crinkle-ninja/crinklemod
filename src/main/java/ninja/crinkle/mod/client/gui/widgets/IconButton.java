@@ -59,12 +59,13 @@ public class IconButton extends Button implements MouseActor {
     }
 
     @Override
-    public void arrange() {
-        if (children().isEmpty() || rect().equals(Rect.ZERO)) return;
+    public boolean arrangeContent() {
+        if (children().isEmpty() || rect().equals(Rect.ZERO)) return false;
         for (Widget child : children()) {
             Rect fitted = fitChildInRect(child, rect());
             child.setRect(fitted);
         }
+        return true;
     }
 
     @Override

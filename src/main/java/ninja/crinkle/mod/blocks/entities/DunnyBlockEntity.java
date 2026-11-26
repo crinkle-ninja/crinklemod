@@ -66,6 +66,8 @@ public class DunnyBlockEntity extends BlockEntity implements GeoBlockEntity {
         super(CrinkleBlocks.DUNNY_BLOCK_ENTITY.get(), pos, state);
     }
 
+
+
     @Nonnull
     private ItemStackHandler createItemHandler(int slots) {
         return new ItemStackHandler(slots) {

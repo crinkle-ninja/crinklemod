@@ -1,6 +1,5 @@
 package ninja.crinkle.mod.client.gui.overlays;
 
-import com.mojang.logging.LogUtils;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
@@ -11,10 +10,8 @@ import ninja.crinkle.mod.client.gui.properties.Rect;
 import ninja.crinkle.mod.client.gui.renderers.ThemeGraphics;
 import ninja.crinkle.mod.client.gui.textures.ThemeAtlas;
 import ninja.crinkle.mod.client.gui.themes.ThemeRegistry;
-import org.slf4j.Logger;
 
 public abstract class AbstractOverlay implements IGuiOverlay, IManagedGUI {
-    public static final Logger LOGGER = LogUtils.getLogger();
     private final GuiManager manager;
     private int lastScreenHeight;
     private int lastScreenWidth;

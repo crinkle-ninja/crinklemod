@@ -11,12 +11,13 @@ public class Container extends AbstractContainer {
     }
 
     @Override
-    public void arrange() {
-        if (children().isEmpty() || rect().equals(Rect.ZERO)) return;
+    public boolean arrangeContent() {
+        if (children().isEmpty() || rect().equals(Rect.ZERO)) return false;
         for (Widget child : children()) {
             Rect fitted = fitChildInRect(child, rect());
             child.setRect(fitted);
         }
+        return true;
     }
 
     @Override

@@ -156,8 +156,8 @@ public class TabbedPanelContainer extends AbstractContainer {
     }
 
     @Override
-    public void arrange() {
-        if (children().isEmpty() || rect().equals(Rect.ZERO)) return;
+    public boolean arrangeContent() {
+        if (children().isEmpty() || rect().equals(Rect.ZERO)) return false;
 
         int railWidth = tabWidth;
         int contentWidth = rect().width() - railWidth;
@@ -166,6 +166,7 @@ public class TabbedPanelContainer extends AbstractContainer {
         // they'll handle applying insets to their own children.
         tabRailOuter.setRect(new Rect(rect().x(), rect().y(), railWidth, rect().height()));
         contentChild.setRect(new Rect(rect().x() + railWidth, rect().y(), contentWidth, rect().height()));
+        return true;
     }
 
     @Override
