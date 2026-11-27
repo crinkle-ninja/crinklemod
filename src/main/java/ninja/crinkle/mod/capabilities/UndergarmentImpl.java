@@ -84,7 +84,11 @@ public class UndergarmentImpl implements IUndergarment {
     }
 
     public void save(ItemStack itemStack) {
-        CompoundTag nbt = itemStack.getOrCreateTag();
+        CompoundTag nbt = Optional.ofNullable(itemStack.getTag()).stream().reduce((t, acc) -> {
+            if (t.contains(Undergarment.NBT_KEY))
+                return t;
+            return itemStack.getOrCreateTag();
+        }).orElse(itemStack.getOrCreateTag());
         nbt.put(Undergarment.NBT_KEY, serializeNBT());
         itemStack.setTag(nbt);
     }
