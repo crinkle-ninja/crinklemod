@@ -19,7 +19,13 @@ This is an ABDL mod for Minecraft. It adds diapers, metabolism, and more (soonâ„
 4. Enjoy!
 
 ## Tips and Tricks
-- You can control most things about metabolism with the `/metabolism` command, or `/met` for short.
-- The configuration menu is currently available as a button on the inventory screen.
-- There are recipes for diapers! You can find them in JEI.
+- The configuration menu is currently available as a button on the pause screen.
+- There is a recipe for a Diaper!
 - Metabolism is disabled by default. You can enable it in the configuration menu.
+
+## Screenshots
+
+![ABU BunnyHopps](./screenshots/bhopps.png)
+![ABU Raccoon PeekABU](./screenshots/peekracc.png)
+![PretendAgain Try Agains: Jax](./screenshots/tryjax.png)
+![Other designs!](./screenshots/designs.png)
