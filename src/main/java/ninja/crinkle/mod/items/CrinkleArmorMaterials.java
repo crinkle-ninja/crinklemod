@@ -7,10 +7,10 @@ import net.minecraft.util.LazyLoadedValue;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ArmorMaterial;
-import net.minecraft.world.item.ArmorMaterials;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import ninja.crinkle.mod.CrinkleMod;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.EnumMap;
 import java.util.function.Supplier;
@@ -20,9 +20,6 @@ public enum CrinkleArmorMaterials implements StringRepresentable, ArmorMaterial 
             (map) -> map.put(ArmorItem.Type.LEGGINGS, 8)), 15, SoundEvents.ARMOR_EQUIP_LEATHER,
             8.0F, 0.5F, () -> Ingredient.of(Items.WHITE_WOOL));
 
-    @SuppressWarnings("deprecation")
-    public static final StringRepresentable.EnumCodec<ArmorMaterials> CODEC =
-            StringRepresentable.fromEnum(ArmorMaterials::values);
     private static final EnumMap<ArmorItem.Type, Integer> HEALTH_FUNCTION_FOR_TYPE =
             Util.make(new EnumMap<>(ArmorItem.Type.class), (map) -> {
                 map.put(ArmorItem.Type.BOOTS, 13);
@@ -55,11 +52,11 @@ public enum CrinkleArmorMaterials implements StringRepresentable, ArmorMaterial 
         this.repairIngredient = new LazyLoadedValue<>(pRepairIngredient);
     }
 
-    public int getDurabilityForType(ArmorItem.Type pType) {
+    public int getDurabilityForType(ArmorItem.@NotNull Type pType) {
         return HEALTH_FUNCTION_FOR_TYPE.get(pType) * this.durabilityMultiplier;
     }
 
-    public int getDefenseForType(ArmorItem.Type pType) {
+    public int getDefenseForType(ArmorItem.@NotNull Type pType) {
         return this.protectionFunctionForType.get(pType);
     }
 
@@ -67,15 +64,15 @@ public enum CrinkleArmorMaterials implements StringRepresentable, ArmorMaterial 
         return this.enchantmentValue;
     }
 
-    public SoundEvent getEquipSound() {
+    public @NotNull SoundEvent getEquipSound() {
         return this.sound;
     }
 
-    public Ingredient getRepairIngredient() {
+    public @NotNull Ingredient getRepairIngredient() {
         return this.repairIngredient.get();
     }
 
-    public String getName() {
+    public @NotNull String getName() {
         return this.name;
     }
 
@@ -90,7 +87,7 @@ public enum CrinkleArmorMaterials implements StringRepresentable, ArmorMaterial 
         return this.knockbackResistance;
     }
 
-    public String getSerializedName() {
+    public @NotNull String getSerializedName() {
         return this.name;
     }
 }

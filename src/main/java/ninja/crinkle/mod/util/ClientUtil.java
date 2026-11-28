@@ -6,7 +6,6 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.loading.FMLLoader;
 import ninja.crinkle.mod.client.ClientHooks;
-import ninja.crinkle.mod.client.gui.textures.Texture;
 import ninja.crinkle.mod.client.textures.Textures;
 
 import java.util.Optional;

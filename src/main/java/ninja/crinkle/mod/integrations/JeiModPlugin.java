@@ -3,13 +3,10 @@ package ninja.crinkle.mod.integrations;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.ingredients.subtypes.IIngredientSubtypeInterpreter;
-import mezz.jei.api.recipe.RecipeType;
-import mezz.jei.api.registration.IRecipeRegistration;
 import mezz.jei.api.registration.ISubtypeRegistration;
 import net.minecraft.resources.ResourceLocation;
 import ninja.crinkle.mod.CrinkleMod;
 import ninja.crinkle.mod.items.CrinkleItems;
-import ninja.crinkle.mod.recipes.DesignRecipe;
 import ninja.crinkle.mod.undergarment.Undergarment;
 import org.jetbrains.annotations.NotNull;
 

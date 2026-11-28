@@ -128,22 +128,25 @@ public class DesignTextureGenerator implements TextureGenerator<Undergarment> {
     private void applyPixels(NativeImage pImage, Data pData, PixelConsumer applyFunction) {
         NativeImage original = pData.getOriginalImage();
         BakedGeoModel model = pData.model().getBakedModel(pData.model().getModelResource(null));
-        parts.forEach(part -> model.getBone(part.getBone()).ifPresentOrElse(b -> b.getCubes().forEach(c ->
-                List.of(c.quads()).forEach(f -> {
-                    List<GeoVertex> vertices = new ArrayList<>(List.of(f.vertices()));
-                    vertices.sort(Comparator.comparingDouble(GeoVertex::texU).
-                            thenComparingDouble(GeoVertex::texV));
-                    GeoVertex v1 = vertices.get(0);
-                    GeoVertex v2 = vertices.get(vertices.size() - 1);
-                    int x = (int) (v1.texU() * pImage.getWidth());
-                    int y = (int) (v1.texV() * pImage.getHeight());
-                    int width = (int) ((v2.texU() - v1.texU()) * pImage.getWidth());
-                    int height = (int) ((v2.texV() - v1.texV()) * pImage.getHeight());
-                    for (int i = 0; i < width; i++) {
-                        for (int j = 0; j < height; j++) {
-                            applyFunction.accept(pImage, x + i, y + j, original);
+        parts.forEach(part -> model.getBone(part.getBone()).ifPresentOrElse(b -> b.getCubes().forEach(cube ->
+                Optional.ofNullable(cube.quads()).ifPresent(quads -> {
+                    //noinspection NullableProblems
+                    List.of(quads).forEach(f -> {
+                        List<GeoVertex> vertices = new ArrayList<>(List.of(f.vertices()));
+                        vertices.sort(Comparator.comparingDouble(GeoVertex::texU).
+                                thenComparingDouble(GeoVertex::texV));
+                        GeoVertex v1 = vertices.get(0);
+                        GeoVertex v2 = vertices.get(vertices.size() - 1);
+                        int x = (int) (v1.texU() * pImage.getWidth());
+                        int y = (int) (v1.texV() * pImage.getHeight());
+                        int width = (int) ((v2.texU() - v1.texU()) * pImage.getWidth());
+                        int height = (int) ((v2.texV() - v1.texV()) * pImage.getHeight());
+                        for (int i = 0; i < width; i++) {
+                            for (int j = 0; j < height; j++) {
+                                applyFunction.accept(pImage, x + i, y + j, original);
+                            }
                         }
-                    }
+                    });
                 })), () -> LOGGER.warn("Could not find bone: {}", part.getBone())));
     }
 

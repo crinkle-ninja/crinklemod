@@ -4,7 +4,6 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.*;
 import net.minecraft.world.item.Items;
 import ninja.crinkle.mod.items.CrinkleItems;
-import ninja.crinkle.mod.recipes.DesignRecipe;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Consumer;

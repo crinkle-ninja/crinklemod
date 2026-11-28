@@ -27,8 +27,8 @@ public class UndergarmentImpl implements IUndergarment {
     public UndergarmentImpl(ItemStack stack) {
         Optional.ofNullable(UndergarmentArmorItem.getDesign(stack)).ifPresent(this::setDesign);
         getDesign().ifPresentOrElse(d -> {
-            setMaxLiquids(Optional.ofNullable(d.maxLiquids()).orElse(UndergarmentConfig.getDefaultMaxLiquids()));
-            setMaxSolids(Optional.ofNullable(d.maxSolids()).orElse(UndergarmentConfig.getDefaultMaxSolids()));
+            setMaxLiquids(Optional.of(d.maxLiquids()).orElse(UndergarmentConfig.getDefaultMaxLiquids()));
+            setMaxSolids(Optional.of(d.maxSolids()).orElse(UndergarmentConfig.getDefaultMaxSolids()));
         }, () -> {
             setMaxSolids(UndergarmentConfig.getDefaultMaxSolids());
             setMaxLiquids(UndergarmentConfig.getDefaultMaxLiquids());

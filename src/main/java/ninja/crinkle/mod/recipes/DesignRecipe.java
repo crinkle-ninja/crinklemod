@@ -90,7 +90,7 @@ public class DesignRecipe implements CraftingRecipe {
         return preview;
     }
 
-    @Override public NonNullList<Ingredient> getIngredients() {
+    @Override public @NotNull NonNullList<Ingredient> getIngredients() {
         return design().ingredients();
     }
 

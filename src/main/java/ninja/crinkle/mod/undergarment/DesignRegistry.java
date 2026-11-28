@@ -2,21 +2,14 @@ package ninja.crinkle.mod.undergarment;
 
 import com.google.gson.*;
 import com.mojang.logging.LogUtils;
-import net.minecraft.core.NonNullList;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.GsonHelper;
-import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraftforge.fml.loading.FMLEnvironment;
-import net.minecraftforge.fml.loading.FMLLoader;
 import ninja.crinkle.mod.CrinkleMod;
-import ninja.crinkle.mod.client.textures.Textures;
 import ninja.crinkle.mod.util.ClientUtil;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
 import java.util.*;

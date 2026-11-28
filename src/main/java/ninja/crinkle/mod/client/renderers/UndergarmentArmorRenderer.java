@@ -2,15 +2,10 @@ package ninja.crinkle.mod.client.renderers;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.item.ArmorItem;
-import ninja.crinkle.mod.client.models.DiaperArmorModel;
 import ninja.crinkle.mod.items.custom.UndergarmentArmorItem;
 import ninja.crinkle.mod.undergarment.Undergarment;
 import software.bernie.geckolib.model.GeoModel;
 import software.bernie.geckolib.renderer.GeoArmorRenderer;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class UndergarmentArmorRenderer extends GeoArmorRenderer<UndergarmentArmorItem> {
     public UndergarmentArmorRenderer(GeoModel<UndergarmentArmorItem> model) {
