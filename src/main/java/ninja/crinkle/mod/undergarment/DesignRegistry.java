@@ -47,7 +47,8 @@ public class DesignRegistry {
             }
         }
         LOGGER.info("Loaded {} diaper design(s)", DESIGNS.size());
-        ClientUtil.rebuildTextures();
+        if (ClientUtil.isClient())
+            ClientUtil.rebuildTextures();
     }
 
     public static Map<ResourceLocation, Design> getDesigns() {
@@ -60,5 +61,19 @@ public class DesignRegistry {
 
     public static Collection<Design> getAllDesigns() {
         return DESIGNS.values();
+    }
+
+    public static void replaceAllDesigns(Collection<Design> designs) {
+        LOGGER.debug("Replacing all {} designs!", DESIGNS.size());
+        DESIGNS.clear();
+        designs.forEach(d -> {
+            LOGGER.debug("Adding design: {}", d.id());
+            DESIGNS.put(d.id(), d);
+        });
+        LOGGER.debug("Done adding {} designs.", DESIGNS.size());
+        if (ClientUtil.isClient()) {
+            LOGGER.debug("rebuilding textures after design reload");
+            ClientUtil.rebuildTextures();
+        }
     }
 }

@@ -58,8 +58,8 @@ public class DesignRecipe implements CraftingRecipe {
                 inputs.add(stack);
             }
         }
-        return inputs.size() == design().ingredients().size() && RecipeMatcher.findMatches(inputs,
-                design().ingredients()) != null;
+        NonNullList<Ingredient> ingredients = getIngredients();
+        return inputs.size() == ingredients.size() && RecipeMatcher.findMatches(inputs, ingredients) != null;
     }
 
     @Override public @NotNull ItemStack assemble(@NotNull CraftingContainer pContainer,
@@ -91,7 +91,10 @@ public class DesignRecipe implements CraftingRecipe {
     }
 
     @Override public @NotNull NonNullList<Ingredient> getIngredients() {
-        return design().ingredients();
+        NonNullList<Ingredient> ingredients = NonNullList.create();
+        ingredients.add(Ingredient.of(baseItem()));
+        ingredients.addAll(design().ingredients());
+        return ingredients;
     }
 
     @Override public @NotNull ResourceLocation getId() {
@@ -160,13 +163,17 @@ public class DesignRecipe implements CraftingRecipe {
 
         @Override public @Nullable DesignRecipe fromNetwork(@NotNull ResourceLocation pRecipeId,
                                                             FriendlyByteBuf pBuffer) {
-            ResourceLocation itemId = ResourceLocation.parse(pBuffer.readUtf());
+            ResourceLocation itemId = pBuffer.readResourceLocation();
             Item baseItem = ForgeRegistries.ITEMS.getValue(itemId);
             if (baseItem == null || baseItem == Items.AIR) {
                 LOGGER.warn("skipping recipe with invalid base item '{}' for: {}", itemId, pRecipeId);
                 return null;
             }
             Design design = Design.fromNetwork(pBuffer);
+            if (design == null) {
+                LOGGER.warn("skipping recipe with invalid design for: {}", pRecipeId);
+                return null;
+            }
             return new DesignRecipe(pRecipeId, baseItem, design);
         }
 
@@ -175,7 +182,7 @@ public class DesignRecipe implements CraftingRecipe {
             if (baseItem == null) {
                 throw new IllegalArgumentException("base item not found: " + pRecipe.baseItem().toString());
             }
-            pBuffer.writeUtf(baseItem.toString());
+            pBuffer.writeResourceLocation(baseItem);
             Design.toNetwork(pBuffer, pRecipe.design());
         }
     }

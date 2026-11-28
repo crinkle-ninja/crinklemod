@@ -12,6 +12,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -28,7 +29,7 @@ public record Design(
 ) {
     public static Design fromJson(ResourceLocation pId, @NotNull JsonObject json) {
         String cleanedPath = pId.getPath();
-        cleanedPath = cleanedPath.substring(0, cleanedPath.indexOf('.'));
+        cleanedPath = cleanedPath.substring(0, cleanedPath.lastIndexOf('.'));
         ResourceLocation id = ResourceLocation.fromNamespaceAndPath(pId.getNamespace(), cleanedPath);
         String displayName = json.get("display_name").getAsString();
         ResourceLocation armorTexture = ResourceLocation.parse(json.get("armor_texture").getAsString());
@@ -58,7 +59,6 @@ public record Design(
         NonNullList<Ingredient> requiredIngredients = NonNullList.create();
         if (json.has("ingredients")) {
             JsonArray ingredientsJson = json.getAsJsonArray("ingredients");
-            requiredIngredients.add(Ingredient.of(baseItem));
             for (JsonElement jsonIngredient : ingredientsJson.asList()) {
                 requiredIngredients.add(Ingredient.fromJson(jsonIngredient, false));
             }
@@ -66,24 +66,25 @@ public record Design(
         return new Design(id, displayName, armorTexture, itemTexture, itemId, maxLiquids, maxSolids, overlays, requiredIngredients);
     }
 
-    public static Design fromNetwork(FriendlyByteBuf pBuffer) {
+    public static @Nullable Design fromNetwork(FriendlyByteBuf pBuffer) {
         ResourceLocation id = pBuffer.readResourceLocation();
         String displayName = pBuffer.readUtf();
         ResourceLocation armorTexture = pBuffer.readResourceLocation();
         ResourceLocation itemTexture = pBuffer.readResourceLocation();
         ResourceLocation itemId = pBuffer.readResourceLocation();
-        int maxLiquids = pBuffer.readInt();
-        int maxSolids = pBuffer.readInt();
+        Item baseItem = ForgeRegistries.ITEMS.getValue(itemId);
+        if (baseItem == null || baseItem == Items.AIR) {
+            return null;
+        }
+        int maxLiquids = pBuffer.readVarInt();
+        int maxSolids = pBuffer.readVarInt();
         List<OverlayConfig> overlays = OverlayConfig.fromNetwork(pBuffer);
         int ingredientCount = pBuffer.readVarInt();
-        Item baseItem = ForgeRegistries.ITEMS.getValue(itemId);
-        if (baseItem == null) {
-            throw new IllegalArgumentException("base item not found: " + itemId);
-        }
-        NonNullList<Ingredient> ingredients = NonNullList.create();
-        ingredients.add(Ingredient.of(baseItem));
-        for (int i = 0; i < ingredientCount; i++) {
-            ingredients.add(Ingredient.fromNetwork(pBuffer));
+        NonNullList<Ingredient> ingredients = NonNullList.withSize(ingredientCount, Ingredient.EMPTY);
+        if (ingredientCount != 0) {
+            for (int i = 0; i < ingredientCount; i++) {
+                ingredients.set(i, Ingredient.fromNetwork(pBuffer));
+            }
         }
         return new Design(id, displayName, armorTexture, itemTexture, itemId, maxLiquids, maxSolids, overlays, ingredients);
     }
@@ -94,9 +95,8 @@ public record Design(
         pBuffer.writeResourceLocation(pDesign.armorTexture());
         pBuffer.writeResourceLocation(pDesign.itemTexture());
         pBuffer.writeResourceLocation(pDesign.itemId());
-        pBuffer.writeInt(pDesign.maxLiquids());
-        pBuffer.writeInt(pDesign.maxSolids());
-        pBuffer.writeVarInt(pDesign.overlays().size());
+        pBuffer.writeVarInt(pDesign.maxLiquids());
+        pBuffer.writeVarInt(pDesign.maxSolids());
         OverlayConfig.toNetwork(pBuffer, pDesign.overlays());
         pBuffer.writeVarInt(pDesign.ingredients().size());
         for(Ingredient ingredient : pDesign.ingredients()) {
@@ -108,7 +108,7 @@ public record Design(
     @Override
     public @NotNull String toString() {
         return String.format(
-                "DiaperDesign{"
+                "Design{"
                         + "id=%s"
                         + ",displayName=%s"
                         + ",armorTexture=%s"
@@ -128,8 +128,10 @@ public record Design(
         public static OverlayConfig fromJson(String type, @NotNull JsonObject json) {
             List<String> parts = new ArrayList<>();
             JsonArray partsArray = json.getAsJsonArray("parts");
-            for (JsonElement el : partsArray) {
-                parts.add(el.getAsString());
+            if (partsArray != null) {
+                for (JsonElement el : partsArray) {
+                    parts.add(el.getAsString());
+                }
             }
 
             List<String> fadeColors = new ArrayList<>();
@@ -145,20 +147,20 @@ public record Design(
 
         public static List<OverlayConfig> fromNetwork(FriendlyByteBuf pBuffer) {
             int count = pBuffer.readVarInt();
-            List<OverlayConfig> overlays = new ArrayList<>(count);
+            List<OverlayConfig> overlays = new ArrayList<>();
             for (int i = 0; i < count; i++) {
                 String type = pBuffer.readUtf();
                 int partCount = pBuffer.readVarInt();
                 List<String> parts = new ArrayList<>(partCount);
                 for (int part = 0; part < partCount; part++) {
-                    parts.set(part, pBuffer.readUtf());
+                    parts.add(pBuffer.readUtf());
                 }
                 int fadeColorCount = pBuffer.readVarInt();
-                List<String> fadeColors = new ArrayList<>(fadeColorCount);
+                List<String> fadeColors = new ArrayList<>();
                 for (int color = 0; color < fadeColorCount; color++) {
-                    fadeColors.set(color, pBuffer.readUtf());
+                    fadeColors.add(pBuffer.readUtf());
                 }
-                overlays.set(i, new OverlayConfig(type, parts, fadeColors));
+                overlays.add(new OverlayConfig(type, parts, fadeColors));
             }
             return overlays;
         }

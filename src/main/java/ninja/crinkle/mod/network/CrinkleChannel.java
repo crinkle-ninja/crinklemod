@@ -4,6 +4,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
 import ninja.crinkle.mod.CrinkleMod;
+import ninja.crinkle.mod.network.messages.DesignsUpdateMessage;
 import ninja.crinkle.mod.network.messages.MetabolismUpdateMessage;
 import ninja.crinkle.mod.network.messages.UndergarmentUpdateMessage;
 
@@ -28,12 +29,17 @@ public class CrinkleChannel {
         INSTANCE.messageBuilder(MetabolismUpdateMessage.class, ++id)
                 .decoder(MetabolismUpdateMessage::decoder)
                 .encoder(MetabolismUpdateMessage::encoder)
-                .consumerMainThread(MetabolismUpdateMessage::messageConsumer)
+                .consumerNetworkThread(MetabolismUpdateMessage::messageConsumer)
                 .add();
         INSTANCE.messageBuilder(UndergarmentUpdateMessage.class, ++id)
                 .decoder(UndergarmentUpdateMessage::decoder)
                 .encoder(UndergarmentUpdateMessage::encoder)
-                .consumerMainThread(UndergarmentUpdateMessage::messageConsumer)
+                .consumerNetworkThread(UndergarmentUpdateMessage::messageConsumer)
+                .add();
+        INSTANCE.messageBuilder(DesignsUpdateMessage.class, ++id)
+                .decoder(DesignsUpdateMessage::decoder)
+                .encoder(DesignsUpdateMessage::encoder)
+                .consumerNetworkThread(DesignsUpdateMessage::messageConsumer)
                 .add();
     }
 }

@@ -1,5 +1,6 @@
 package ninja.crinkle.mod.events.handlers;
 
+import com.mojang.logging.LogUtils;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
@@ -12,6 +13,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LayeredCauldronBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraftforge.event.OnDatapackSyncEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
@@ -19,30 +21,46 @@ import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.MissingMappingsEvent;
 import ninja.crinkle.mod.CrinkleMod;
 import ninja.crinkle.mod.client.gui.overlays.CrinkleOverlay;
 import ninja.crinkle.mod.items.CrinkleItems;
 import ninja.crinkle.mod.metabolism.Metabolism;
+import ninja.crinkle.mod.network.CrinkleChannel;
+import ninja.crinkle.mod.network.messages.DesignsUpdateMessage;
 import ninja.crinkle.mod.recipes.DesignRecipe;
 import ninja.crinkle.mod.undergarment.Design;
 import ninja.crinkle.mod.undergarment.DesignRegistry;
 import ninja.crinkle.mod.undergarment.Undergarment;
 import ninja.crinkle.mod.util.ClientUtil;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
 
 import java.util.List;
 
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE, modid = CrinkleMod.MODID)
 public class CrinkleForgeBusEvents {
-
+    private static final Logger LOGGER = LogUtils.getLogger();
     @SubscribeEvent
     public static void onEntityJoinLevel(EntityJoinLevelEvent event) {
         if (event.getEntity() instanceof Player p && (ClientUtil.isDedicatedServer()
                 || ClientUtil.getMinecraft().isLocalServer())) {
             Metabolism.wetOf(p).syncClient();
             Metabolism.messOf(p).syncClient();
+        }
+    }
+
+    @SubscribeEvent
+    public static void onDatapackSync(OnDatapackSyncEvent event) {
+        DesignsUpdateMessage packet = new DesignsUpdateMessage(DesignRegistry.getAllDesigns());
+        if (event.getPlayer() != null) {
+            LOGGER.debug("Syncing designs to {}", event.getPlayer().getName());
+            CrinkleChannel.INSTANCE.send(PacketDistributor.PLAYER.with(event::getPlayer), packet);
+        } else {
+            LOGGER.debug("Syncing designs to everyone");
+            CrinkleChannel.INSTANCE.send(PacketDistributor.ALL.noArg(), packet);
         }
     }
 

@@ -6,7 +6,6 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.loading.FMLLoader;
 import ninja.crinkle.mod.client.ClientHooks;
-import ninja.crinkle.mod.client.textures.Textures;
 
 import java.util.Optional;
 
@@ -24,7 +23,7 @@ public class ClientUtil {
     }
 
     public static void rebuildTextures() {
-        DistExecutor.safeRunWhenOn(Dist.CLIENT, () -> Textures::rebuildGenerators);
+        DistExecutor.safeRunWhenOn(Dist.CLIENT, () -> ClientHooks::rebuildGenerators);
     }
 
     public static void setClipboard(String text) {
