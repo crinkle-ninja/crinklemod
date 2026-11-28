@@ -2,6 +2,11 @@
   "display_name": "Peekabu Raccoon",
   "armor_texture": "crinklemod:armor/diaper_peekaburaccoon",
   "item_texture": "crinklemod:item/diaper_peekaburaccoon",
+  "base_item": "crinklemod:diaper",
+  "ingredients": [
+    {"tag":  "forge:dyes/gray"},
+    {"tag":  "forge:dyes/gray"}
+  ],
   "stats": {
     "max_liquids": 5,
     "max_solids": 3

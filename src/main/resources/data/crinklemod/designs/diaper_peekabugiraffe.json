@@ -2,6 +2,11 @@
   "display_name": "Peekabu Giraffe",
   "armor_texture": "crinklemod:armor/diaper_peekabugiraffe",
   "item_texture": "crinklemod:item/diaper_peekabugiraffe",
+  "base_item": "crinklemod:diaper",
+  "ingredients": [
+    {"tag":  "forge:dyes/yellow"},
+    {"tag":  "forge:dyes/yellow"}
+  ],
   "stats": {
     "max_liquids": 5,
     "max_solids": 3

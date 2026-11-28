@@ -2,6 +2,11 @@
   "display_name": "Try Agains Osito",
   "armor_texture": "crinklemod:armor/diaper_tryagainsosito",
   "item_texture": "crinklemod:item/diaper_tryagainsosito",
+  "base_item": "crinklemod:diaper",
+  "ingredients": [
+    {"tag":  "forge:dyes/orange"},
+    {"tag":  "forge:dyes/yellow"}
+  ],
   "stats": {
     "max_liquids": 5,
     "max_solids": 3

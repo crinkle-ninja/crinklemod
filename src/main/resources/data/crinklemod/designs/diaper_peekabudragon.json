@@ -2,6 +2,11 @@
   "display_name": "Peekabu Dragon",
   "armor_texture": "crinklemod:armor/diaper_peekabudragon",
   "item_texture": "crinklemod:item/diaper_peekabudragon",
+  "base_item": "crinklemod:diaper",
+  "ingredients": [
+    {"tag":  "forge:dyes/green"},
+    {"tag":  "forge:dyes/green"}
+  ],
   "stats": {
     "max_liquids": 5,
     "max_solids": 3

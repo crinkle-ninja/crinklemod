@@ -25,10 +25,9 @@ public class DiaperItemModelLoader {
     @SubscribeEvent
     public static void onRegisterAdditionalModels(ModelEvent.RegisterAdditional event) {
         var resourceManager = Minecraft.getInstance().getResourceManager();
-        resourceManager.listResources("models/diaper_design", loc ->
+        resourceManager.listResources("models/design", loc ->
                 loc.getNamespace().equals(CrinkleMod.MODID) && loc.getPath().endsWith(".json")
         ).keySet().forEach(modelFile -> {
-            // modelFile = crinklemod:models/diaper_design/diaper_littlepawz.json
             String modelPath = modelFile.getPath()
                     .replace("models/", "")
                     .replace(".json", "");
@@ -51,11 +50,8 @@ public class DiaperItemModelLoader {
 
         DiaperItemModel wrappedModel = new DiaperItemModel(originalModel);
 
-        // Map each registered design model by its texture path (item_texture in design JSON)
         for (ResourceLocation modelId : registeredModelIds) {
-            // modelId = crinklemod:diaper_design/diaper_little_pawz
-            // item_texture in design JSON = crinklemod:item/diaper_little_pawz
-            String fileName = modelId.getPath().replace("diaper_design/", "");
+            String fileName = modelId.getPath().replace("design/", "");
             ResourceLocation itemTexture = CrinkleMod.loc("item/" + fileName);
 
             BakedModel bakedModel = event.getModels().get(modelId);

@@ -17,7 +17,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.client.model.data.ModelData;
 import ninja.crinkle.mod.items.custom.UndergarmentArmorItem;
-import ninja.crinkle.mod.undergarment.DiaperDesign;
+import ninja.crinkle.mod.undergarment.Design;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -93,11 +93,7 @@ public class DiaperItemModel implements BakedModel {
         public BakedModel resolve(@NotNull BakedModel model, @NotNull ItemStack stack,
                                   @Nullable ClientLevel level, @Nullable LivingEntity entity, int seed) {
             if (stack.getItem() instanceof UndergarmentArmorItem) {
-                DiaperDesign design = UndergarmentArmorItem.getDesign(stack, true);
-                if (design == null) {
-                    // Fall back to server-side registry if client hasn't synced yet
-                    design = UndergarmentArmorItem.getDesign(stack, false);
-                }
+                Design design = UndergarmentArmorItem.getDesign(stack);
                 if (design != null) {
                     BakedModel designModel = designModels.get(design.itemTexture());
                     if (designModel != null) {

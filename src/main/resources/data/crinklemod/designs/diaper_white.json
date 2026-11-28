@@ -2,6 +2,10 @@
   "display_name": "Diaper",
   "armor_texture": "crinklemod:armor/diaper_white",
   "item_texture": "crinklemod:item/diaper_white",
+  "base_item": "crinklemod:diaper",
+  "ingredients": [
+    {"tag":  "forge:dyes/white"}
+  ],
   "stats": {
     "max_liquids": 5,
     "max_solids": 3

@@ -86,6 +86,9 @@ minecraft {
                 property 'forge.logging.console.level', 'debug'
             }
 
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
+
             property "geckolib.disable_examples", 'true'
 
             mods {
@@ -165,13 +168,14 @@ dependencies {
     compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge-api:${jei_version}")
     runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge:${jei_version}")
     implementation fg.deobf("software.bernie.geckolib:geckolib-forge-${minecraft_version}:${geckolib_version}")
-    // implementation fg.deobf("mcjty.theoneprobe:theoneprobe:${top_version}") { transitive = false}
     implementation fg.deobf("curse.maven:theoneprobe-245211:6106996")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:${junit_version}")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junit_version}")
     testImplementation("org.mockito:mockito-core:${mockito_version}")
     testImplementation("org.mockito:mockito-junit-jupiter:${mockito_version}")
+
+    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
     // Source: https://mvnrepository.com/artifact/com.opencsv/opencsv
     implementation("com.opencsv:opencsv:5.12.0")
@@ -184,6 +188,11 @@ dependencies {
     // For more info:
     // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
     // http://www.gradle.org/docs/current/userguide/dependency_management.html
+}
+
+mixin {
+    add sourceSets.main, "${mod_id}.refmap.json"
+    config "${mod_id}.mixins.json"
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.

@@ -12,8 +12,9 @@ import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import ninja.crinkle.mod.CrinkleMod;
 import ninja.crinkle.mod.client.models.DiaperArmorModel;
 import ninja.crinkle.mod.client.renderers.DiaperArmorRenderer;
-import ninja.crinkle.mod.undergarment.DiaperDesign;
-import ninja.crinkle.mod.undergarment.DiaperDesignRegistry;
+import ninja.crinkle.mod.client.renderers.UndergarmentArmorRenderer;
+import ninja.crinkle.mod.undergarment.Design;
+import ninja.crinkle.mod.undergarment.DesignRegistry;
 import ninja.crinkle.mod.undergarment.Undergarment;
 import ninja.crinkle.mod.util.MathUtil;
 import org.jetbrains.annotations.NotNull;
@@ -46,7 +47,7 @@ public class UndergarmentArmorItem extends ArmorItem implements GeoItem {
         if (tag != null && tag.contains(DESIGN_TAG)) {
             return ResourceLocation.parse(tag.getString(DESIGN_TAG));
         }
-        return DiaperDesignRegistry.PLAIN_ID;
+        return DesignRegistry.PLAIN_ID;
     }
 
     public static void setDesignId(@NotNull ItemStack stack, @NotNull ResourceLocation designId) {
@@ -54,13 +55,13 @@ public class UndergarmentArmorItem extends ArmorItem implements GeoItem {
     }
 
     @Nullable
-    public static DiaperDesign getDesign(@NotNull ItemStack stack, boolean clientSide) {
-        return DiaperDesignRegistry.getDesign(getDesignId(stack), clientSide).orElse(null);
+    public static Design getDesign(@NotNull ItemStack stack) {
+        return DesignRegistry.getDesign(getDesignId(stack)).orElse(null);
     }
 
     @Override
     public @NotNull Component getName(@NotNull ItemStack stack) {
-        DiaperDesign design = getDesign(stack, false);
+        Design design = getDesign(stack);
         if (design != null) {
             return Component.translatable(design.displayName());
         }
@@ -68,13 +69,13 @@ public class UndergarmentArmorItem extends ArmorItem implements GeoItem {
     }
 
     public ResourceLocation getTexture() {
-        return DiaperDesignRegistry.PLAIN_ID;
+        return DesignRegistry.PLAIN_ID;
     }
 
     @Override
     public void initializeClient(@NotNull Consumer<IClientItemExtensions> consumer) {
         consumer.accept(new IClientItemExtensions() {
-            private DiaperArmorRenderer renderer = null;
+            private UndergarmentArmorRenderer renderer = null;
 
             @Override
             public @NotNull HumanoidModel<?> getHumanoidArmorModel(LivingEntity livingEntity, ItemStack itemStack,

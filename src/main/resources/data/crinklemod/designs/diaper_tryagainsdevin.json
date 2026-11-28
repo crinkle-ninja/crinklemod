@@ -1,7 +1,12 @@
 {
-  "display_name": "Petals (Striped)",
-  "armor_texture": "crinklemod:armor/diaper_petalsstripe",
-  "item_texture": "crinklemod:item/diaper_petalsstripe",
+  "display_name": "Try Agains Devin",
+  "armor_texture": "crinklemod:armor/diaper_tryagainsdevin",
+  "item_texture": "crinklemod:item/diaper_tryagainsdevin",
+  "base_item": "crinklemod:diaper",
+  "ingredients": [
+    {"tag":  "forge:dyes/lime"},
+    {"tag":  "forge:dyes/cyan"}
+  ],
   "stats": {
     "max_liquids": 5,
     "max_solids": 3
@@ -9,14 +14,11 @@
   "texture_overlays": {
     "wet": {
       "parts": [
-        "FRONT",
         "FRONT_BOTTOM",
         "BOTTOM"
       ],
       "fade_colors": [
-        "#fff4ff", 
-        "#fdceff", 
-        "#fee3ff"
+        "#b7ebfe"
       ]
     },
     "mess": {
@@ -25,8 +27,7 @@
         "BACK_BOTTOM"
       ],
       "fade_colors": [
-        "#fdceff", 
-        "#fee3ff"
+        "#b7ebfe"
       ]
     }
   }

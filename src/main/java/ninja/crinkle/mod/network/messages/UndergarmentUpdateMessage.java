@@ -7,10 +7,9 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.network.NetworkEvent;
 import ninja.crinkle.mod.capabilities.IUndergarment;
-import ninja.crinkle.mod.undergarment.DiaperDesign;
-import ninja.crinkle.mod.undergarment.DiaperDesignRegistry;
+import ninja.crinkle.mod.undergarment.Design;
+import ninja.crinkle.mod.undergarment.DesignRegistry;
 import ninja.crinkle.mod.undergarment.Undergarment;
-import ninja.crinkle.mod.util.ClientUtil;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,7 +40,7 @@ public class UndergarmentUpdateMessage {
         this.solids = undergarment.getSolids();
         this.maxLiquids = undergarment.getMaxLiquids();
         this.maxSolids = undergarment.getMaxSolids();
-        this.design = undergarment.getDesign().map(DiaperDesign::id).orElse(null);
+        this.design = undergarment.getDesign().map(Design::id).orElse(null);
     }
 
     UndergarmentUpdateMessage(@NotNull FriendlyByteBuf buffer) {
@@ -121,12 +120,8 @@ public class UndergarmentUpdateMessage {
             undergarment.setMaxSolids(this.maxSolids);
         }
         if (this.design != null) {
-            DiaperDesign design;
-            if (ClientUtil.isClient()) {
-                design = DiaperDesignRegistry.getClientDesigns().get(this.design);
-            } else {
-                design = DiaperDesignRegistry.getServerDesigns().get(this.design);
-            }
+            Design design;
+            design = DesignRegistry.getDesigns().get(this.design);
             if (design != null) {
                 undergarment.setDesign(design);
             }

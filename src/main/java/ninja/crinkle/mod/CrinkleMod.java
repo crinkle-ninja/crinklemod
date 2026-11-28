@@ -18,6 +18,7 @@ import ninja.crinkle.mod.items.CrinkleItems;
 import ninja.crinkle.mod.items.CrinkleTabs;
 import ninja.crinkle.mod.menus.CrinkleMenus;
 import ninja.crinkle.mod.network.CrinkleChannel;
+import ninja.crinkle.mod.recipes.CrinkleRecipeSerializers;
 import ninja.crinkle.mod.sounds.CrinkleSounds;
 import software.bernie.geckolib.GeckoLib;
 
@@ -59,6 +60,7 @@ public class CrinkleMod {
         CrinkleSounds.register(modEventBus);
         CrinkleBlocks.register(modEventBus);
         CrinkleItems.register(modEventBus);
+        CrinkleRecipeSerializers.register(modEventBus);
         CrinkleTabs.register(modEventBus);
         CrinkleMenus.register(modEventBus);
 

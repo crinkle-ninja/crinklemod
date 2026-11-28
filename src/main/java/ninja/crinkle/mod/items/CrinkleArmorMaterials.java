@@ -10,12 +10,13 @@ import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.ArmorMaterials;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
+import ninja.crinkle.mod.CrinkleMod;
 
 import java.util.EnumMap;
 import java.util.function.Supplier;
 
 public enum CrinkleArmorMaterials implements StringRepresentable, ArmorMaterial {
-    DIAPER("diaper", 60, Util.make(new EnumMap<>(ArmorItem.Type.class),
+    DIAPER(CrinkleMod.MODID + ":diaper", 60, Util.make(new EnumMap<>(ArmorItem.Type.class),
             (map) -> map.put(ArmorItem.Type.LEGGINGS, 8)), 15, SoundEvents.ARMOR_EQUIP_LEATHER,
             8.0F, 0.5F, () -> Ingredient.of(Items.WHITE_WOOL));
 

@@ -5,8 +5,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import ninja.crinkle.mod.config.UndergarmentConfig;
 import ninja.crinkle.mod.items.custom.UndergarmentArmorItem;
-import ninja.crinkle.mod.undergarment.DiaperDesign;
-import ninja.crinkle.mod.undergarment.DiaperDesignRegistry;
+import ninja.crinkle.mod.undergarment.Design;
+import ninja.crinkle.mod.undergarment.DesignRegistry;
 import ninja.crinkle.mod.undergarment.Undergarment;
 import ninja.crinkle.mod.util.MathUtil;
 
@@ -22,10 +22,10 @@ public class UndergarmentImpl implements IUndergarment {
     private int maxLiquids;
     private int maxSolids;
     private int solids;
-    private DiaperDesign design;
+    private Design design;
 
     public UndergarmentImpl(ItemStack stack) {
-        Optional.ofNullable(UndergarmentArmorItem.getDesign(stack, false)).ifPresent(this::setDesign);
+        Optional.ofNullable(UndergarmentArmorItem.getDesign(stack)).ifPresent(this::setDesign);
         getDesign().ifPresentOrElse(d -> {
             setMaxLiquids(Optional.ofNullable(d.maxLiquids()).orElse(UndergarmentConfig.getDefaultMaxLiquids()));
             setMaxSolids(Optional.ofNullable(d.maxSolids()).orElse(UndergarmentConfig.getDefaultMaxSolids()));
@@ -35,11 +35,11 @@ public class UndergarmentImpl implements IUndergarment {
         });
     }
 
-    public Optional<DiaperDesign> getDesign() {
+    public Optional<Design> getDesign() {
         return Optional.ofNullable(design);
     }
 
-    public void setDesign(DiaperDesign design) {
+    public void setDesign(Design design) {
         this.design = design;
     }
 
@@ -112,7 +112,7 @@ public class UndergarmentImpl implements IUndergarment {
             maxSolids = nbt.getInt(NBT_KEY_MAX_SOLIDS);
         if (nbt.contains(NBT_KEY_DESIGN)) {
             ResourceLocation designId = ResourceLocation.parse(nbt.getString(NBT_KEY_DESIGN));
-            DiaperDesignRegistry.getDesign(designId, true).ifPresent(this::setDesign);
+            DesignRegistry.getDesign(designId).ifPresent(this::setDesign);
         }
         setLiquids(nbt.getInt(NBT_KEY_LIQUIDS));
         setSolids(nbt.getInt(NBT_KEY_SOLIDS));
