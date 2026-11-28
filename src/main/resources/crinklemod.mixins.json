@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "ninja.crinkle.mod.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "refmap": "crinklemod.refmap.json",
+  "mixins": [
+    "RecipeManagerMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

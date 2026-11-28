@@ -22,6 +22,10 @@ public class ClientUtil {
         return Dist.DEDICATED_SERVER == FMLLoader.getDist();
     }
 
+    public static void rebuildTextures() {
+        DistExecutor.safeRunWhenOn(Dist.CLIENT, () -> ClientHooks::rebuildGenerators);
+    }
+
     public static void setClipboard(String text) {
         getMinecraft().keyboardHandler.setClipboard(text);
     }

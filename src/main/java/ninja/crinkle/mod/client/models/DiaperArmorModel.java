@@ -6,14 +6,16 @@ import ninja.crinkle.mod.items.custom.UndergarmentArmorItem;
 import software.bernie.geckolib.model.GeoModel;
 
 public class DiaperArmorModel extends GeoModel<UndergarmentArmorItem> {
+    public static final ResourceLocation DEFAULT_TEXTURE =
+            CrinkleMod.loc("textures/armor/diaper_white.png");
     @Override
     public ResourceLocation getModelResource(UndergarmentArmorItem animatable) {
-        return ResourceLocation.fromNamespaceAndPath(CrinkleMod.MODID, "geo/armor/diaper.geo.json");
+        return CrinkleMod.loc("geo/armor/diaper.geo.json");
     }
 
     @Override
     public ResourceLocation getTextureResource(UndergarmentArmorItem animatable) {
-        return animatable.getTexture();
+        return DEFAULT_TEXTURE;
     }
 
     @Override

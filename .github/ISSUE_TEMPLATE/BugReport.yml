@@ -1,6 +1,5 @@
 name: "🐛 Bug Report"
 description: Create a new ticket for a bug.
-title: "🐛 [BUG] - <title>"
 labels: [
   "bug"
 ]
@@ -18,7 +17,7 @@ body:
     attributes:
       label: "Reproduction steps"
       description: Please enter an explicit description of your issue
-      value: |
+      placeholder: |
         1. Go to '...'
         2. Click on '....'
         3. Scroll down to '....'
@@ -27,20 +26,20 @@ body:
     validations:
       required: true
   - type: textarea
-    id: screenshot
-    attributes:
-      label: "Screenshots"
-      description: If applicable, add screenshots to help explain your problem.
-      value: |
-        ![DESCRIPTION](LINK.png)
-      render: bash
-    validations:
-      required: false
-  - type: textarea
     id: logs
     attributes:
       label: "Logs"
       description: Please copy and paste any relevant log output. This will be automatically formatted into code, so no need for backticks.
+      render: bash
+    validations:
+      required: true
+  - type: textarea
+    id: screenshot
+    attributes:
+      label: "Screenshots"
+      description: If applicable, add screenshots to help explain your problem.
+      placeholder: |
+        ![DESCRIPTION](LINK.png)
       render: bash
     validations:
       required: false

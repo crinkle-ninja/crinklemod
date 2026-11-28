@@ -1,43 +1,48 @@
 package ninja.crinkle.mod.events.handlers;
 
+import com.mojang.logging.LogUtils;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LayeredCauldronBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.OnDatapackSyncEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.event.config.ModConfigEvent;
 import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.MissingMappingsEvent;
 import ninja.crinkle.mod.CrinkleMod;
 import ninja.crinkle.mod.client.gui.overlays.CrinkleOverlay;
-import ninja.crinkle.mod.client.textures.Textures;
 import ninja.crinkle.mod.items.CrinkleItems;
 import ninja.crinkle.mod.metabolism.Metabolism;
 import ninja.crinkle.mod.network.CrinkleChannel;
-import ninja.crinkle.mod.network.messages.DiaperDesignSyncMessage;
-import ninja.crinkle.mod.undergarment.DiaperDesignRegistry;
+import ninja.crinkle.mod.network.messages.DesignsUpdateMessage;
+import ninja.crinkle.mod.recipes.DesignRecipe;
+import ninja.crinkle.mod.undergarment.Design;
+import ninja.crinkle.mod.undergarment.DesignRegistry;
 import ninja.crinkle.mod.undergarment.Undergarment;
 import ninja.crinkle.mod.util.ClientUtil;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+
+import java.util.List;
 
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE, modid = CrinkleMod.MODID)
 public class CrinkleForgeBusEvents {
-
+    private static final Logger LOGGER = LogUtils.getLogger();
     @SubscribeEvent
     public static void onEntityJoinLevel(EntityJoinLevelEvent event) {
         if (event.getEntity() instanceof Player p && (ClientUtil.isDedicatedServer()
@@ -48,17 +53,14 @@ public class CrinkleForgeBusEvents {
     }
 
     @SubscribeEvent
-    public static void onAddReloadListeners(@NotNull AddReloadListenerEvent event) {
-        event.addListener(new DiaperDesignRegistry());
-    }
-
-    @SubscribeEvent
-    public static void onDatapackSync(@NotNull OnDatapackSyncEvent event) {
-        DiaperDesignSyncMessage message = DiaperDesignSyncMessage.fromServerRegistry();
+    public static void onDatapackSync(OnDatapackSyncEvent event) {
+        DesignsUpdateMessage packet = new DesignsUpdateMessage(DesignRegistry.getAllDesigns());
         if (event.getPlayer() != null) {
-            CrinkleChannel.INSTANCE.send(PacketDistributor.PLAYER.with(event::getPlayer), message);
+            LOGGER.debug("Syncing designs to {}", event.getPlayer().getName());
+            CrinkleChannel.INSTANCE.send(PacketDistributor.PLAYER.with(event::getPlayer), packet);
         } else {
-            CrinkleChannel.INSTANCE.send(PacketDistributor.ALL.noArg(), message);
+            LOGGER.debug("Syncing designs to everyone");
+            CrinkleChannel.INSTANCE.send(PacketDistributor.ALL.noArg(), packet);
         }
     }
 
@@ -89,9 +91,14 @@ public class CrinkleForgeBusEvents {
     }
 
     @SubscribeEvent
-    public static void onConfigReload(ModConfigEvent.Reloading event) {
-        if (event.getConfig().getType() == ModConfig.Type.CLIENT) {
-            Textures.rebuildGenerators();
+    public static void onItemPickupEvent(PlayerEvent.ItemPickupEvent event) {
+        List<Design> designs = DesignRegistry.getDesignsForItem(event.getStack());
+        Player player = event.getEntity();
+        if (player instanceof ServerPlayer serverPlayer) {
+            List<Recipe<?>> designRecipes = serverPlayer.server.getRecipeManager().getRecipes().stream()
+                    .filter(r -> r instanceof DesignRecipe recipe && designs.contains(recipe.design()))
+                    .toList();
+            serverPlayer.awardRecipes(designRecipes);
         }
     }
 

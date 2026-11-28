@@ -1,6 +1,5 @@
 package ninja.crinkle.mod;
 
-import com.mojang.logging.LogUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraftforge.common.MinecraftForge;
@@ -19,8 +18,8 @@ import ninja.crinkle.mod.items.CrinkleItems;
 import ninja.crinkle.mod.items.CrinkleTabs;
 import ninja.crinkle.mod.menus.CrinkleMenus;
 import ninja.crinkle.mod.network.CrinkleChannel;
+import ninja.crinkle.mod.recipes.CrinkleRecipeSerializers;
 import ninja.crinkle.mod.sounds.CrinkleSounds;
-import software.bernie.example.GeckoLibMod;
 import software.bernie.geckolib.GeckoLib;
 
 import java.time.LocalDateTime;
@@ -45,7 +44,6 @@ public class CrinkleMod {
 
     static {
         startTime = LocalDateTime.now();
-        LogUtils.getLogger().debug("{} = {}", GeckoLibMod.DISABLE_EXAMPLES_PROPERTY_KEY, Boolean.getBoolean(GeckoLibMod.DISABLE_EXAMPLES_PROPERTY_KEY));
     }
 
     public CrinkleMod(FMLJavaModLoadingContext context) {
@@ -62,6 +60,7 @@ public class CrinkleMod {
         CrinkleSounds.register(modEventBus);
         CrinkleBlocks.register(modEventBus);
         CrinkleItems.register(modEventBus);
+        CrinkleRecipeSerializers.register(modEventBus);
         CrinkleTabs.register(modEventBus);
         CrinkleMenus.register(modEventBus);
 

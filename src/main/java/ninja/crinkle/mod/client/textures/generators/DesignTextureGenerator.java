@@ -6,7 +6,7 @@ import net.minecraft.world.entity.player.Player;
 import ninja.crinkle.mod.client.color.Color;
 import ninja.crinkle.mod.client.models.DiaperArmorModel;
 import ninja.crinkle.mod.config.ClientConfig;
-import ninja.crinkle.mod.undergarment.DiaperDesign;
+import ninja.crinkle.mod.undergarment.Design;
 import ninja.crinkle.mod.undergarment.Undergarment;
 import ninja.crinkle.mod.util.MathUtil;
 import org.jetbrains.annotations.NotNull;
@@ -22,14 +22,14 @@ import java.util.stream.Collectors;
  * The DiaperTextureGenerator class is responsible for generating diaper textures based on the fullness of the diaper.
  * It implements the TextureGenerator interface and specifically generates textures for Undergarment objects.
  */
-public class DiaperTextureGenerator implements TextureGenerator<Undergarment> {
+public class DesignTextureGenerator implements TextureGenerator<Undergarment> {
     private static final Logger LOGGER = LogUtils.getLogger();
     private final Map<Integer, Color> fillColors;
     private final EnumSet<Part> parts = EnumSet.noneOf(Part.class);
     private final Function<Undergarment, Double> percentFunction;
     private final int[] fadeABGR; // pre-computed for fast pixel-loop matching
 
-    public DiaperTextureGenerator(Function<Undergarment, Double> percentFunction, Map<Integer, Color> fillColors,
+    public DesignTextureGenerator(Function<Undergarment, Double> percentFunction, Map<Integer, Color> fillColors,
                                   Set<Color> fadeColors, List<Part> parts) {
         this.percentFunction = percentFunction;
         this.parts.addAll(parts);
@@ -38,11 +38,11 @@ public class DiaperTextureGenerator implements TextureGenerator<Undergarment> {
     }
 
 
-    public static TextureGenerator<?> buildGenerator(@NotNull DiaperDesign design) {
+    public static TextureGenerator<?> buildGenerator(@NotNull Design design) {
         if (design.overlays().isEmpty()) return null;
 
         TextureGenerator<Undergarment> combined = null;
-        for (DiaperDesign.OverlayConfig overlay : design.overlays()) {
+        for (Design.OverlayConfig overlay : design.overlays()) {
             Map<Integer, Color> fillColors;
             Function<Undergarment, Double> percentFn;
 
@@ -62,9 +62,9 @@ public class DiaperTextureGenerator implements TextureGenerator<Undergarment> {
             }
 
             final Set<Color> fadeColors = overlay.fadeColors().stream().map(Color::of).collect(Collectors.toSet());
-            final List<DiaperTextureGenerator.Part> parts = overlay.parts().stream().map(Part::fromString)
+            final List<DesignTextureGenerator.Part> parts = overlay.parts().stream().map(Part::fromString)
                     .filter(part -> !part.equals(Part.NONE)).toList();
-            DiaperTextureGenerator gen = new DiaperTextureGenerator(percentFn, fillColors, fadeColors, parts);
+            DesignTextureGenerator gen = new DesignTextureGenerator(percentFn, fillColors, fadeColors, parts);
             combined = combined == null ? gen : combined.andThen(gen);
         }
         return combined;
@@ -128,22 +128,25 @@ public class DiaperTextureGenerator implements TextureGenerator<Undergarment> {
     private void applyPixels(NativeImage pImage, Data pData, PixelConsumer applyFunction) {
         NativeImage original = pData.getOriginalImage();
         BakedGeoModel model = pData.model().getBakedModel(pData.model().getModelResource(null));
-        parts.forEach(part -> model.getBone(part.getBone()).ifPresentOrElse(b -> b.getCubes().forEach(c ->
-                List.of(c.quads()).forEach(f -> {
-                    List<GeoVertex> vertices = new ArrayList<>(List.of(f.vertices()));
-                    vertices.sort(Comparator.comparingDouble(GeoVertex::texU).
-                            thenComparingDouble(GeoVertex::texV));
-                    GeoVertex v1 = vertices.get(0);
-                    GeoVertex v2 = vertices.get(vertices.size() - 1);
-                    int x = (int) (v1.texU() * pImage.getWidth());
-                    int y = (int) (v1.texV() * pImage.getHeight());
-                    int width = (int) ((v2.texU() - v1.texU()) * pImage.getWidth());
-                    int height = (int) ((v2.texV() - v1.texV()) * pImage.getHeight());
-                    for (int i = 0; i < width; i++) {
-                        for (int j = 0; j < height; j++) {
-                            applyFunction.accept(pImage, x + i, y + j, original);
+        parts.forEach(part -> model.getBone(part.getBone()).ifPresentOrElse(b -> b.getCubes().forEach(cube ->
+                Optional.ofNullable(cube.quads()).ifPresent(quads -> {
+                    //noinspection NullableProblems
+                    List.of(quads).forEach(f -> {
+                        List<GeoVertex> vertices = new ArrayList<>(List.of(f.vertices()));
+                        vertices.sort(Comparator.comparingDouble(GeoVertex::texU).
+                                thenComparingDouble(GeoVertex::texV));
+                        GeoVertex v1 = vertices.get(0);
+                        GeoVertex v2 = vertices.get(vertices.size() - 1);
+                        int x = (int) (v1.texU() * pImage.getWidth());
+                        int y = (int) (v1.texV() * pImage.getHeight());
+                        int width = (int) ((v2.texU() - v1.texU()) * pImage.getWidth());
+                        int height = (int) ((v2.texV() - v1.texV()) * pImage.getHeight());
+                        for (int i = 0; i < width; i++) {
+                            for (int j = 0; j < height; j++) {
+                                applyFunction.accept(pImage, x + i, y + j, original);
+                            }
                         }
-                    }
+                    });
                 })), () -> LOGGER.warn("Could not find bone: {}", part.getBone())));
     }
 
@@ -210,6 +213,7 @@ public class DiaperTextureGenerator implements TextureGenerator<Undergarment> {
                     MathUtil.twenties((int) (undergarment.getLiquidsPercent() * 100)), 0, 100);
             int pctS = MathUtil.clamp(
                     MathUtil.twenties((int) (undergarment.getSolidsPercent() * 100)), 0, 100);
+
             return String.format("%s%s_l%d_s%d",
                     undergarment().getPlayer().map(Player::getEncodeId).orElse("")
                             .replace("-", ""),

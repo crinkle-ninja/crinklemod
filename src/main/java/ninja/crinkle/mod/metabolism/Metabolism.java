@@ -21,6 +21,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Random;
 
 public class Metabolism {
@@ -155,7 +156,7 @@ public class Metabolism {
     }
 
     private void handleControlDecay() {
-        if (isDelayed()) return;
+        if (isDelayed() || isAccident() || isRelief()) return;
         // Update currentControl based on our slope
         double newControl = Math.max(0, (controlDecay() * tickCount()) + control());
         LOGGER.trace(LogMarkers.MET, "({}) [{}] Control tick: {}", CrinkleEvent.side(), metabolismType,
@@ -165,6 +166,14 @@ public class Metabolism {
         } else {
             currentControl(newControl);
         }
+    }
+
+    private boolean isRelief() {
+        return pang() == Pang.Relief;
+    }
+
+    private boolean isAccident() {
+        return pang() == Pang.Accident;
     }
 
     private void handleDelay() {
@@ -260,7 +269,8 @@ public class Metabolism {
     }
 
     public boolean isNormal() {
-        return pang() == Pang.None;
+        Pang pang = pang();
+        return List.of(Pang.None, Pang.Delay).contains(pang);
     }
 
     public Pang pang() {
@@ -268,7 +278,8 @@ public class Metabolism {
     }
 
     public boolean isPang() {
-        return pang().compareTo(Pang.Relief) > 0;
+        Pang pang = pang();
+        return List.of(Pang.Minor, Pang.Major, Pang.Accident).contains(pang);
     }
 
     private boolean outputCSV() {
@@ -308,7 +319,8 @@ public class Metabolism {
     }
 
     public void pangTick() {
-        pangDuration(pangDuration() - 1);
+        int newDuration = pangDuration() - 1;
+        pangDuration(newDuration);
         CrinkleMod.EVENT_BUS.post(new PangEvent.Tick(player, metabolismType, pang(), pangDuration()));
         LOGGER.trace(LogMarkers.MET, "({}) [{}] {} tick: {}",
                 CrinkleEvent.side(), metabolismType, pang(), this.capability().toString());

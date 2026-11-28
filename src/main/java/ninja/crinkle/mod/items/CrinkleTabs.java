@@ -9,9 +9,8 @@ import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.RegistryObject;
 import ninja.crinkle.mod.CrinkleMod;
 import ninja.crinkle.mod.items.custom.UndergarmentArmorItem;
-import ninja.crinkle.mod.undergarment.DiaperDesign;
-import ninja.crinkle.mod.undergarment.DiaperDesignRegistry;
-import ninja.crinkle.mod.util.ClientUtil;
+import ninja.crinkle.mod.undergarment.Design;
+import ninja.crinkle.mod.undergarment.DesignRegistry;
 
 import java.util.Collection;
 
@@ -24,12 +23,12 @@ public class CrinkleTabs {
                     .icon(() -> new ItemStack(CrinkleItems.DUNNY_BLOCK_ITEM.get()))
                     .displayItems((p, o) -> {
                         o.accept(CrinkleItems.DUNNY_BLOCK_ITEM.get());
-                        Collection<DiaperDesign> designs =
-                                DiaperDesignRegistry.getAllDesigns(ClientUtil.isClient());
+                        Collection<Design> designs =
+                                DesignRegistry.getAllDesigns();
                         if (designs.isEmpty()) {
                             o.accept(CrinkleItems.DIAPER.get());
                         } else {
-                            for (DiaperDesign design : designs) {
+                            for (Design design : designs) {
                                 ItemStack stack = new ItemStack(CrinkleItems.DIAPER.get());
                                 UndergarmentArmorItem.setDesignId(stack, design.id());
                                 o.accept(stack);

@@ -1,7 +1,12 @@
 {
-  "display_name": "Snow Day",
-  "armor_texture": "crinklemod:armor/diaper_snowday",
-  "item_texture": "crinklemod:item/diaper_snowday",
+  "display_name": "Snow Day (Striped)",
+  "armor_texture": "crinklemod:armor/diaper_snowdaystripe",
+  "item_texture": "crinklemod:item/diaper_snowdaystripe",
+  "base_item": "crinklemod:diaper",
+  "ingredients": [
+    {"tag":  "forge:dyes/light_blue"},
+    {"tag":  "forge:dyes/light_blue"}
+  ],
   "stats": {
     "max_liquids": 5,
     "max_solids": 3

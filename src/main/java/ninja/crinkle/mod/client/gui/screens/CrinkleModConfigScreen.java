@@ -17,8 +17,8 @@ import ninja.crinkle.mod.config.ClientConfig;
 import ninja.crinkle.mod.metabolism.Metabolism;
 import ninja.crinkle.mod.metabolism.MetabolismSettings;
 import ninja.crinkle.mod.settings.Setting;
-import ninja.crinkle.mod.undergarment.DiaperDesign;
-import ninja.crinkle.mod.undergarment.DiaperDesignRegistry;
+import ninja.crinkle.mod.undergarment.Design;
+import ninja.crinkle.mod.undergarment.DesignRegistry;
 import ninja.crinkle.mod.undergarment.Undergarment;
 import ninja.crinkle.mod.util.ClientUtil;
 import org.jetbrains.annotations.NotNull;
@@ -248,7 +248,7 @@ public class CrinkleModConfigScreen extends AbstractScreen implements TabActor {
     }
 
     private void buildDesignGrid(VBoxContainer parent, int rowHeight) {
-        Collection<DiaperDesign> designs = DiaperDesignRegistry.getAllDesigns(true);
+        Collection<Design> designs = DesignRegistry.getAllDesigns();
         if (designs.isEmpty()) return;
 
         new Label.Builder(parent)
@@ -276,7 +276,7 @@ public class CrinkleModConfigScreen extends AbstractScreen implements TabActor {
         TextureAtlas blockAtlas = ClientUtil.getMinecraft().getModelManager()
                 .getAtlas(InventoryMenu.BLOCK_ATLAS);
 
-        List<DiaperDesign> designList = new ArrayList<>(designs);
+        List<Design> designList = new ArrayList<>(designs);
         for (int i = 0; i < designList.size(); i += columns) {
             HBoxContainer row = new HBoxContainer.Builder(scroll)
                     .name("design_row_" + (i / columns))
@@ -287,7 +287,7 @@ public class CrinkleModConfigScreen extends AbstractScreen implements TabActor {
                     .pushAndReturn();
 
             for (int j = i; j < Math.min(i + columns, designList.size()); j++) {
-                DiaperDesign design = designList.get(j);
+                Design design = designList.get(j);
                 new IconButton.Builder(row)
                         .atlas(blockAtlas)
                         .texture(design.itemTexture())
@@ -301,7 +301,7 @@ public class CrinkleModConfigScreen extends AbstractScreen implements TabActor {
         }
     }
 
-    private void onDesignSelected(DiaperDesign design, AbstractWidget widget) {
+    private void onDesignSelected(Design design, AbstractWidget widget) {
         ItemStack itemStack = Undergarment.getWornUndergarment(player());
         Undergarment.of(itemStack).setDesign(design);
         Undergarment.of(itemStack).syncServer();

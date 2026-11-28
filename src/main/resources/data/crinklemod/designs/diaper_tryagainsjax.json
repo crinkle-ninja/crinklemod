@@ -1,7 +1,12 @@
 {
-  "display_name": "Petals",
-  "armor_texture": "crinklemod:armor/diaper_petals",
-  "item_texture": "crinklemod:item/diaper_petals",
+  "display_name": "Try Agains Jax",
+  "armor_texture": "crinklemod:armor/diaper_tryagainsjax",
+  "item_texture": "crinklemod:item/diaper_tryagainsjax",
+  "base_item": "crinklemod:diaper",
+  "ingredients": [
+    {"tag":  "forge:dyes/orange"},
+    {"tag":  "forge:dyes/red"}
+  ],
   "stats": {
     "max_liquids": 5,
     "max_solids": 3
@@ -9,14 +14,11 @@
   "texture_overlays": {
     "wet": {
       "parts": [
-        "FRONT",
         "FRONT_BOTTOM",
         "BOTTOM"
       ],
       "fade_colors": [
-        "#fff4ff", 
-        "#fdceff", 
-        "#fee3ff"
+        "#b7ebfe"
       ]
     },
     "mess": {
@@ -25,8 +27,7 @@
         "BACK_BOTTOM"
       ],
       "fade_colors": [
-        "#fdceff", 
-        "#fee3ff"
+        "#b7ebfe"
       ]
     }
   }

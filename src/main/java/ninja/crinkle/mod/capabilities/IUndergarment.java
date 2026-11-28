@@ -1,10 +1,9 @@
 package ninja.crinkle.mod.capabilities;
 
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.util.INBTSerializable;
-import ninja.crinkle.mod.undergarment.DiaperDesign;
+import ninja.crinkle.mod.undergarment.Design;
 
 import java.util.Optional;
 
@@ -27,8 +26,8 @@ public interface IUndergarment extends INBTSerializable<CompoundTag> {
 
     void save(ItemStack stack);
 
-    Optional<DiaperDesign> getDesign();
+    Optional<Design> getDesign();
 
-    void setDesign(DiaperDesign design);
+    void setDesign(Design design);
 
 }

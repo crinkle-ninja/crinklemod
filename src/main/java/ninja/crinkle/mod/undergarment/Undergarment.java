@@ -12,7 +12,7 @@ import ninja.crinkle.mod.api.ServerUpdater;
 import ninja.crinkle.mod.capabilities.IUndergarment;
 import ninja.crinkle.mod.capabilities.UndergarmentImpl;
 import ninja.crinkle.mod.client.textures.Textures;
-import ninja.crinkle.mod.client.textures.generators.DiaperTextureGenerator;
+import ninja.crinkle.mod.client.textures.generators.DesignTextureGenerator;
 import ninja.crinkle.mod.config.UndergarmentConfig;
 import ninja.crinkle.mod.items.custom.UndergarmentArmorItem;
 import ninja.crinkle.mod.network.CrinkleChannel;
@@ -110,12 +110,13 @@ public class Undergarment implements ServerUpdater {
         }
     }
 
-    public Optional<DiaperDesign> getDesign() {
+    public Optional<Design> getDesign() {
         return getCapability(IUndergarment::getDesign).orElse(Optional.empty());
     }
 
-    public void setDesign(DiaperDesign design) {
+    public void setDesign(Design design) {
         saveCapability(c -> c.setDesign(design));
+        UndergarmentArmorItem.setDesignId(getItemStack(), design.id());
     }
 
 
@@ -171,15 +172,19 @@ public class Undergarment implements ServerUpdater {
     public void syncServer() {
         if (ClientUtil.isClient()) {
             LOGGER.debug("sending undergarment data");
-            getUndergarment().ifPresent(u -> CrinkleChannel.INSTANCE.sendToServer(new UndergarmentUpdateMessage(u)));
+            getUndergarment().ifPresent(u ->
+                    CrinkleChannel.INSTANCE.sendToServer(new UndergarmentUpdateMessage(u)));
         }
     }
 
     public ResourceLocation texture() {
-        DiaperDesign design = getDesign().orElse(UndergarmentArmorItem.getDesign(getItemStack(), true));
-        ResourceLocation armorTexture = design != null ? design.armorTexture() : UndergarmentArmorItem.DEFAULT_TEXTURE;
-        DiaperTextureGenerator.Data data =
-                new DiaperTextureGenerator.Data(armorTexture.toString(), UndergarmentArmorItem.SHARED_MODEL, this);
-        return Textures.getInstance().getTexture(armorTexture, data);
+        Design design = getDesign().orElse(UndergarmentArmorItem.getDesign(getItemStack()));
+        ResourceLocation sourceSprite = design != null ? design.armorTexture() : UndergarmentArmorItem.DEFAULT_TEXTURE;
+        String dynamicName = "generated_armor/" +
+                sourceSprite.getNamespace() + "_" +
+                sourceSprite.getPath().replace('/', '_');
+        DesignTextureGenerator.Data data = new DesignTextureGenerator.Data(dynamicName,
+                UndergarmentArmorItem.SHARED_MODEL, this);
+        return Textures.getInstance().getTexture(sourceSprite, data);
     }
 }
